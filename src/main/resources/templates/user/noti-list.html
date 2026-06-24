@@ -127,7 +127,7 @@
                   you"의 차이가 무엇인가요?
                 </p>
               </div>
-              <button class="btn btn-text btn-sm">
+              <button class="btn btn-text btn-sm" aria-label="알림 삭제">
                 <span class="material-symbols-outlined">close</span>
               </button>
             </article>
@@ -286,7 +286,7 @@
 
       // Remove notification
       document
-        .querySelectorAll(".notification-item .btn-close")
+        .querySelectorAll(".notification-item .btn")
         .forEach((btn) => {
           btn.addEventListener("click", (e) => {
             e.currentTarget.closest(".notification-item").remove();

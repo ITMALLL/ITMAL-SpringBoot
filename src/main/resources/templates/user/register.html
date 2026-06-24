@@ -334,16 +334,9 @@
           return;
         }
 
-        console.log("Register data:", {
-          email: document.getElementById("email").value,
-          nickname: document.getElementById("nickname").value,
-          nativeLanguage: document.getElementById("native-lang").value,
-          learningLanguages: selectedLangs,
-        });
-
         alert("회원가입이 완료되었습니다!");
         // Redirect to login
-        window.location.href = "/login.html";
+        window.location.href = "/login";
       }
     </script>
   </body>

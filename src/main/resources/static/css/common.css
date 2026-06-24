@@ -419,8 +419,11 @@ textarea {
 /* ============================================
    애니메이션
    ============================================ */
+/* ============================================
+   애니메이션
+   ============================================ */
 
-@keyframes fadeIn {
+@keyframes fade-in {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -432,10 +435,10 @@ textarea {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fade-in 0.3s ease-out;
 }
 
-@keyframes slideInLeft {
+@keyframes slide-in-left {
   from {
     opacity: 0;
     transform: translateX(-16px);
@@ -447,5 +450,5 @@ textarea {
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.3s ease-out;
+  animation: slide-in-left 0.3s ease-out;
 }
