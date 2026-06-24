@@ -73,7 +73,7 @@
         </div>
 
         <!-- Login Form -->
-        <form class="login-form" th:action="@{/login}" method="post" onsubmit="handleLogin(event)">
+        <form class="login-form" th:action="@{/login}" method="post">
           <!-- Email Field -->
           <div class="form-group">
             <label for="email" class="form-label"
@@ -163,11 +163,6 @@
             icon.textContent = "visibility";
           }
         });
-
-      // Handle login
-      function handleLogin(event) {
-        // Spring Security 폼 로그인으로 실제 submit
-      }
 
       // Social login handlers
       document.querySelector(".github").addEventListener("click", () => {
