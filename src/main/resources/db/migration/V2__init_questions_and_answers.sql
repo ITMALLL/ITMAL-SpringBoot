@@ -35,6 +35,7 @@ CREATE TABLE question_like (
     user_id BIGINT NOT NULL,
     question_id BIGINT NOT NULL,
     CONSTRAINT pk_question_like PRIMARY KEY (id),
+    CONSTRAINT uq_question_like_user_question UNIQUE (user_id, question_id),
     CONSTRAINT fk_ql_user FOREIGN KEY (user_id) REFERENCES users (user_id),
     CONSTRAINT fk_ql_question FOREIGN KEY (question_id) REFERENCES question (question_id)
 );
@@ -63,6 +64,7 @@ CREATE TABLE answer_like (
     user_id BIGINT NOT NULL,
     answer_id BIGINT NOT NULL,
     CONSTRAINT pk_answer_like PRIMARY KEY (id),
+    CONSTRAINT uq_answer_like_user_answer UNIQUE (user_id, answer_id),
     CONSTRAINT fk_al_user FOREIGN KEY (user_id) REFERENCES users (user_id),
     CONSTRAINT fk_al_answer FOREIGN KEY (answer_id) REFERENCES answer (answer_id)
 );

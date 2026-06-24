@@ -25,6 +25,7 @@ CREATE TABLE chat_room (
     hidden_by_a BOOLEAN DEFAULT FALSE,
     hidden_by_b BOOLEAN DEFAULT FALSE,
     CONSTRAINT pk_chat_room PRIMARY KEY (id),
+    CONSTRAINT uq_chat_room_request UNIQUE (chat_request_id),
     CONSTRAINT fk_chatroom_request FOREIGN KEY (chat_request_id) REFERENCES chat_request (chat_request_id)
 );
 
