@@ -252,6 +252,11 @@
               '<span class="report-status-icon">✓</span>처리 완료';
             approveBtn.textContent = "승인됨";
             rejectBtn.textContent = "반려됨";
+          } else if (this.classList.contains("reject")) {
+            status.className = "report-status resolved";
+            status.innerHTML =
+              '<span class="report-status-icon">✓</span>처리 완료';
+            rejectBtn.textContent = "반려됨";
           }
         });
       });
