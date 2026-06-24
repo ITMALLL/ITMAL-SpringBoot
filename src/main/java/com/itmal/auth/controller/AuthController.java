@@ -1,6 +1,7 @@
 package com.itmal.auth.controller;
 
 import com.itmal.auth.dto.RegisterRequest;
+import com.itmal.auth.exception.DuplicateEmailException;
 import com.itmal.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +32,23 @@ public class AuthController {
     @PostMapping("/register")
     public String register(
             @Valid @ModelAttribute RegisterRequest request,
-            BindingResult bindingResult
+            BindingResult bindingResult,
+            Model model
     ) {
         if (bindingResult.hasErrors()) {
             return "user/register";
         }
 
-        authService.register(request);
+        try {
+            authService.register(request);
+        } catch (DuplicateEmailException e) {
+            model.addAttribute("errorMessage", "이미 사용 중인 이메일입니다.");
+            return "user/register";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "user/register";
+        }
+
         return "redirect:/login";
     }
 }

@@ -73,7 +73,7 @@
         </div>
 
         <!-- Login Form -->
-        <form class="login-form" onsubmit="handleLogin(event)">
+        <form class="login-form" th:action="@{/login}" method="post" onsubmit="handleLogin(event)">
           <!-- Email Field -->
           <div class="form-group">
             <label for="email" class="form-label"
@@ -83,6 +83,7 @@
               <input
                 type="email"
                 id="email"
+                name="username"
                 class="form-input"
                 placeholder="example@email.com"
                 required
@@ -106,6 +107,7 @@
               <input
                 type="password"
                 id="password"
+                name="password"
                 class="form-input"
                 placeholder="비밀번호 입력"
                 required
@@ -164,12 +166,7 @@
 
       // Handle login
       function handleLogin(event) {
-        event.preventDefault();
-        const email = document.getElementById("email").value;
-        const remember = document.getElementById("remember").checked;
-
-        console.log("Login attempt:", { email, remember });
-        // 실제 로그인 로직은 여기에 추가
+        // Spring Security 폼 로그인으로 실제 submit
       }
 
       // Social login handlers
