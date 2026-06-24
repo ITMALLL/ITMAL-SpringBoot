@@ -1,0 +1,349 @@
+/* ============================================
+   ANSWER WRITE - 답변 등록 페이지 스타일
+   ============================================ */
+
+.answer-write-main {
+  background-color: var(--background);
+  min-height: calc(100vh - 200px);
+  padding: 48px 24px;
+}
+
+.answer-write-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   BACK LINK
+   ============================================ */
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: none;
+  margin-bottom: 32px;
+  transition: color var(--transition-short);
+}
+
+.back-link:hover {
+  color: var(--primary-container);
+}
+
+.back-link .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* ============================================
+   QUESTION PREVIEW
+   ============================================ */
+
+.question-preview {
+  background-color: var(--primary-fixed);
+  border: 1px solid var(--primary-fixed-dim);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.preview-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: rgba(0, 88, 190, 0.15);
+  border-radius: 50%;
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.preview-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--on-primary-fixed-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preview-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--on-primary-fixed-variant);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   BEST ANSWER TIPS
+   ============================================ */
+
+.best-answer-tips {
+  background-color: #f0f9e8;
+  border: 1px solid #d4f1c5;
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.tips-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #fff8dc;
+  border-radius: 50%;
+  color: #d4af37;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.tips-text {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ============================================
+   ANSWER FORM CARD
+   ============================================ */
+
+.answer-form-card {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.form-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--primary-fixed);
+  border-radius: 50%;
+  color: var(--on-primary-fixed-variant);
+  font-size: 24px;
+}
+
+.form-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin: 0;
+}
+
+/* ============================================
+   ANSWER FORM
+   ============================================ */
+
+.answer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+  display: block;
+}
+
+.required {
+  color: var(--error);
+  margin-left: 2px;
+}
+
+.answer-textarea {
+  width: 100%;
+  min-height: 300px;
+  padding: 16px;
+  font-size: 15px;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-container-low);
+  color: var(--on-surface);
+  resize: vertical;
+  transition: all var(--transition-short);
+  line-height: 1.6;
+}
+
+.answer-textarea::placeholder {
+  color: var(--on-surface-variant);
+}
+
+.answer-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: var(--surface-container-lowest);
+  box-shadow: 0 0 0 3px rgba(0, 88, 190, 0.1);
+}
+
+/* ============================================
+   CHARACTER COUNTER
+   ============================================ */
+
+.char-counter {
+  display: flex;
+  justify-content: flex-end;
+  font-size: 13px;
+  color: var(--on-surface-variant);
+  margin-top: 8px;
+}
+
+#char-count {
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* ============================================
+   FORM ACTIONS
+   ============================================ */
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.form-actions .btn {
+  min-width: 120px;
+}
+
+.form-actions .btn-outline {
+  color: var(--on-surface-variant);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .answer-write-main {
+    padding: 24px 16px;
+  }
+
+  .answer-form-card {
+    padding: 24px;
+  }
+
+  .form-header {
+    margin-bottom: 24px;
+  }
+
+  .answer-textarea {
+    min-height: 250px;
+    padding: 14px;
+    font-size: 14px;
+  }
+
+  .answer-form {
+    gap: 20px;
+  }
+
+  .form-actions {
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 24px;
+  }
+
+  .form-actions .btn {
+    min-width: 100px;
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .answer-write-main {
+    padding: 16px;
+  }
+
+  .back-link {
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+
+  .question-preview {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .preview-title {
+    font-size: 16px;
+  }
+
+  .best-answer-tips {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .tips-text {
+    font-size: 13px;
+  }
+
+  .answer-form-card {
+    padding: 16px;
+  }
+
+  .form-title {
+    font-size: 18px;
+  }
+
+  .answer-textarea {
+    min-height: 200px;
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    min-width: unset;
+    padding: 12px;
+    font-size: 14px;
+  }
+}

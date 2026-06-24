@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>잇말 - 질문 등록</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/questions-write.css" />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+  </head>
+  <body>
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <!-- Main Content -->
+    <main class="write-main">
+      <div class="write-container">
+        <!-- Header Section -->
+        <div class="write-header">
+          <h1 class="write-title">새 질문 등록</h1>
+          <p class="write-description">
+            외국어 학습 중 궁금한 점을 잇말 커뮤니티나 튜터에게 물어보세요.
+          </p>
+        </div>
+
+        <!-- Form Container -->
+        <form
+          class="write-form"
+          id="question-form"
+          onsubmit="handleSubmit(event)"
+        >
+          <!-- Select Fields Grid -->
+          <div class="form-select-grid">
+            <!-- Language Select -->
+            <div class="form-field">
+              <label class="form-label required">언어 선택</label>
+              <select class="form-select" required>
+                <option value="">언어를 선택하세요</option>
+                <option value="KR">한국어 (KR)</option>
+                <option value="EN">English (EN)</option>
+                <option value="JP">日本語 (JP)</option>
+                <option value="ZH">中文 (ZH)</option>
+              </select>
+            </div>
+
+            <!-- Category Select -->
+            <div class="form-field">
+              <label class="form-label required">카테고리</label>
+              <select class="form-select" required>
+                <option value="">카테고리를 선택하세요</option>
+                <option value="grammar">문법 (Grammar)</option>
+                <option value="expression">표현 (Expression)</option>
+                <option value="pronunciation">발음 (Pronunciation)</option>
+                <option value="culture">문화 (Culture)</option>
+              </select>
+            </div>
+
+            <!-- Target Select -->
+            <div class="form-field">
+              <label class="form-label required">질문 대상</label>
+              <select class="form-select" required>
+                <option value="">대상을 선택하세요</option>
+                <option value="tutor">튜터 (답변 비용)</option>
+                <option value="community">전체 커뮤니티</option>
+                <option value="native">원어민만</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Title Field -->
+          <div class="form-field full-width">
+            <label class="form-label required">제목</label>
+            <input
+              type="text"
+              class="form-input"
+              placeholder="질문의 핵심 내용을 입력해주세요"
+              maxlength="200"
+              required
+            />
+          </div>
+
+          <!-- Description Field -->
+          <div class="form-field full-width">
+            <label class="form-label required">설명</label>
+            <textarea
+              class="form-textarea"
+              placeholder="궁금한 내용을 자세히 설명해주세요. 상황이나 문맥을 함께 작아주시면 원문자에게 큰 도움이 될 거예요."
+              maxlength="5000"
+              required
+            ></textarea>
+            <div class="char-counter">
+              <span id="char-count">0</span> / 5,000자
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline">취소</button>
+            <button type="submit" class="btn btn-primary">질문 등록하기</button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+
+  <script>
+      // 글자 수 카운터
+      const textarea = document.querySelector(".form-textarea");
+      const charCount = document.getElementById("char-count");
+
+      textarea.addEventListener("input", () => {
+        charCount.textContent = textarea.value.length;
+      });
+
+      // 취소 버튼
+      document.querySelector(".btn-outline").addEventListener("click", () => {
+        if (
+          document.querySelector(".form-input").value.trim() ||
+          textarea.value.trim()
+        ) {
+          if (confirm("작성 중인 내용이 있습니다. 정말 취소하시겠어요?")) {
+            history.back();
+          }
+        } else {
+          history.back();
+        }
+      });
+
+      // 폼 제출
+      function handleSubmit(event) {
+        event.preventDefault();
+        const title = document.querySelector(".form-input").value.trim();
+        const description = textarea.value.trim();
+
+        if (!title) {
+          alert("제목을 입력해주세요.");
+          return;
+        }
+
+        if (!description) {
+          alert("설명을 입력해주세요.");
+          return;
+        }
+
+        console.log("Question submitted");
+        alert("질문이 등록되었습니다!");
+        // 실제 제출 로직은 여기에 추가
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>잇말 - 회원가입</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/register.css" />
+  </head>
+  <body class="register-body">
+
+  <!-- Register Container -->
+    <div class="register-container">
+      <!-- Logo Section -->
+      <!-- <div class="register-header">
+        <h1 class="register-logo">잇말</h1>
+        <p class="register-tagline">ITMAL · 언어공학 커뮤니티</p>
+      </div> -->
+
+      <!-- Register Card -->
+      <div class="register-card">
+        <!-- Welcome Section -->
+        <div class="register-welcome">
+          <h2 class="register-title">시작해볼까요? 🌱</h2>
+          <p class="register-subtitle">잇말과 함께 언어의 세계를 넓혀보세요</p>
+        </div>
+
+        <!-- Register Form -->
+        <form class="register-form" onsubmit="handleRegister(event)">
+          <!-- Email Field -->
+          <div class="form-group">
+            <label for="email" class="form-label"
+              >이메일 <span class="required">*</span></label
+            >
+            <div class="email-row">
+              <input
+                type="email"
+                id="email"
+                class="form-input"
+                placeholder="example@email.com"
+                required
+              />
+              <button
+                type="button"
+                class="btn btn-secondary btn-send"
+                onclick="sendCode()"
+              >
+                인증코드 발송
+              </button>
+            </div>
+          </div>
+
+          <!-- Verify Code Field -->
+          <div
+            class="form-group verify-section"
+            id="verifySection"
+            style="display: none"
+          >
+            <label for="code" class="form-label"
+              >인증 코드 <span class="required">*</span></label
+            >
+            <div class="verify-row">
+              <input
+                type="text"
+                id="code"
+                class="form-input"
+                placeholder="인증코드 6자리"
+                maxlength="6"
+              />
+              <span class="timer" id="timer">3:00</span>
+              <button
+                type="button"
+                class="btn btn-secondary btn-verify"
+                onclick="verifyCode()"
+              >
+                확인
+              </button>
+            </div>
+            <div
+              class="verified-badge"
+              id="verifiedBadge"
+              style="display: none"
+            >
+              <span class="material-symbols-outlined">check_circle</span>
+              이메일 인증 완료
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group">
+            <label for="password" class="form-label"
+              >비밀번호 <span class="required">*</span></label
+            >
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="password"
+                class="form-input"
+                placeholder="8자 이상 입력"
+                required
+              />
+              <button
+                type="button"
+                class="input-icon-btn toggle-password"
+                title="비밀번호 표시/숨김"
+              >
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Password Confirm Field -->
+          <div class="form-group">
+            <label for="password-confirm" class="form-label"
+              >비밀번호 확인 <span class="required">*</span></label
+            >
+            <div class="input-wrapper">
+              <input
+                type="password"
+                id="password-confirm"
+                class="form-input"
+                placeholder="비밀번호 재입력"
+                required
+              />
+              <button
+                type="button"
+                class="input-icon-btn toggle-password-confirm"
+                title="비밀번호 표시/숨김"
+              >
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Nickname Field -->
+          <div class="form-group">
+            <label for="nickname" class="form-label"
+              >닉네임 <span class="required">*</span></label
+            >
+            <input
+              type="text"
+              id="nickname"
+              class="form-input"
+              placeholder="닉네임 입력 (다른 사용자에게 표시됩니다)"
+              required
+            />
+          </div>
+
+          <!-- Native Language Field -->
+          <div class="form-group">
+            <label for="native-lang" class="form-label"
+              >모국어 <span class="required">*</span></label
+            >
+            <select id="native-lang" class="form-select" required>
+              <option value="">선택해주세요</option>
+              <option value="ko">한국어</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+              <option value="zh">中文</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+
+          <!-- Learning Languages -->
+          <div class="form-group">
+            <label class="form-label"
+              >학습 중인 언어 <span class="required">*</span></label
+            >
+            <div class="lang-grid">
+              <div class="lang-chip selected" data-lang="en">
+                <span>🇺🇸</span>
+                <span>영어</span>
+              </div>
+              <div class="lang-chip" data-lang="ja">
+                <span>🇯🇵</span>
+                <span>일본어</span>
+              </div>
+              <div class="lang-chip" data-lang="zh">
+                <span>🇨🇳</span>
+                <span>중국어</span>
+              </div>
+              <div class="lang-chip" data-lang="fr">
+                <span>🇫🇷</span>
+                <span>프랑스어</span>
+              </div>
+              <div class="lang-chip" data-lang="es">
+                <span>🇪🇸</span>
+                <span>스페인어</span>
+              </div>
+              <div class="lang-chip" data-lang="de">
+                <span>🇩🇪</span>
+                <span>독일어</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-register">
+            가입하기
+          </button>
+        </form>
+
+        <!-- Login Link -->
+        <div class="register-footer">
+          <p>
+            이미 계정이 있으신가요? <a href="#" class="login-link">로그인</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let timerInterval = null;
+
+      // Language chip toggle
+      document.querySelectorAll(".lang-chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          chip.classList.toggle("selected");
+        });
+      });
+
+      // Toggle password visibility
+      document
+        .querySelector(".toggle-password")
+        .addEventListener("click", (e) => {
+          e.preventDefault();
+          const input = document.getElementById("password");
+          const icon = e.currentTarget.querySelector(
+            ".material-symbols-outlined",
+          );
+
+          if (input.type === "password") {
+            input.type = "text";
+            icon.textContent = "visibility_off";
+          } else {
+            input.type = "password";
+            icon.textContent = "visibility";
+          }
+        });
+
+      document
+        .querySelector(".toggle-password-confirm")
+        .addEventListener("click", (e) => {
+          e.preventDefault();
+          const input = document.getElementById("password-confirm");
+          const icon = e.currentTarget.querySelector(
+            ".material-symbols-outlined",
+          );
+
+          if (input.type === "password") {
+            input.type = "text";
+            icon.textContent = "visibility_off";
+          } else {
+            input.type = "password";
+            icon.textContent = "visibility";
+          }
+        });
+
+      // Send verification code
+      function sendCode() {
+        const email = document.getElementById("email").value;
+        if (!email) {
+          alert("이메일을 입력해주세요.");
+          return;
+        }
+
+        document.getElementById("verifySection").style.display = "block";
+        document.getElementById("verifiedBadge").style.display = "none";
+        startTimer();
+      }
+
+      // Start countdown timer
+      function startTimer() {
+        clearInterval(timerInterval);
+        let seconds = 180;
+        const timerEl = document.getElementById("timer");
+
+        timerInterval = setInterval(() => {
+          const m = Math.floor(seconds / 60);
+          const s = String(seconds % 60).padStart(2, "0");
+          timerEl.textContent = `${m}:${s}`;
+
+          if (--seconds < 0) {
+            clearInterval(timerInterval);
+            timerEl.textContent = "만료됨";
+            timerEl.style.color = "var(--on-surface-variant)";
+          }
+        }, 1000);
+      }
+
+      // Verify code
+      function verifyCode() {
+        const code = document.getElementById("code").value;
+        if (code.length !== 6) {
+          alert("인증코드 6자리를 입력해주세요.");
+          return;
+        }
+
+        clearInterval(timerInterval);
+        document.getElementById("verifySection").style.display = "block";
+        document.getElementById("verifiedBadge").style.display = "flex";
+        document.getElementById("email").readOnly = true;
+      }
+
+      // Register form submit
+      function handleRegister(event) {
+        event.preventDefault();
+
+        const password = document.getElementById("password").value;
+        const passwordConfirm =
+          document.getElementById("password-confirm").value;
+
+        if (password !== passwordConfirm) {
+          alert("비밀번호가 일치하지 않습니다.");
+          return;
+        }
+
+        const selectedLangs = Array.from(
+          document.querySelectorAll(".lang-chip.selected"),
+        ).map((chip) => chip.dataset.lang);
+
+        if (selectedLangs.length === 0) {
+          alert("학습 중인 언어를 최소 1개 이상 선택해주세요.");
+          return;
+        }
+
+        console.log("Register data:", {
+          email: document.getElementById("email").value,
+          nickname: document.getElementById("nickname").value,
+          nativeLanguage: document.getElementById("native-lang").value,
+          learningLanguages: selectedLangs,
+        });
+
+        alert("회원가입이 완료되었습니다!");
+        // Redirect to login
+        window.location.href = "/login.html";
+      }
+    </script>
+  </body>
+</html>

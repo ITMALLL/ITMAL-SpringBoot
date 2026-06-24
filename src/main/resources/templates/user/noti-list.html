@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ITMAL - Notifications</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/notifications.css" />
+  </head>
+  <body>
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <!-- Main Content -->
+    <main class="notifications-main">
+      <div class="notifications-container">
+        <!-- Sidebar -->
+        <aside class="notifications-sidebar">
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">알림 필터</h3>
+
+            <div class="filter-group">
+              <label class="filter-item">
+                <input type="checkbox" checked />
+                <span class="filter-label">
+                  <span class="material-symbols-outlined">check_circle</span>
+                  전체 (28)
+                </span>
+              </label>
+              <label class="filter-item">
+                <input type="checkbox" />
+                <span class="filter-label">
+                  <span class="material-symbols-outlined">help</span>
+                  답변 (8)
+                </span>
+              </label>
+              <label class="filter-item">
+                <input type="checkbox" />
+                <span class="filter-label">
+                  <span class="material-symbols-outlined">chat_bubble</span>
+                  댓글 (5)
+                </span>
+              </label>
+              <label class="filter-item">
+                <input type="checkbox" />
+                <span class="filter-label">
+                  <span class="material-symbols-outlined">favorite</span>
+                  추천 (10)
+                </span>
+              </label>
+              <label class="filter-item">
+                <input type="checkbox" />
+                <span class="filter-label">
+                  <span class="material-symbols-outlined">info</span>
+                  시스템 (5)
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <h3 class="sidebar-title">알림 상태</h3>
+
+            <div class="filter-group">
+              <label class="filter-item">
+                <input type="radio" name="read-status" checked />
+                <span class="filter-label">모두</span>
+              </label>
+              <label class="filter-item">
+                <input type="radio" name="read-status" />
+                <span class="filter-label">
+                  <span class="unread-dot"></span>
+                  읽지 않음 (3)
+                </span>
+              </label>
+              <label class="filter-item">
+                <input type="radio" name="read-status" />
+                <span class="filter-label">읽음</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <button class="btn btn-outline btn-sm" onclick="markAllAsRead()">
+              <span class="material-symbols-outlined">done_all</span>
+              모두 읽음 표시
+            </button>
+          </div>
+        </aside>
+
+        <!-- Notifications Content -->
+        <section class="notifications-content">
+          <div class="content-header">
+            <h1 class="content-title">알림</h1>
+            <button class="btn btn-outline btn-sm">
+              <span class="material-symbols-outlined">delete</span>
+              전체 삭제
+            </button>
+          </div>
+
+          <div class="notifications-list">
+            <!-- Notification Item 1 - Answer -->
+            <article class="notification-item unread">
+              <div class="notification-avatar">
+                <span class="material-symbols-outlined">check_circle</span>
+              </div>
+              <div class="notification-content">
+                <div class="notification-header">
+                  <h3 class="notification-title">Tom이 답변을 달았습니다</h3>
+                  <time class="notification-time">방금 전</time>
+                </div>
+                <p class="notification-text">
+                  "I'm looking forward to seeing you" 질문에 대한 답변입니다.
+                </p>
+                <p class="notification-question">
+                  <span class="question-icon">Q.</span>
+                  "I'm looking forward to seeing you"와 "I look forward to see
+                  you"의 차이가 무엇인가요?
+                </p>
+              </div>
+              <button class="btn btn-text btn-sm">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </article>
+
+            <!-- Notification Item 2 - Comment -->
+            <article class="notification-item unread">
+              <div class="notification-avatar secondary">
+                <span class="material-symbols-outlined">chat_bubble</span>
+              </div>
+              <div class="notification-content">
+                <div class="notification-header">
+                  <h3 class="notification-title">이수연이 댓글을 달았습니다</h3>
+                  <time class="notification-time">2시간 전</time>
+                </div>
+                <p class="notification-text">
+                  당신의 답변에 댓글이 달렸습니다.
+                </p>
+                <p class="notification-comment">
+                  좋은 설명입니다! 더 자세히 알려주실 수 있나요?
+                </p>
+              </div>
+              <button class="btn btn-text btn-sm">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </article>
+
+            <!-- Notification Item 3 - Like -->
+            <article class="notification-item unread">
+              <div class="notification-avatar tertiary">
+                <span class="material-symbols-outlined">favorite</span>
+              </div>
+              <div class="notification-content">
+                <div class="notification-header">
+                  <h3 class="notification-title">
+                    3명이 당신의 답변을 추천했습니다
+                  </h3>
+                  <time class="notification-time">5시간 전</time>
+                </div>
+                <p class="notification-text">
+                  "However" vs "But" 답변이 3명에게 추천받았습니다.
+                </p>
+              </div>
+              <button class="btn btn-text btn-sm">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </article>
+
+            <!-- Notification Item 4 - Answer -->
+            <article class="notification-item">
+              <div class="notification-avatar">
+                <span class="material-symbols-outlined">check_circle</span>
+              </div>
+              <div class="notification-content">
+                <div class="notification-header">
+                  <h3 class="notification-title">
+                    Michael이 답변을 달았습니다
+                  </h3>
+                  <time class="notification-time">어제</time>
+                </div>
+                <p class="notification-text">
+                  "Have been to" vs "Have gone to" 질문에 대한 답변입니다.
+                </p>
+                <p class="notification-question">
+                  <span class="question-icon">Q.</span>
+                  "Have been to"와 "Have gone to"의 정확한 차이를 알려주세요
+                </p>
+              </div>
+              <button class="btn btn-text btn-sm">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </article>
+
+            <!-- Notification Item 5 - System -->
+            <article class="notification-item">
+              <div class="notification-avatar system">
+                <span class="material-symbols-outlined">info</span>
+              </div>
+              <div class="notification-content">
+                <div class="notification-header">
+                  <h3 class="notification-title">잇말 알림</h3>
+                  <time class="notification-time">2024년 6월 1일</time>
+                </div>
+                <p class="notification-text">
+                  새로운 기능이 추가되었습니다. 이제 실시간으로 답변 알림을 받을
+                  수 있습니다.
+                </p>
+              </div>
+              <button class="btn btn-text btn-sm">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </article>
+
+            <!-- Notification Item 6 - Comment -->
+            <article class="notification-item">
+              <div class="notification-avatar secondary">
+                <span class="material-symbols-outlined">chat_bubble</span>
+              </div>
+              <div class="notification-content">
+                <div class="notification-header">
+                  <h3 class="notification-title">Mark가 댓글을 달았습니다</h3>
+                  <time class="notification-time">2024년 5월 30일</time>
+                </div>
+                <p class="notification-text">
+                  당신의 질문에 댓글이 달렸습니다.
+                </p>
+                <p class="notification-comment">
+                  혹시 원어민들이 실제로 이런 표현을 쓰나요?
+                </p>
+              </div>
+              <button class="btn btn-text btn-sm">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </article>
+
+            <!-- Notification Item 7 - Like -->
+            <article class="notification-item">
+              <div class="notification-avatar tertiary">
+                <span class="material-symbols-outlined">favorite</span>
+              </div>
+              <div class="notification-content">
+                <div class="notification-header">
+                  <h3 class="notification-title">
+                    5명이 당신의 댓글을 추천했습니다
+                  </h3>
+                  <time class="notification-time">2024년 5월 28일</time>
+                </div>
+                <p class="notification-text">댓글이 5명에게 추천받았습니다.</p>
+              </div>
+              <button class="btn btn-text btn-sm">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+      function markAllAsRead() {
+        document
+          .querySelectorAll(".notification-item.unread")
+          .forEach((item) => {
+            item.classList.remove("unread");
+          });
+      }
+
+      // Click on notification to mark as read
+      document.querySelectorAll(".notification-item").forEach((item) => {
+        item.addEventListener("click", (e) => {
+          if (!e.target.closest(".btn")) {
+            item.classList.remove("unread");
+          }
+        });
+      });
+
+      // Remove notification
+      document
+        .querySelectorAll(".notification-item .btn-close")
+        .forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.currentTarget.closest(".notification-item").remove();
+          });
+        });
+    </script>
+  </body>
+</html>
