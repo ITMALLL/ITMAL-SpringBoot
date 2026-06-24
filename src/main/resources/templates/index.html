@@ -1,10 +1,274 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>잇말 - 원어민 언어 질문 커뮤니티</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/header.css" />
+  <link rel="stylesheet" href="/css/footer.css" />
+
+  <!-- Common CSS Variables -->
+  <link rel="stylesheet" href="/css/common.css" />
+
+  <!-- Index CSS -->
+  <link rel="stylesheet" href="/css/index.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: "Plus Jakarta Sans", sans-serif;
+      background-color: var(--background);
+      color: var(--on-surface);
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      font-family: "Plus Jakarta Sans", sans-serif;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
+<!-- Header Fragment -->
+<div th:replace="~{fragments/header :: header}"></div>
 
+<main>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">궁금한 표현, 원어민한테 바로 물어봐요</h1>
+      <p class="hero-subtitle">영어, 일본어, 중국어 — 모국어 화자가 직접 답해드려요</p>
+      <div class="hero-buttons">
+        <button class="btn-hero-primary">
+          <span class="material-symbols-outlined">edit</span>
+          질문하러 가기
+        </button>
+        <button class="btn-hero-secondary">질문 둘러보기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">1,240</div>
+        <div class="stat-label">등록된 질문</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">3,580</div>
+        <div class="stat-label">답변 수</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">890</div>
+        <div class="stat-label">활성 유저</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">12</div>
+        <div class="stat-label">지원 언어</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Questions Section -->
+    <div class="questions-section">
+      <div class="section-header">
+        <h2 class="section-title">최근 질문</h2>
+        <a href="#" class="section-link">
+          전체보기
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+      </div>
+
+      <div class="questions-list">
+        <!-- Question Card 1 -->
+        <div class="question-card">
+          <div class="question-tags">
+            <span class="question-tag tag-language">영어</span>
+            <span class="question-tag tag-category">표현</span>
+          </div>
+          <h3 class="question-title">"I'm good" vs "I'm well" 차이가 뭔가요?</h3>
+          <p class="question-content">
+            문법적으로는 I'm well이 맞다고 배웠는데 원어민들은 일상 대화에서 I'm good을 더 많이 쓰는 것 같아요. 뉘앙스 차이가 있나요?
+          </p>
+          <div class="question-meta">
+            <div class="meta-author">
+              <div class="author-avatar">
+                <span class="material-symbols-outlined">person</span>
+              </div>
+              <div class="author-info">
+                <span class="author-name">김민준</span>
+                <span class="author-time">2시간 전</span>
+              </div>
+            </div>
+            <div class="meta-stats">
+              <div class="stat-badge">
+                <span class="material-symbols-outlined">chat_bubble</span>
+                3
+              </div>
+              <div class="stat-badge">
+                <span class="material-symbols-outlined">visibility</span>
+                128
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Card 2 -->
+        <div class="question-card">
+          <div class="question-tags">
+            <span class="question-tag tag-language">일본어</span>
+            <span class="question-tag tag-category">문법</span>
+          </div>
+          <h3 class="question-title">「～てしまう」와 「～ちゃう」는 같은 말인가요?</h3>
+          <p class="question-content">
+            일본 드라마 보다 보면 자주 나오는데 둘 다 '해버리다'라는 뜻인가요? 축약형인지 궁금합니다.
+          </p>
+          <div class="question-meta">
+            <div class="meta-author">
+              <div class="author-avatar">
+                <span class="material-symbols-outlined">person</span>
+              </div>
+              <div class="author-info">
+                <span class="author-name">이수연</span>
+                <span class="author-time">4시간 전</span>
+              </div>
+            </div>
+            <div class="meta-stats">
+              <div class="stat-badge">
+                <span class="material-symbols-outlined">chat_bubble</span>
+                5
+              </div>
+              <div class="stat-badge">
+                <span class="material-symbols-outlined">visibility</span>
+                94
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Language Stats Card -->
+      <div class="stats-card">
+        <h3 class="stats-card-title">언어별 질문 현황</h3>
+
+        <div class="language-stat">
+          <div class="language-header">
+            <span class="language-name">🇺🇸 영어</span>
+            <span class="language-count">524</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 85%"></div>
+          </div>
+        </div>
+
+        <div class="language-stat">
+          <div class="language-header">
+            <span class="language-name">🇯🇵 일본어</span>
+            <span class="language-count">348</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 60%"></div>
+          </div>
+        </div>
+
+        <div class="language-stat">
+          <div class="language-header">
+            <span class="language-name">🇨🇳 중국어</span>
+            <span class="language-count">241</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 45%"></div>
+          </div>
+        </div>
+
+        <div class="language-stat">
+          <div class="language-header">
+            <span class="language-name">🇫🇷 프랑스어</span>
+            <span class="language-count">127</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 25%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Online Users Card -->
+      <div class="users-card">
+        <h3 class="users-card-title">지금 채팅 중인 유저</h3>
+
+        <div class="user-item">
+          <div class="user-info">
+            <div class="user-avatar">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl71QYOQ0KQF65HcZnMqDsEhfZwWCMQzykgHriehnsLkuuEP4f4G57UIJDEjlwQ4mlRI3qcpeUKS7DjH5eOHVYGXUR8aktlorlJhDngrYDWqY9lxqvCGea4H4syqGx6R4mQ8FBXPZW4Lm4U9yjT12IXBVafFc62abSPlPJ9rAof2IPgdMOfJrNIV_hhKYda0SglDHMUG97VZFmHtjuBvAVWMpxvNGDpW40I4gKjDJCc5C4rZ337sumbTXw8LqOmTubk3YdG7ABgs0" alt="Tom" />
+              <div class="online-indicator"></div>
+            </div>
+            <div class="user-details">
+              <div class="user-name">Tom</div>
+              <div class="user-role">English Native</div>
+            </div>
+          </div>
+          <button class="btn-chat">채팅 시작</button>
+        </div>
+
+        <div class="user-item">
+          <div class="user-info">
+            <div class="user-avatar">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwuG1qtr9Z93t0VWkdT_Eu3mW1YuVvC0bNMEvIAdLoYgiTVpZXjaa_K4kf5Z456bmg4KW4nnDac4U5R0OVfZ5ZaEQ1VU0UjnTcecqZuai3J3f9RaFdXh4w3erpHfnmYVoxQFyYeCRCJfO9LoBK1z94dpzwq-8sY-BxPBznb0lRYMS8rolgP2jPrvdSvwwSX3Tgg_pvcB42mzIFDSt9ACbNc_oEEkb9HmoPl_0Tx5OcyWzszUamrAoK8975RQiR_KpiJM0hSWfLAsM" alt="Yuki" />
+              <div class="online-indicator"></div>
+            </div>
+            <div class="user-details">
+              <div class="user-name">Yuki</div>
+              <div class="user-role">Japanese Native</div>
+            </div>
+          </div>
+          <button class="btn-chat">채팅 시작</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- Footer Fragment -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+  // Scroll effect for header
+  window.addEventListener("scroll", () => {
+    const topbar = document.querySelector("header");
+    if (window.scrollY > 20) {
+      topbar.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
+    } else {
+      topbar.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.05)";
+    }
+  });
+</script>
 </body>
 </html>

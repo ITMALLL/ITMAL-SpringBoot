@@ -1,0 +1,65 @@
+<!-- templates/fragments/footer.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Footer</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/footer.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "surface-container-low": "#f0f3ff",
+            "outline-variant": "#c2c6d6",
+            secondary: "#585f67",
+            "on-surface-variant": "#424754",
+          },
+          fontSize: {
+            "headline-md": ["20px", { lineHeight: "1.4", fontWeight: "600" }],
+            "label-sm": ["12px", { lineHeight: "1.2", fontWeight: "600" }],
+          },
+          spacing: {
+            "stack-md": "24px",
+          },
+          maxWidth: {
+            "container-max": "1200px",
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body { font-family: "Plus Jakarta Sans", sans-serif; }
+  </style>
+</head>
+<body>
+<!-- Footer Fragment -->
+<footer th:fragment="footer" class="bg-surface-container-low py-stack-md border-t border-outline-variant mt-auto">
+  <div class="max-w-container-max mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+
+    <!-- Logo -->
+    <div class="text-headline-md font-headline-md text-secondary">잇말</div>
+
+    <!-- Links -->
+    <div class="flex flex-wrap justify-center gap-6 text-label-sm font-label-sm text-on-surface-variant">
+      <a th:href="@{#}" class="hover:underline">이용약관</a>
+      <a th:href="@{#}" class="hover:underline">개인정보처리방침</a>
+      <a th:href="@{#}" class="hover:underline">고객센터</a>
+    </div>
+
+    <!-- Copyright -->
+    <div class="text-label-sm font-label-sm text-on-surface-variant opacity-80">
+      © 2026 잇말. All rights reserved.
+    </div>
+
+  </div>
+</footer>
+</body>
+</html>

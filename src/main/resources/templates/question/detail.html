@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>잇말 - 질문 상세</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/questions-detail.css" />
+  </head>
+  <body>
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <!-- Main Content -->
+    <main class="question-detail-main">
+      <div class="question-detail-container">
+        <!-- Back Link -->
+        <a href="#" class="back-link">← 목록으로</a>
+
+        <div class="detail-grid">
+          <!-- Main Content -->
+          <div class="detail-content">
+            <!-- Question Header -->
+            <div class="question-header">
+              <div class="question-meta">
+                <span class="tag primary">영어</span>
+                <span class="tag secondary">표현</span>
+                <span class="badge badge-success">채택됨</span>
+              </div>
+              <h1 class="question-title">
+                "I'm good" vs "I'm well" — 실제로 어떻게 달라요?
+              </h1>
+              <div class="question-info">
+                <span class="info-item">
+                  <span class="material-symbols-outlined">person</span>
+                  김민준
+                </span>
+                <span class="info-item">
+                  <span class="material-symbols-outlined">visibility</span>
+                  조회 128
+                </span>
+                <span class="info-item">
+                  <span class="material-symbols-outlined">schedule</span>
+                  2시간 전
+                </span>
+              </div>
+            </div>
+
+            <!-- Question Content -->
+            <div class="question-body">
+              <p>
+                학교에서 문법적으로는 "I'm well"이 맞다고 배웠는데, 미국 드라마
+                보면 "I'm good"을 훨씬 많이 쓰더라고요.
+              </p>
+              <p>
+                "How are you?" 라는 질문에 답할 때 원어민은 실제로 어떤 표현을
+                더 자주 쓰나요?<br />
+                그리고 두 표현 사이에 뉘앙스 차이가 있나요?
+              </p>
+            </div>
+
+            <!-- Answer Button -->
+            <button class="btn btn-primary btn-lg answer-btn">
+              <span class="material-symbols-outlined">edit</span>
+              답변 등록
+            </button>
+
+            <!-- Answers Section -->
+            <section class="answers-section">
+              <div class="answers-header">
+                <h2 class="answers-title">답변 3개</h2>
+                <div class="answer-tabs">
+                  <button class="tab-btn active">최신순</button>
+                  <button class="tab-btn">추천순</button>
+                  <button class="tab-btn">채택순</button>
+                </div>
+              </div>
+
+              <!-- Answer Items -->
+              <div class="answers-list">
+                <!-- Answer 1 - Adopted -->
+                <article class="answer-card adopted">
+                  <div class="answer-badge">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    채택된 답변
+                  </div>
+
+                  <div class="answer-author">
+                    <div class="author-avatar">T</div>
+                    <div class="author-info">
+                      <div class="author-name">Tom (원어민)</div>
+                      <div class="author-badge">
+                        🌍 영어 원어민 · 답변 143개
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="answer-content">
+                    <p>
+                      Great question! Both are correct, but there's a subtle
+                      difference.
+                    </p>
+                    <p>
+                      "<strong>I'm good</strong>" — 일상 대화에서 훨씬 자주
+                      쓰며, "I'm fine"보다도 더 캐주얼합니다. "<strong
+                        >I'm well</strong
+                      >" — 더 격식 있는 표현이며, 비즈니스 이메일이나 공식적인
+                      자리에서 더 자주 씁니다.
+                    </p>
+                  </div>
+
+                  <div class="answer-actions">
+                    <button class="action-btn">
+                      <span class="material-symbols-outlined">thumb_up</span>
+                      도움이 돼요 12
+                    </button>
+                    <button class="action-btn">
+                      <span class="material-symbols-outlined">flag</span>
+                      제휴환료
+                    </button>
+                  </div>
+
+                  <!-- Comments -->
+                  <div class="comments-section">
+                    <div class="comment-item">
+                      <div class="comment-avatar">K</div>
+                      <div class="comment-content">
+                        <div class="comment-author">
+                          김민준
+                          <span class="comment-time"
+                            >질문자 입니다. 그렇 "I'm doing well"이 제일 무난한
+                            간기요?</span
+                          >
+                        </div>
+                        <div class="comment-text"></div>
+                      </div>
+                    </div>
+
+                    <div class="comment-item">
+                      <div class="comment-avatar">T</div>
+                      <div class="comment-content">
+                        <div class="comment-author">
+                          Tom
+                          <span class="comment-time"
+                            >Exactly! "I'm doing well" works in most situations.
+                            👍</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="comment-input">
+                      <label>
+                        <input
+                          type="text"
+                          class="comment-field"
+                          placeholder="댓글 입력..."
+                        >
+                      </label>
+                      <button class="btn btn-sm btn-primary">등록</button>
+                    </div>
+                  </div>
+
+                  <div class="answer-footer">
+                    <span>3시간 전</span>
+                    <span>신고</span>
+                  </div>
+                </article>
+
+                <!-- Answer 2 -->
+                <article class="answer-card">
+                  <div class="answer-author">
+                    <div class="author-avatar" style="background: #22c55e">
+                      S
+                    </div>
+                    <div class="author-info">
+                      <div class="author-name">Sarah</div>
+                      <div class="author-badge">🌍 영어 원어민 · 답변 87개</div>
+                    </div>
+                  </div>
+
+                  <div class="answer-content">
+                    <p>
+                      Tom's answer is spot on! I'd also add that "I'm good" can
+                      sometimes mean "No thanks" when someone offers you
+                      something. Context matters a lot!
+                    </p>
+                  </div>
+
+                  <div class="answer-actions">
+                    <button class="action-btn">
+                      <span class="material-symbols-outlined">thumb_up</span>
+                      도움이 돼요 5
+                    </button>
+                    <button class="action-btn">
+                      <span class="material-symbols-outlined">flag</span>
+                      제휴환료
+                    </button>
+                  </div>
+
+                  <div class="answer-footer">
+                    <span>5시간 전</span>
+                    <span>신고</span>
+                  </div>
+                </article>
+
+                <!-- Answer 3 -->
+                <article class="answer-card">
+                  <div class="answer-author">
+                    <div class="author-avatar" style="background: #f59e0b">
+                      나
+                    </div>
+                    <div class="author-info">
+                      <div class="author-name">나 (네 답변)</div>
+                      <div class="author-badge">
+                        🇰🇷 한국인 원어민 · 답변 12개
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="answer-content">
+                    <p>
+                      저도 언어에서 상황에는, "I'm good"은 궤수성이 상황에서
+                      자주 사용됩니다. "I'm well"은 의료적으로 격식적인
+                      자리에서는 것 같아요.
+                    </p>
+                  </div>
+
+                  <div class="answer-actions">
+                    <button class="action-btn">
+                      <span class="material-symbols-outlined">thumb_up</span>
+                      도움이 돼요 3
+                    </button>
+                    <button class="action-btn">
+                      <span class="material-symbols-outlined">flag</span>
+                      제휴환료
+                    </button>
+                  </div>
+
+                  <div class="answer-footer">
+                    <span>7시간 전</span>
+                    <span>신고</span>
+                  </div>
+                </article>
+              </div>
+
+              <!-- Load More -->
+              <div class="load-more">더 지켜본 답변이...</div>
+            </section>
+          </div>
+
+          <!-- Sidebar -->
+          <aside class="detail-sidebar">
+            <!-- Question Info Card -->
+            <div class="card">
+              <h3 class="card-title">질문자 정보</h3>
+              <div class="author-card">
+                <div class="author-avatar-lg">K</div>
+                <div class="author-details">
+                  <div class="author-name">김민준</div>
+                  <div class="author-role">🇰🇷 한국어 원어민</div>
+                  <div class="author-skill">학습 관심: 영어</div>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-sm">
+                <span class="material-symbols-outlined">mail</span>
+                1:1 채팅 신청
+              </button>
+            </div>
+
+            <!-- Related Questions -->
+            <div class="card">
+              <h3 class="card-title">관련 질문</h3>
+              <div class="related-questions">
+                <a href="#" class="related-item">
+                  "Would you mind" vs "Do you mind" 차이가 뭐가요?
+                </a>
+                <a href="#" class="related-item">
+                  영어로 감사 표현 다양하게 하는 법
+                </a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+      // Answer tab switching
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          document
+            .querySelectorAll(".tab-btn")
+            .forEach((b) => b.classList.remove("active"));
+          e.target.classList.add("active");
+        });
+      });
+
+      // Answer button click
+      document.querySelector(".answer-btn").addEventListener("click", () => {
+        window.location.href = "/answer-write";
+      });
+    </script>
+  </body>
+</html>
