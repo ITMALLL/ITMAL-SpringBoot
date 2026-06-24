@@ -166,10 +166,9 @@
       function handleLogin(event) {
         event.preventDefault();
         const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
         const remember = document.getElementById("remember").checked;
 
-        console.log("Login attempt:", { email, password, remember });
+        console.log("Login attempt:", { email, remember });
         // 실제 로그인 로직은 여기에 추가
       }
 

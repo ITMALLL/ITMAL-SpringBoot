@@ -159,11 +159,13 @@
                     </div>
 
                     <div class="comment-input">
-                      <input
-                        type="text"
-                        class="comment-field"
-                        placeholder="댓글 입력..."
-                      />
+                      <label>
+                        <input
+                          type="text"
+                          class="comment-field"
+                          placeholder="댓글 입력..."
+                        >
+                      </label>
                       <button class="btn btn-sm btn-primary">등록</button>
                     </div>
                   </div>
@@ -306,7 +308,7 @@
 
       // Answer button click
       document.querySelector(".answer-btn").addEventListener("click", () => {
-        window.location.href = "/answer-write.html";
+        window.location.href = "/answer-write";
       });
     </script>
   </body>
