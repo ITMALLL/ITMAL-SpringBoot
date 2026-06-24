@@ -28,6 +28,7 @@ CREATE TABLE user_learning_language (
     user_id BIGINT NOT NULL,
     language_id BIGINT NOT NULL,
     CONSTRAINT pk_user_learning_language PRIMARY KEY (id),
+    CONSTRAINT uq_ull_user_language UNIQUE (user_id, language_id),
     CONSTRAINT fk_ull_user FOREIGN KEY (user_id) REFERENCES users (user_id),
     CONSTRAINT fk_ull_language FOREIGN KEY (language_id) REFERENCES language (language_id)
 );
