@@ -1,0 +1,59 @@
+package com.itmal.auth.controller;
+
+import com.itmal.auth.dto.RegisterRequest;
+import com.itmal.auth.exception.DuplicateEmailException;
+import com.itmal.auth.service.AuthService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+
+@Controller
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+
+    @GetMapping("/")
+    public String index() {
+        return "index";
+    }
+
+    @GetMapping("/login")
+    public String loginForm() {
+        return "user/login";
+    }
+
+    @GetMapping("/register")
+    public String registerForm(Model model) {
+        model.addAttribute("registerRequest", new RegisterRequest());
+        return "user/register";
+    }
+
+    @PostMapping("/register")
+    public String register(
+            @Valid @ModelAttribute RegisterRequest request,
+            BindingResult bindingResult,
+            Model model
+    ) {
+        if (bindingResult.hasErrors()) {
+            return "user/register";
+        }
+
+        try {
+            authService.register(request);
+        } catch (DuplicateEmailException e) {
+            model.addAttribute("errorMessage", "이미 사용 중인 이메일입니다.");
+            return "user/register";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "user/register";
+        }
+
+        return "redirect:/login";
+    }
+}

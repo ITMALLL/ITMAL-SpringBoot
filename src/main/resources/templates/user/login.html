@@ -73,7 +73,7 @@
         </div>
 
         <!-- Login Form -->
-        <form class="login-form" onsubmit="handleLogin(event)">
+        <form class="login-form" th:action="@{/login}" method="post">
           <!-- Email Field -->
           <div class="form-group">
             <label for="email" class="form-label"
@@ -83,6 +83,7 @@
               <input
                 type="email"
                 id="email"
+                name="username"
                 class="form-input"
                 placeholder="example@email.com"
                 required
@@ -106,6 +107,7 @@
               <input
                 type="password"
                 id="password"
+                name="password"
                 class="form-input"
                 placeholder="비밀번호 입력"
                 required
@@ -137,7 +139,7 @@
 
         <!-- Sign Up Link -->
         <div class="login-footer">
-          <p>계정이 없으신가요? <a href="#" class="signup-link">회원가입</a></p>
+          <p>계정이 없으신가요? <a href="/register" class="signup-link">회원가입</a></p>
         </div>
       </div>
     </div>
@@ -161,16 +163,6 @@
             icon.textContent = "visibility";
           }
         });
-
-      // Handle login
-      function handleLogin(event) {
-        event.preventDefault();
-        const email = document.getElementById("email").value;
-        const remember = document.getElementById("remember").checked;
-
-        console.log("Login attempt:", { email, remember });
-        // 실제 로그인 로직은 여기에 추가
-      }
 
       // Social login handlers
       document.querySelector(".github").addEventListener("click", () => {
