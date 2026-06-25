@@ -1,7 +1,6 @@
 package com.itmal.comment.mapper;
 
 import com.itmal.comment.domain.Comment;
-import com.itmal.comment.dto.CommentResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
