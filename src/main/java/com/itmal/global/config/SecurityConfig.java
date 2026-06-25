@@ -15,16 +15,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/**") // API는 CSRF 무시
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/register/social").permitAll()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
+                .anyRequest().permitAll() // TODO: 개발 완료 후 authenticated()로 복구
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/questions")
+                .defaultSuccessUrl("/")
                 .permitAll()
             )
             .logout(logout -> logout
