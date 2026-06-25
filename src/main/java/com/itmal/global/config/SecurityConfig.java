@@ -19,7 +19,6 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/register", "/register/social").permitAll()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().permitAll() // TODO: 개발 완료 후 authenticated()로 복구
             )
             .formLogin(form -> form
