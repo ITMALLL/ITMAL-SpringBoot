@@ -33,8 +33,10 @@
 
     <update id="update">
         UPDATE comment
-        SET content = #{content}
+        SET content = #{content},
+            updated_at = NOW()
         WHERE comment_id = #{commentId}
+            AND deleted_at IS NULL
     </update>
 
     <update id="delete">

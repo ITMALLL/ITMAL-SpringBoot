@@ -54,10 +54,9 @@ public class CommentService {
             responseDto.setCommentId(comment.getCommentId());
             responseDto.setContent(comment.getContent());
             responseDto.setNickname(comment.getNickname());
+            responseDto.setCreatedAt(comment.getCreatedAt());
 
-            if(comment.getCreatedAt().equals(comment.getUpdatedAt())){
-                responseDto.setCreatedAt(comment.getCreatedAt());
-            } else{
+            if (comment.getUpdatedAt() != null && !comment.getUpdatedAt().equals(comment.getCreatedAt())) {
                 responseDto.setUpdatedAt(comment.getUpdatedAt());
             }
             commentResponseDtos.add(responseDto);
@@ -86,6 +85,7 @@ public class CommentService {
         responseDto.setCommentId(comment.getCommentId());
         responseDto.setContent(comment.getContent());
         responseDto.setNickname(comment.getNickname());
+        responseDto.setCreatedAt(comment.getCreatedAt());
         responseDto.setUpdatedAt(comment.getUpdatedAt());
 
         //다시 조회해서 updateAt에 값 넣기
