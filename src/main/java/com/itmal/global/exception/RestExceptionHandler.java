@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Objects;
 
-@RestControllerAdvice
+@RestControllerAdvice(annotations = {org.springframework.web.bind.annotation.RestController.class})
 public class RestExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -35,7 +35,7 @@ public class RestExceptionHandler {
         return ResponseEntity.status(errorCode.getStatus())
                 .body(new ApiResponse<>(
                         errorCode.getCode(),
-                        e.getMessage(),  // ← "서버오류" 대신 실제 에러 메시지
+                        errorCode.getMessage(),
                         null
                 ));
     }
