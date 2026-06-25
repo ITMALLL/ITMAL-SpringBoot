@@ -293,9 +293,16 @@
 
       // Check email duplicate
       async function checkEmail() {
-        const email = document.getElementById("email").value;
-        if (!email) {
+        const emailInput = document.getElementById("email");
+        const requestedEmail = emailInput.value.trim();
+
+        if (!requestedEmail) {
           alert("이메일을 입력해주세요.");
+          return;
+        }
+
+        if (!emailInput.checkValidity()) {
+          emailInput.reportValidity();
           return;
         }
 
@@ -303,9 +310,11 @@
         const btnSendCode = document.getElementById("btnSendCode");
 
         try {
-          const res = await fetch(`/api/check/email?email=${encodeURIComponent(email)}`);
+          const res = await fetch(`/api/check/email?email=${encodeURIComponent(requestedEmail)}`);
           if (!res.ok) throw new Error("서버 오류");
           const data = await res.json();
+
+          if (emailInput.value.trim() !== requestedEmail) return;
 
           resultEl.style.display = "block";
           if (data.duplicate) {
@@ -318,6 +327,7 @@
             btnSendCode.disabled = false;
           }
         } catch (e) {
+          if (emailInput.value.trim() !== requestedEmail) return;
           resultEl.style.display = "block";
           resultEl.textContent = "중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.";
           resultEl.style.color = "var(--error, #d32f2f)";
