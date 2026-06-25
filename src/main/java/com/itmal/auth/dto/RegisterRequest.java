@@ -2,11 +2,14 @@ package com.itmal.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,4 +36,7 @@ public class RegisterRequest {
 
     @NotBlank
     private String nativeLanguage;
+
+    @NotEmpty(message = "학습 언어를 1개 이상 선택해주세요.")
+    private List<String> learningLanguages;
 }

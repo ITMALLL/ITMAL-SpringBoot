@@ -2,6 +2,7 @@ package com.itmal.auth.controller;
 
 import com.itmal.auth.dto.RegisterRequest;
 import com.itmal.auth.exception.DuplicateEmailException;
+import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,9 @@ public class AuthController {
             authService.register(request);
         } catch (DuplicateEmailException e) {
             model.addAttribute("errorMessage", "이미 사용 중인 이메일입니다.");
+            return "user/register";
+        } catch (DuplicateNicknameException e) {
+            model.addAttribute("errorMessage", "이미 사용 중인 닉네임입니다.");
             return "user/register";
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());

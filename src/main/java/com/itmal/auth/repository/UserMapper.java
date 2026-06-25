@@ -11,4 +11,7 @@ public interface UserMapper {
 
     Optional<User> findByEmail(String email);
 
+    boolean existsByEmail(String email);
+
+    boolean existsByNickname(String nickname);
 }
