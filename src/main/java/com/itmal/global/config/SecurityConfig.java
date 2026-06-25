@@ -30,8 +30,12 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout(logout -> logout
-                .logoutSuccessUrl("/login")
+                .logoutSuccessUrl("/")
                 .permitAll()
+            )
+            .rememberMe(remember -> remember
+                .key("itmal-remember-me")
+                .tokenValiditySeconds(60 * 60 * 24 * 14) // 14일
             );
             // TODO: OAuth2 credentials 준비되면 아래 추가
             // .oauth2Login(oauth -> oauth

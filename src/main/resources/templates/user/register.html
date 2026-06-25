@@ -56,7 +56,19 @@
               <button
                 type="button"
                 class="btn btn-secondary btn-send"
+                onclick="checkEmail()"
+              >
+                중복 확인
+              </button>
+            </div>
+            <div id="emailCheckResult" style="display: none; margin-top: 4px; font-size: 13px;"></div>
+            <div style="margin-top: 8px;">
+              <button
+                type="button"
+                id="btnSendCode"
+                class="btn btn-secondary btn-send"
                 onclick="sendCode()"
+                disabled
               >
                 인증코드 발송
               </button>
@@ -272,6 +284,46 @@
             icon.textContent = "visibility";
           }
         });
+
+      // 이메일 변경 시 중복 확인 결과 초기화
+      document.getElementById("email").addEventListener("input", () => {
+        document.getElementById("emailCheckResult").style.display = "none";
+        document.getElementById("btnSendCode").disabled = true;
+      });
+
+      // Check email duplicate
+      async function checkEmail() {
+        const email = document.getElementById("email").value;
+        if (!email) {
+          alert("이메일을 입력해주세요.");
+          return;
+        }
+
+        const resultEl = document.getElementById("emailCheckResult");
+        const btnSendCode = document.getElementById("btnSendCode");
+
+        try {
+          const res = await fetch(`/api/check/email?email=${encodeURIComponent(email)}`);
+          if (!res.ok) throw new Error("서버 오류");
+          const data = await res.json();
+
+          resultEl.style.display = "block";
+          if (data.duplicate) {
+            resultEl.textContent = "이미 사용 중인 이메일입니다.";
+            resultEl.style.color = "var(--error, #d32f2f)";
+            btnSendCode.disabled = true;
+          } else {
+            resultEl.textContent = "사용 가능한 이메일입니다.";
+            resultEl.style.color = "var(--primary, #0058be)";
+            btnSendCode.disabled = false;
+          }
+        } catch (e) {
+          resultEl.style.display = "block";
+          resultEl.textContent = "중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.";
+          resultEl.style.color = "var(--error, #d32f2f)";
+          btnSendCode.disabled = true;
+        }
+      }
 
       // Send verification code
       function sendCode() {
