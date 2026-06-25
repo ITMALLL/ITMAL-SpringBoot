@@ -1,8 +1,14 @@
 package com.itmal.global.exception;
 
+import lombok.Getter;
+
+@Getter
 public class BusinessException extends RuntimeException {
 
-    public BusinessException() {
-        super("질문을 찾을 수 없습니다.");
+    private final ErrorCode errorCode;
+
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
 }
