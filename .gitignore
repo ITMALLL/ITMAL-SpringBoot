@@ -207,6 +207,9 @@ fabric.properties
 hs_err_pid*
 replay_pid*
 
+# 업로드된 첨부파일
+questionUploads/
+
 ### Maven ###
 target/
 pom.xml.tag

@@ -3,6 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--csrf 헤더로 보냄-->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
     <title>잇말 - 질문 등록</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
@@ -16,6 +21,10 @@
     <link rel="stylesheet" href="/css/questions-write.css" />
     <link rel="stylesheet" href="/css/header.css" />
     <link rel="stylesheet" href="/css/footer.css" />
+
+    <!-- 0625 ckeditor cdn 추가-->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+
   </head>
   <body>
   <div th:replace="~{fragments/header :: header}"></div>
@@ -33,28 +42,30 @@
 
         <!-- Form Container -->
         <form
-          class="write-form"
-          id="question-form"
-          onsubmit="handleSubmit(event)"
+                class="write-form"
+                id="question-form"
+                th:action="@{/questions/write}"
+                method="post"
+                enctype="multipart/form-data"
         >
           <!-- Select Fields Grid -->
           <div class="form-select-grid">
             <!-- Language Select -->
             <div class="form-field">
               <label class="form-label required">언어 선택</label>
-              <select class="form-select" required>
+              <select class="form-select" name="languageId" required>
                 <option value="">언어를 선택하세요</option>
-                <option value="KR">한국어 (KR)</option>
-                <option value="EN">English (EN)</option>
-                <option value="JP">日本語 (JP)</option>
-                <option value="ZH">中文 (ZH)</option>
+                <option th:each="lang : ${languages}"
+                        th:value="${lang.languageId}"
+                        th:text="${lang.languageName}">
+                </option>
               </select>
             </div>
 
             <!-- Category Select -->
             <div class="form-field">
               <label class="form-label required">카테고리</label>
-              <select class="form-select" required>
+              <select class="form-select" name="category" required>
                 <option value="">카테고리를 선택하세요</option>
                 <option value="grammar">문법 (Grammar)</option>
                 <option value="expression">표현 (Expression)</option>
@@ -66,10 +77,10 @@
             <!-- Target Select -->
             <div class="form-field">
               <label class="form-label required">질문 대상</label>
-              <select class="form-select" required>
+              <select class="form-select" name="target" required>
                 <option value="">대상을 선택하세요</option>
                 <option value="tutor">튜터 (답변 비용)</option>
-                <option value="community">전체 커뮤니티</option>
+                <option value="community">전체 사용자</option>
                 <option value="native">원어민만</option>
               </select>
             </div>
@@ -80,8 +91,9 @@
             <label class="form-label required">제목</label>
             <input
               type="text"
+              name="title"
               class="form-input"
-              placeholder="질문의 핵심 내용을 입력해주세요"
+              placeholder="제목을 입력해주세요"
               maxlength="200"
               required
             />
@@ -92,13 +104,37 @@
             <label class="form-label required">설명</label>
             <textarea
               class="form-textarea"
+              name="content"
+              id="editor"
               placeholder="궁금한 내용을 자세히 설명해주세요. 상황이나 문맥을 함께 작아주시면 원문자에게 큰 도움이 될 거예요."
               maxlength="5000"
-              required
             ></textarea>
             <div class="char-counter">
               <span id="char-count">0</span> / 5,000자
             </div>
+          </div>
+
+          <!-- File Attachment Section -->
+          <div class="form-field full-width">
+            <label class="form-label">파일 첨부</label>
+            <div class="attachment-area">
+              <label class="attachment-btn" for="file-input">
+                <span class="material-symbols-outlined">attach_file</span>
+                파일 선택
+              </label>
+              <input
+                type="file"
+                id="file-input"
+                name="files"
+                multiple
+                accept=".mp3,.m4a,.wav,.ogg,.aac,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip"
+                style="display: none;"
+              />
+              <span class="attachment-limit">최대 3개 · 파일당 50MB 이하</span>
+            </div>
+            <p class="attachment-hint">음성: mp3, m4a, wav, ogg, aac &nbsp;·&nbsp; 문서: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, zip</p>
+
+            <ul class="attachment-file-list" id="file-list"></ul>
           </div>
 
           <!-- Form Actions -->
@@ -135,27 +171,126 @@
           history.back();
         }
       });
+    </script>
 
-      // 폼 제출
-      function handleSubmit(event) {
-        event.preventDefault();
-        const title = document.querySelector(".form-input").value.trim();
-        const description = textarea.value.trim();
+    <script>
+      const fileInput = document.getElementById('file-input');
+      const fileListEl = document.getElementById('file-list');
+      const MAX_FILES = 3;
+      const MAX_SIZE = 50 * 1024 * 1024;
+      let selectedFiles = [];
 
-        if (!title) {
-          alert("제목을 입력해주세요.");
-          return;
+      fileInput.addEventListener('change', () => {
+        const newFiles = Array.from(fileInput.files);
+        for (const file of newFiles) {
+          if (selectedFiles.length >= MAX_FILES) {
+            alert('파일은 최대 3개까지 첨부할 수 있습니다.');
+            break;
+          }
+          if (file.size > MAX_SIZE) {
+            alert(`${file.name}: 파일 크기가 50MB를 초과합니다.`);
+            continue;
+          }
+          selectedFiles.push(file);
         }
+        fileInput.value = '';
+        renderFileList();
+      });
 
-        if (!description) {
-          alert("설명을 입력해주세요.");
-          return;
-        }
-
-        console.log("Question submitted");
-        alert("질문이 등록되었습니다!");
-        // 실제 제출 로직은 여기에 추가
+      function renderFileList() {
+        fileListEl.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+          const isAudio = file.type.startsWith('audio/');
+          const sizeText = file.size < 1024 * 1024
+            ? (file.size / 1024).toFixed(1) + 'KB'
+            : (file.size / 1024 / 1024).toFixed(1) + 'MB';
+          const li = document.createElement('li');
+          li.className = 'attachment-file-item';
+          li.innerHTML = `
+            <span class="material-symbols-outlined attachment-file-icon">${isAudio ? 'mic' : 'description'}</span>
+            <span class="attachment-file-name">${file.name}</span>
+            <span class="attachment-file-size">${sizeText}</span>
+            <button type="button" class="attachment-file-remove" data-index="${index}">
+              <span class="material-symbols-outlined">close</span>
+            </button>`;
+          fileListEl.appendChild(li);
+        });
       }
+
+      fileListEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.attachment-file-remove');
+        if (!btn) return;
+        selectedFiles.splice(parseInt(btn.dataset.index), 1);
+        renderFileList();
+      });
+
+      document.getElementById('question-form').addEventListener('submit', async (e) => {
+        e.preventDefault(); // 기본 전송을 막고 fetch로 직접 보냄
+
+        // 1) 내용(CKEditor) 빈 값 검증
+        const text = editorInstance.getData().replace(/<[^>]*>/g, '').trim();
+        if (!text) {
+          alert('설명을 입력해주세요.');
+          return;
+        }
+
+        // 2) 폼 필드 수집 + CKEditor 내용/첨부파일 반영
+        const form = e.target;
+        const formData = new FormData(form);
+        formData.set('content', editorInstance.getData()); // 숨은 textarea 대신 에디터 내용 사용
+        formData.delete('files');                          // 비어있는 file input 제거
+        selectedFiles.forEach(file => formData.append('files', file)); // 실제 선택 파일 추가
+
+        // 3) CSRF 토큰을 헤더에 실어 전송
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            headers: { [csrfHeader]: csrfToken },
+            body: formData
+          });
+          if (res.ok) {
+            window.location.href = res.url;
+          } else {
+            const msg = await res.text();
+            alert(msg || ('등록에 실패했습니다. (' + res.status + ')'));
+          }
+        } catch (err) {
+          console.error(err);
+          alert('네트워크 오류가 발생했습니다.');
+        }
+      });
+    </script>
+
+    <script>
+      let editorInstance;
+      ClassicEditor
+              .create(document.querySelector('#editor'))
+              .then(editor => {
+                editorInstance = editor;
+                editor.model.document.on('change:data', () => {
+                  const text = editor.getData()
+                          .replace(/<[^>]*>/g, '')     // HTML 태그 제거
+                          .replace(/&nbsp;/g, '')      // &nbsp; 완전히 제거하긴 했는데.......카운트 안되는 게 맞을지 고민 후 (수정)
+                          .replace(/&[a-z]+;/g, '')    // 기타 HTML 특수문자 제거
+                          .trim();
+                  const count = text.length;
+                  document.getElementById('char-count').textContent = count;
+
+                  if (count > 5000) {
+                    // 5000자 초과시 마지막 입력 되돌리기
+                    editor.model.change(writer => {
+                      editor.commands.execute('undo');
+                    });
+                    document.getElementById('char-count').textContent = 5000;
+                  }
+                });
+              })
+                .catch(error => { //에디터 에러 났을때 어떻게 처리할지 판단해서 (수정)
+                console.error(error);
+              });
     </script>
   </body>
 </html>
