@@ -329,6 +329,35 @@
           alert("비밀번호가 일치하지 않습니다.");
           return;
         }
+
+        const langMap = {
+          en: "영어",
+          ja: "일본어",
+          zh: "중국어",
+          fr: "프랑스어",
+          es: "스페인어",
+          de: "독일어",
+        };
+
+        const selected = document.querySelectorAll(".lang-chip.selected");
+        if (selected.length === 0) {
+          event.preventDefault();
+          alert("학습 중인 언어를 1개 이상 선택해주세요.");
+          return;
+        }
+
+        const form = event.target;
+        form.querySelectorAll("input[name='learningLanguages']").forEach((el) => el.remove());
+        selected.forEach((chip) => {
+          const langName = langMap[chip.dataset.lang];
+          if (langName) {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "learningLanguages";
+            input.value = langName;
+            form.appendChild(input);
+          }
+        });
       }
     </script>
   </body>

@@ -15,4 +15,16 @@
         WHERE email = #{email}
     </select>
 
+    <select id="existsByEmail" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM users
+        WHERE email = #{email}
+    </select>
+
+    <select id="existsByNickname" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM users
+        WHERE nickname = #{nickname}
+    </select>
+
 </mapper>
