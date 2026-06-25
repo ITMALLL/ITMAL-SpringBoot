@@ -134,6 +134,10 @@ function initCommentSection(section) {
   //댓글 목록 불러오기
   async function loadComments() {
     const res = await fetch(`/api/answers/${answerId}/comments`);
+    if (!res.ok) {
+      listEl.innerHTML = "";
+      return;
+    }
     const comments = await res.json();
     listEl.innerHTML = comments.map(renderComment).join("");
   }
