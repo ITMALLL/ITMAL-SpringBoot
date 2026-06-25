@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itmal.auth.repository.LearningLanguageMapper">
+
+    <select id="findLanguageIdByName" resultType="long">
+        SELECT language_id
+        FROM language
+        WHERE language_name = #{languageName}
+    </select>
+
+    <insert id="insertUserLearningLanguage">
+        INSERT INTO user_learning_language (user_id, language_id)
+        VALUES (#{userId}, #{languageId})
+    </insert>
+
+</mapper>

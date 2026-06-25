@@ -4,7 +4,7 @@ import com.itmal.comment.domain.Comment;
 import com.itmal.comment.dto.CommentRequestDto;
 import com.itmal.comment.dto.CommentResponseDto;
 import com.itmal.comment.mapper.CommentMapper;
-import com.itmal.global.exception.BusinessException;
+import com.itmal.global.exception.ApiException;
 import com.itmal.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -73,9 +73,9 @@ public class CommentService {
                                             CommentRequestDto requestDto) {
         Comment comment = commentMapper.findById(commentId);    //댓글 존재 여부 확인
         if(comment == null){
-            throw new BusinessException(ErrorCode.COMMENT_NOT_FOUND);
+            throw new ApiException(ErrorCode.COMMENT_NOT_FOUND);
         } else if(!comment.getUserId().equals(userId)){
-            throw new BusinessException(ErrorCode.COMMENT_FORBIDDEN);
+            throw new ApiException(ErrorCode.COMMENT_FORBIDDEN);
         } else{
             comment.setContent(requestDto.getContent());
             comment.setUpdatedAt(LocalDateTime.now());
@@ -97,9 +97,9 @@ public class CommentService {
                              Long userId) {
         Comment comment = commentMapper.findById(commentId);    //댓글 존재 여부 확인
         if(comment == null){
-            throw new BusinessException(ErrorCode.COMMENT_NOT_FOUND);
+            throw new ApiException(ErrorCode.COMMENT_NOT_FOUND);
         } else if(!comment.getUserId().equals(userId)){
-            throw new BusinessException(ErrorCode.COMMENT_FORBIDDEN);
+            throw new ApiException(ErrorCode.COMMENT_FORBIDDEN);
         }
         return commentMapper.delete(commentId);
 

@@ -3,12 +3,8 @@ package com.itmal.comment.controller;
 import com.itmal.comment.dto.CommentRequestDto;
 import com.itmal.comment.dto.CommentResponseDto;
 import com.itmal.comment.service.CommentService;
-import com.itmal.global.exception.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,17 +42,6 @@ public class CommentController {
         Long userId = 1L;
         return commentService.updateComment(commentId, userId, requestDto);
 
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationError(MethodArgumentNotValidException e) {
-        String message = e.getBindingResult().getFieldError().getDefaultMessage();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
-    }
-
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<String> handleBusinessException(BusinessException e) {
-        return ResponseEntity.status(e.getErrorCode().getStatus()).body(e.getMessage());
     }
 
     @DeleteMapping("/comments/{commentId}")

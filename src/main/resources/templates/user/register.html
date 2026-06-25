@@ -56,7 +56,19 @@
               <button
                 type="button"
                 class="btn btn-secondary btn-send"
+                onclick="checkEmail()"
+              >
+                중복 확인
+              </button>
+            </div>
+            <div id="emailCheckResult" style="display: none; margin-top: 4px; font-size: 13px;"></div>
+            <div style="margin-top: 8px;">
+              <button
+                type="button"
+                id="btnSendCode"
+                class="btn btn-secondary btn-send"
                 onclick="sendCode()"
+                disabled
               >
                 인증코드 발송
               </button>
@@ -273,6 +285,56 @@
           }
         });
 
+      // 이메일 변경 시 중복 확인 결과 초기화
+      document.getElementById("email").addEventListener("input", () => {
+        document.getElementById("emailCheckResult").style.display = "none";
+        document.getElementById("btnSendCode").disabled = true;
+      });
+
+      // Check email duplicate
+      async function checkEmail() {
+        const emailInput = document.getElementById("email");
+        const requestedEmail = emailInput.value.trim();
+
+        if (!requestedEmail) {
+          alert("이메일을 입력해주세요.");
+          return;
+        }
+
+        if (!emailInput.checkValidity()) {
+          emailInput.reportValidity();
+          return;
+        }
+
+        const resultEl = document.getElementById("emailCheckResult");
+        const btnSendCode = document.getElementById("btnSendCode");
+
+        try {
+          const res = await fetch(`/api/check/email?email=${encodeURIComponent(requestedEmail)}`);
+          if (!res.ok) throw new Error("서버 오류");
+          const data = await res.json();
+
+          if (emailInput.value.trim() !== requestedEmail) return;
+
+          resultEl.style.display = "block";
+          if (data.duplicate) {
+            resultEl.textContent = "이미 사용 중인 이메일입니다.";
+            resultEl.style.color = "var(--error, #d32f2f)";
+            btnSendCode.disabled = true;
+          } else {
+            resultEl.textContent = "사용 가능한 이메일입니다.";
+            resultEl.style.color = "var(--primary, #0058be)";
+            btnSendCode.disabled = false;
+          }
+        } catch (e) {
+          if (emailInput.value.trim() !== requestedEmail) return;
+          resultEl.style.display = "block";
+          resultEl.textContent = "중복 확인 중 오류가 발생했습니다. 다시 시도해주세요.";
+          resultEl.style.color = "var(--error, #d32f2f)";
+          btnSendCode.disabled = true;
+        }
+      }
+
       // Send verification code
       function sendCode() {
         const email = document.getElementById("email").value;
@@ -329,6 +391,35 @@
           alert("비밀번호가 일치하지 않습니다.");
           return;
         }
+
+        const langMap = {
+          en: "영어",
+          ja: "일본어",
+          zh: "중국어",
+          fr: "프랑스어",
+          es: "스페인어",
+          de: "독일어",
+        };
+
+        const selected = document.querySelectorAll(".lang-chip.selected");
+        if (selected.length === 0) {
+          event.preventDefault();
+          alert("학습 중인 언어를 1개 이상 선택해주세요.");
+          return;
+        }
+
+        const form = event.target;
+        form.querySelectorAll("input[name='learningLanguages']").forEach((el) => el.remove());
+        selected.forEach((chip) => {
+          const langName = langMap[chip.dataset.lang];
+          if (langName) {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "learningLanguages";
+            input.value = langName;
+            form.appendChild(input);
+          }
+        });
       }
     </script>
   </body>
