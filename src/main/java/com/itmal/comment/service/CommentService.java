@@ -104,4 +104,23 @@ public class CommentService {
         return commentMapper.delete(commentId);
 
     }
+
+    //마이페이지 댓글 조회용
+    public List<CommentResponseDto> getMypageComment(Long userId){
+        List<Comment> comments = commentMapper.findByUserId(userId);
+        List<CommentResponseDto> commentResponseDtos = new ArrayList<>();
+
+        for(Comment comment : comments){
+            CommentResponseDto responseDto = new CommentResponseDto();
+            responseDto.setCommentId(comment.getCommentId());
+            responseDto.setContent(comment.getContent());
+            responseDto.setCreatedAt(comment.getCreatedAt());
+            if (comment.getUpdatedAt() != null && !comment.getUpdatedAt().equals(comment.getCreatedAt())) {
+                responseDto.setUpdatedAt(comment.getUpdatedAt());
+            }
+            commentResponseDtos.add(responseDto);
+        }
+
+        return commentResponseDtos;
+    }
 }
