@@ -1,10 +1,12 @@
 package com.itmal.comment.controller;
 
+import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.comment.dto.CommentRequestDto;
 import com.itmal.comment.dto.CommentResponseDto;
 import com.itmal.comment.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,12 +20,9 @@ public class CommentController {
 
     @PostMapping("/answers/{answerId}/comments")
     public CommentResponseDto createComment(@PathVariable Long answerId,
-                                            @Valid @RequestBody CommentRequestDto requestDto) {
-
-        // TODO: 로그인 기능 후 다시 수정
-        // 로그인 개발 후 Authentication/principal에서 실제 로그인한 유저의 userId를 꺼내서 교체할 것.
-        Long userId = 1L;
-        return commentService.createComment(answerId, userId, requestDto);
+                                            @Valid @RequestBody CommentRequestDto requestDto,
+                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return commentService.createComment(answerId, userDetails.getUserId(), requestDto);
     }
 
 
@@ -35,22 +34,15 @@ public class CommentController {
 
     @PutMapping("/comments/{commentId}")
     public CommentResponseDto updateComment(@PathVariable Long commentId,
-                                            @Valid @RequestBody CommentRequestDto requestDto){
-
-        // TODO: 로그인 기능 후 다시 수정
-        // 로그인 개발 후 Authentication/principal에서 실제 로그인한 유저의 userId를 꺼내서 교체할 것.
-        Long userId = 1L;
-        return commentService.updateComment(commentId, userId, requestDto);
-
+                                            @Valid @RequestBody CommentRequestDto requestDto,
+                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return commentService.updateComment(commentId, userDetails.getUserId(), requestDto);
     }
 
     @DeleteMapping("/comments/{commentId}")
-    public int deleteComment(@PathVariable Long commentId){
-
-        // TODO: 로그인 기능 후 다시 수정
-        // 로그인 개발 후 Authentication/principal에서 실제 로그인한 유저의 userId를 꺼내서 교체할 것.
-        Long userId = 1L;
-        return commentService.deleteComment(commentId, userId);
+    public int deleteComment(@PathVariable Long commentId,
+                             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return commentService.deleteComment(commentId, userDetails.getUserId());
     }
 
 

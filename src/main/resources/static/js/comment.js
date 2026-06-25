@@ -2,6 +2,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".comments-section").forEach(initCommentSection);
 });
 
+function getCsrfHeaders() {
+  const tokenEl = document.querySelector('meta[name="_csrf"]');
+  const headerEl = document.querySelector('meta[name="_csrf_header"]');
+  if (!tokenEl || !headerEl) return {};
+  return { [headerEl.content]: tokenEl.content };
+}
+
 // HTML에서 필요한 요소들 변수에 담기
 function initCommentSection(section) {
   const answerId = section.dataset.answerId;
@@ -17,7 +24,7 @@ function initCommentSection(section) {
 
     const res = await fetch(`/api/answers/${answerId}/comments`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getCsrfHeaders() },
       body: JSON.stringify({ content }),
     });
 
@@ -40,6 +47,7 @@ function initCommentSection(section) {
 
       const res = await fetch(`/api/comments/${commentId}`, {
         method: "DELETE",
+        headers: { ...getCsrfHeaders() },
       });
 
       if (!res.ok) {
@@ -88,7 +96,7 @@ function initCommentSection(section) {
 
       const res = await fetch(`/api/comments/${commentId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getCsrfHeaders() },
         body: JSON.stringify({ content: newContent }),
       });
 
