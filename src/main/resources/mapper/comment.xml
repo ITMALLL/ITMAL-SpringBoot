@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itmal.comment.mapper.CommentMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="commentId">
+        INSERT INTO comment (answer_id, user_id, content)
+        VALUES (#{answerId}, #{userId}, #{content})
+    </insert>
+
+    <select id="findByAnswerId" resultType="Comment">
+        SELECT c.comment_id, c.answer_id, c.user_id, c.content,
+               c.created_at, c.updated_at, c.deleted_at,
+               u.nickname
+        FROM comment c
+        JOIN users u ON c.user_id = u.user_id
+        WHERE c.answer_id = #{answerId}
+          AND c.deleted_at IS NULL
+        ORDER BY c.created_at ASC
+    </select>
+
+    <select id="findById" resultType="Comment">
+        SELECT c.comment_id, c.answer_id, c.user_id, c.content,
+               c.created_at, c.updated_at, c.deleted_at,
+               u.nickname
+        FROM comment c
+        JOIN users u ON c.user_id = u.user_id
+        WHERE c.comment_id = #{commentId}
+          AND c.deleted_at IS NULL
+    </select>
+
+    <update id="update">
+        UPDATE comment
+        SET content = #{content},
+            updated_at = NOW()
+        WHERE comment_id = #{commentId}
+            AND deleted_at IS NULL
+    </update>
+
+    <update id="delete">
+        UPDATE comment
+        SET deleted_at = NOW()
+        WHERE comment_id = #{commentId}
+          AND deleted_at IS NULL
+    </update>
+
+</mapper>
