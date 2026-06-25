@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6" lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -78,12 +78,19 @@
         </button>
 
         <!-- Auth Buttons -->
-        <a th:href="@{/login}" class="px-4 py-2 text-label-md text-primary border border-primary rounded-lg hover:bg-primary/5">
-          로그인
-        </a>
-        <a th:href="@{/register}" class="px-4 py-2 text-label-md text-on-primary bg-primary rounded-lg hover:opacity-90 shadow-md">
-          회원가입
-        </a>
+        <div sec:authorize="isAnonymous()">
+          <a th:href="@{/login}" class="px-4 py-2 text-label-md text-primary border border-primary rounded-lg hover:bg-primary/5">
+            로그인
+          </a>
+          <a th:href="@{/register}" class="px-4 py-2 text-label-md text-on-primary bg-primary rounded-lg hover:opacity-90 shadow-md">
+            회원가입
+          </a>
+        </div>
+        <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
+          <button type="submit" class="px-4 py-2 text-label-md text-primary border border-primary rounded-lg hover:bg-primary/5">
+            로그아웃
+          </button>
+        </form>
       </div>
     </div>
   </div>
