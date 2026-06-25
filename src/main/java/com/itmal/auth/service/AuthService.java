@@ -8,6 +8,7 @@ import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.repository.LearningLanguageMapper;
 import com.itmal.auth.repository.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +43,15 @@ public class AuthService {
                 .role(Role.ROLE_USER)
                 .emailVerified(false)
                 .build();
-        userMapper.insert(user);
+        try {
+            userMapper.insert(user);
+        } catch (DuplicateKeyException e) {
+            String message = e.getMessage();
+            if (message != null && message.contains("email")) {
+                throw new DuplicateEmailException();
+            }
+            throw new DuplicateNicknameException();
+        }
 
         Long userId = userMapper.findByEmail(request.getEmail())
                 .map(User::getUserId)
@@ -50,9 +59,10 @@ public class AuthService {
 
         for (String languageName : request.getLearningLanguages()) {
             Long languageId = learningLanguageMapper.findLanguageIdByName(languageName);
-            if (languageId != null) {
-                learningLanguageMapper.insertUserLearningLanguage(userId, languageId);
+            if (languageId == null) {
+                throw new IllegalArgumentException("지원하지 않는 학습 언어입니다: " + languageName);
             }
+            learningLanguageMapper.insertUserLearningLanguage(userId, languageId);
         }
     }
 }
