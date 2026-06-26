@@ -30,7 +30,6 @@ public class ChatRequestController {
     // 채팅 요청 수락
     @PutMapping("/{chatRequestId}/accept")
     public ResponseEntity<Map<String, Object>> acceptChatRequest(@PathVariable Long chatRequestId) {
-        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
 
         ChatRoomDto chatRoom = new ChatRoomDto();
         chatRoom.setChatRequestId(chatRequestId);
