@@ -56,6 +56,10 @@ public class CustomUserDetails implements UserDetails, OAuth2User, OidcUser {
         return user.getNativeLanguage();
     }
 
+    public boolean isSocialUser() {
+        return user.isSocialUser();
+    }
+
     @Override
     public String getUsername() {
         return user.getEmail();
