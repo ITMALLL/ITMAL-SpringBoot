@@ -16,21 +16,30 @@ public class OAuthUserProcessor {
     private final UserMapper userMapper;
 
     public User getOrSaveUser(OAuthAttributes attributes) {
+        // 1. provider/providerId로 기존 OAuth 계정 조회
         return userMapper.findByProviderAndProviderId(attributes.getProvider(), attributes.getProviderId())
-                .orElseGet(() -> {
-                    String nickname = resolveNickname(attributes.getNickname());
-                    User newUser = User.builder()
-                            .email(attributes.getEmail())
-                            .nickname(nickname)
-                            .provider(attributes.getProvider())
-                            .providerId(attributes.getProviderId())
-                            .role(Role.ROLE_USER)
-                            .emailVerified(true)
-                            .build();
-                    userMapper.insert(newUser);
-                    return userMapper.findByProviderAndProviderId(attributes.getProvider(), attributes.getProviderId())
-                            .orElseThrow();
-                });
+                .orElseGet(() -> userMapper.findByEmail(attributes.getEmail())
+                        .map(existingUser -> {
+                            // 2. 동일 이메일 일반 가입 계정 → OAuth 연결
+                            userMapper.updateProvider(existingUser.getUserId(), attributes.getProvider(), attributes.getProviderId());
+                            return userMapper.findByProviderAndProviderId(attributes.getProvider(), attributes.getProviderId())
+                                    .orElseThrow();
+                        })
+                        .orElseGet(() -> {
+                            // 3. 신규 유저 생성
+                            String nickname = resolveNickname(attributes.getNickname());
+                            User newUser = User.builder()
+                                    .email(attributes.getEmail())
+                                    .nickname(nickname)
+                                    .provider(attributes.getProvider())
+                                    .providerId(attributes.getProviderId())
+                                    .role(Role.ROLE_USER)
+                                    .emailVerified(true)
+                                    .build();
+                            userMapper.insert(newUser);
+                            return userMapper.findByProviderAndProviderId(attributes.getProvider(), attributes.getProviderId())
+                                    .orElseThrow();
+                        }));
     }
 
     private String resolveNickname(String base) {

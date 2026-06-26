@@ -14,6 +14,8 @@ public interface UserMapper {
 
     Optional<User> findByProviderAndProviderId(@Param("provider") String provider, @Param("providerId") String providerId);
 
+    void updateProvider(@Param("userId") Long userId, @Param("provider") String provider, @Param("providerId") String providerId);
+
     boolean existsByEmail(String email);
 
     boolean existsByNickname(String nickname);

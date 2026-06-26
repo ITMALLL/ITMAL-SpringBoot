@@ -32,6 +32,12 @@
           AND provider_id = #{providerId}
     </select>
 
+    <update id="updateProvider">
+        UPDATE users
+        SET provider = #{provider}, provider_id = #{providerId}
+        WHERE user_id = #{userId}
+    </update>
+
     <select id="existsByEmail" resultType="boolean">
         SELECT COUNT(*) > 0
         FROM users

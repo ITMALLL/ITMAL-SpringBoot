@@ -28,7 +28,7 @@ public class CustomOidcUserService extends OidcUserService {
                 .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
 
         OAuthAttributes attributes = OAuthAttributes.of(provider, userNameAttributeName, oidcUser.getAttributes());
-        log.info("[OAuth] provider={}, email={}, nickname={}", provider, attributes.getEmail(), attributes.getNickname());
+        log.info("[OAuth] provider={}, nickname={}", provider, attributes.getNickname());
 
         if (attributes.getEmail() == null || attributes.getEmail().isBlank()) {
             throw new OAuth2AuthenticationException(
@@ -39,7 +39,7 @@ public class CustomOidcUserService extends OidcUserService {
 
         try {
             User user = oAuthUserProcessor.getOrSaveUser(attributes);
-            log.info("[OAuth] 로그인 성공 - userId={}, email={}", user.getUserId(), user.getEmail());
+            log.info("[OAuth] 로그인 성공 - userId={}", user.getUserId());
             return new CustomUserDetails(user, oidcUser.getAttributes(), oidcUser.getIdToken(), oidcUser.getUserInfo());
         } catch (Exception e) {
             log.error("[OAuth] 사용자 저장/조회 실패: {}", e.getMessage(), e);

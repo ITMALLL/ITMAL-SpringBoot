@@ -12,9 +12,11 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +27,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserMapper userMapper;
     private final OAuthUserProcessor oAuthUserProcessor;
-    private final RestClient restClient = RestClient.create();
+    private final RestClient restClient = RestClient.builder()
+            .requestFactory(new SimpleClientHttpRequestFactory() {{
+                setConnectTimeout(Duration.ofSeconds(5));
+                setReadTimeout(Duration.ofSeconds(5));
+            }})
+            .build();
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -49,7 +56,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             attributes = attributes.toBuilder().email(fetchedEmail).build();
         }
 
-        log.info("[OAuth] provider={}, email={}, nickname={}", provider, attributes.getEmail(), attributes.getNickname());
+        log.info("[OAuth] provider={}, nickname={}", provider, attributes.getNickname());
 
         if (attributes.getEmail() == null || attributes.getEmail().isBlank()) {
             throw new OAuth2AuthenticationException(
@@ -60,7 +67,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         try {
             User user = oAuthUserProcessor.getOrSaveUser(attributes);
-            log.info("[OAuth] 로그인 성공 - userId={}, email={}", user.getUserId(), user.getEmail());
+            log.info("[OAuth] 로그인 성공 - userId={}", user.getUserId());
             return new CustomUserDetails(user, attributes.getAttributes());
         } catch (Exception e) {
             log.error("[OAuth] 사용자 저장/조회 실패: {}", e.getMessage(), e);
