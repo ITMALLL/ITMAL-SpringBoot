@@ -20,7 +20,7 @@ public class ChatRoomService {
         return chatRoom.getId();
     }
 
-    // 채팅방 조회(사용 보류)
+    // 채팅방 조회
     public ChatRoomDto getChatRoom(Long chatRoomId) {
         return chatRoomMapper.selectById(chatRoomId);
     }

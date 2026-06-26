@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/chat-request")
 @RequiredArgsConstructor
@@ -26,19 +29,20 @@ public class ChatRequestController {
 
     // 채팅 요청 수락
     @PutMapping("/{chatRequestId}/accept")
-    public ResponseEntity<String> acceptChatRequest(@PathVariable Long chatRequestId) {
+    public ResponseEntity<Map<String, Object>> acceptChatRequest(@PathVariable Long chatRequestId) {
         ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
 
-        // 채팅방 생성
         ChatRoomDto chatRoom = new ChatRoomDto();
         chatRoom.setChatRequestId(chatRequestId);
-        chatRoom.setChatTitle("Chat with " + chatRequest.getRequesterId());
-        chatRoomService.createChatRoom(chatRoom);
+        Long chatRoomId = chatRoomService.createChatRoom(chatRoom);  // ← 사용!
 
-        // 요청 상태 수락으로 변경
         chatRequestService.acceptChatRequest(chatRequestId);
 
-        return ResponseEntity.ok("채팅 요청을 수락했습니다.");
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "채팅 요청을 수락했습니다.");
+        response.put("chatRoomId", chatRoomId);  // ← 클라이언트에 반환
+
+        return ResponseEntity.ok(response);
     }
 
     // 채팅 요청 거절
