@@ -75,4 +75,19 @@
             left_at_b   = NULL
         WHERE id = #{id}
     </update>
+
+    <!-- 사용자의 모든 채팅방 조회 -->
+    <select id="selectByUserId" parameterType="Long" resultType="ChatRoomDto">
+        SELECT cr.*,
+               cr2.requester_id,
+               cr2.responder_id
+        FROM chat_room cr
+                 LEFT JOIN chat_request cr2 ON cr.chat_request_id = cr2.chat_request_id
+        WHERE (
+                  (cr2.requester_id = #{userId} AND cr.hidden_by_a = false)
+                      OR
+                  (cr2.responder_id = #{userId} AND cr.hidden_by_b = false)
+                  )
+        ORDER BY cr.updated_at DESC
+    </select>
 </mapper>

@@ -8,6 +8,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 @RequiredArgsConstructor
@@ -16,12 +17,17 @@ public class ChatController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatMessageService chatMessageService;
 
+    @GetMapping("/chat")
+    public String chat() {
+        return "chat/chat";
+    }
+
     @MessageMapping("/chat")
     public void sendMessage(@Valid @Payload ChatMessageDto message) {
-        // 모든 업데이트를 한 번에 (트랜잭션 처리)
+        // 메시지 저장 + 마지막 메시지 시간 업데이트
         chatMessageService.saveMessageAndUpdateRoom(message);
 
-        // 웹소켓 발송 (트랜잭션 완료 후)
+        // STOMP로 전송
         messagingTemplate.convertAndSend(
                 "/topic/user/" + message.getChatRoomId(),
                 message

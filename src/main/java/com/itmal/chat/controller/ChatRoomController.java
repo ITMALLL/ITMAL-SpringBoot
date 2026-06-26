@@ -1,65 +1,72 @@
 package com.itmal.chat.controller;
 
-import com.itmal.chat.dto.ChatMessageDto;
-import com.itmal.chat.dto.ChatRequestDto;
-import com.itmal.chat.dto.ChatRoomDto;
-import com.itmal.chat.service.ChatMessageService;
-import com.itmal.chat.service.ChatRequestService;
-import com.itmal.chat.service.ChatRoomService;
+import com.itmal.auth.domain.CustomUserDetails;
+import com.itmal.chat.service.ChatManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/chat-room")
 @RequiredArgsConstructor
 public class ChatRoomController {
 
-    private final ChatRoomService chatRoomService;
-    private final ChatRequestService chatRequestService;
-    private final ChatMessageService chatMessageService;
+    private final ChatManagementService chatManagementService;
+    private final SimpMessagingTemplate messagingTemplate;  // ← 추가
 
-    // 채팅방 진입 - 메시지 목록 + 읽음 처리
+    // 채팅방 진입
     @GetMapping("/{chatRoomId}")
     public ResponseEntity<Map<String, Object>> getChatRoom(
             @PathVariable Long chatRoomId,
-            @RequestParam Long userId) {
+            @AuthenticationPrincipal CustomUserDetails user) {
 
-        ChatRoomDto chatRoom = chatRoomService.getChatRoom(chatRoomId);
-        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRoom.getChatRequestId());
+        return ResponseEntity.ok(
+                chatManagementService.getChatRoomWithMessages(chatRoomId, user.getUserId())
+        );
+    }
 
-        // 읽음 처리
-        if (userId.equals(chatRequest.getRequesterId())) {
-            chatRoomService.updateLastReadAtA(chatRoomId);
-        } else {
-            chatRoomService.updateLastReadAtB(chatRoomId);
-        }
+    // 채팅 목록
+    @GetMapping("/user")
+    public ResponseEntity<List<Map<String, Object>>> getChatRoomsByUser(
+            @AuthenticationPrincipal CustomUserDetails user) {
 
-        // ✅ 업데이트 후 최신 데이터 조회
-        chatRoom = chatRoomService.getChatRoom(chatRoomId);
+        return ResponseEntity.ok(
+                chatManagementService.getChatRoomsWithUnreadCount(user.getUserId())
+        );
+    }
 
-        // 메시지 목록 조회
-        List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoom(chatRoomId);
+    @PostMapping("/mark-as-read")
+    public ResponseEntity<Void> markAsRead(
+            @RequestParam Long chatRoomId,
+            @RequestParam Long chatRequestId,
+            @AuthenticationPrincipal CustomUserDetails user) {
 
-        // 응답 객체 생성
-        Map<String, Object> response = new HashMap<>();
-        response.put("chatRoom", chatRoom);
-        response.put("messages", messages);
+        Long userId = user.getUserId();
 
-        return ResponseEntity.ok(response);
+        chatManagementService.markAsRead(chatRoomId, userId, chatRequestId);
+
+        messagingTemplate.convertAndSend(
+                "/topic/chat-read/" + chatRoomId,
+                Optional.of(Map.of("userId", userId, "readAt", System.currentTimeMillis()))
+        );
+
+        return ResponseEntity.ok().build();
     }
 
     // 채팅방 나가기
     @PostMapping("/{chatRoomId}/leave")
     public ResponseEntity<String> leaveRoom(
             @PathVariable Long chatRoomId,
-            @RequestParam Long userId,
-            @RequestParam Long chatRequestId) {
-        chatRoomService.leaveRoom(chatRoomId, userId, chatRequestId);
+            @RequestParam Long chatRequestId,
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        chatManagementService.leaveRoom(chatRoomId, user.getUserId(), chatRequestId);
         return ResponseEntity.ok("채팅방을 나갔습니다.");
     }
 }
