@@ -20,4 +20,11 @@ public class ViewExceptionHandler {
                 .body("첨부파일 용량이 제한(개별 50MB, 전체 160MB)을 초과했습니다.");
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseBody
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(e.getMessage());
+    }
+
 }
