@@ -3,19 +3,37 @@ package com.itmal.auth.service;
 import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.PasswordChangeRequest;
 import com.itmal.auth.dto.ProfileUpdateRequest;
+import com.itmal.auth.dto.SocialRegisterRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
+import com.itmal.auth.repository.LearningLanguageMapper;
 import com.itmal.auth.repository.UserMapper;
+import com.itmal.question.dto.LanguageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserMapper userMapper;
+    private final LearningLanguageMapper learningLanguageMapper;
     private final PasswordEncoder passwordEncoder;
+
+    public User findById(Long userId) {
+        return userMapper.findById(userId).orElseThrow();
+    }
+
+    public List<String> getLearningLanguages(Long userId) {
+        return learningLanguageMapper.findLanguageNamesByUserId(userId);
+    }
+
+    public List<LanguageDto> getAllLanguages() {
+        return learningLanguageMapper.findAllLanguages();
+    }
 
     @Transactional
     public void updateProfile(Long userId, ProfileUpdateRequest request) {
@@ -25,6 +43,7 @@ public class UserService {
             throw new DuplicateNicknameException();
         }
         userMapper.updateProfile(userId, request.getNickname(), request.getNativeLanguage());
+        saveLanguages(userId, request.getLearningLanguages());
     }
 
     @Transactional
@@ -39,15 +58,29 @@ public class UserService {
             throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
         }
 
-        if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
-            throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다.");
-        }
-
         userMapper.updatePassword(userId, passwordEncoder.encode(request.getNewPassword()));
+    }
+
+    @Transactional
+    public void completeSocialProfile(Long userId, SocialRegisterRequest request) {
+        User current = userMapper.findById(userId).orElseThrow();
+        if (!current.getNickname().equals(request.getNickname()) &&
+                userMapper.existsByNickname(request.getNickname())) {
+            throw new DuplicateNicknameException();
+        }
+        userMapper.updateProfile(userId, request.getNickname(), request.getNativeLanguage());
+        saveLanguages(userId, request.getLearningLanguages());
     }
 
     @Transactional
     public void deleteAccount(Long userId) {
         userMapper.softDelete(userId);
+    }
+
+    private void saveLanguages(Long userId, List<String> languageNames) {
+        learningLanguageMapper.deleteByUserId(userId);
+        if (languageNames != null && !languageNames.isEmpty()) {
+            learningLanguageMapper.insertUserLearningLanguagesByNames(userId, languageNames);
+        }
     }
 }

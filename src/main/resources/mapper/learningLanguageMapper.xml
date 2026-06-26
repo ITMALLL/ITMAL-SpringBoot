@@ -15,4 +15,31 @@
         VALUES (#{userId}, #{languageId})
     </insert>
 
+    <select id="findAllLanguages" resultType="com.itmal.question.dto.LanguageDto">
+        SELECT language_id, language_name
+        FROM language
+        ORDER BY language_id
+    </select>
+
+    <select id="findLanguageNamesByUserId" resultType="string">
+        SELECT l.language_name
+        FROM user_learning_language ull
+        JOIN language l ON ull.language_id = l.language_id
+        WHERE ull.user_id = #{userId}
+    </select>
+
+    <delete id="deleteByUserId">
+        DELETE FROM user_learning_language
+        WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertUserLearningLanguagesByNames">
+        INSERT INTO user_learning_language (user_id, language_id)
+        SELECT #{userId}, language_id FROM language
+        WHERE language_name IN
+        <foreach item="name" collection="names" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+    </insert>
+
 </mapper>

@@ -10,11 +10,13 @@
     <link rel="stylesheet" href="/css/footer.css" />
     <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/mypage.css" />
+    <link rel="stylesheet" href="/css/mypage-edit.css" />
   </head>
   <body>
   <div th:replace="~{fragments/header :: header}"></div>
 
-  <main class="mypage-main">
+  <main>
+    <!-- 파란 헤더 -->
     <section class="profile-section">
       <div class="profile-container">
         <div class="profile-header">
@@ -26,27 +28,54 @@
             <p class="profile-email" th:text="${user.username}">이메일</p>
           </div>
         </div>
+      </div>
+    </section>
 
-        <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+    <!-- 흰 카드 폼 -->
+    <section class="edit-section">
+      <div class="edit-card">
 
-        <form th:action="@{/mypage/edit}" th:object="${profileUpdateRequest}" method="post" class="edit-form">
+        <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/mypage/edit}" th:object="${profileUpdateRequest}" method="post">
           <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-          <div class="form-group">
+          <div class="edit-form-group">
             <label for="nickname">닉네임</label>
-            <input type="text" id="nickname" th:field="*{nickname}" class="form-input" placeholder="닉네임을 입력하세요"/>
+            <input type="text" id="nickname" th:field="*{nickname}" class="edit-input" placeholder="2~20자 닉네임"/>
             <span th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" class="field-error"></span>
           </div>
 
-          <div class="form-group">
+          <div class="edit-form-group">
             <label for="nativeLanguage">모국어</label>
-            <input type="text" id="nativeLanguage" th:field="*{nativeLanguage}" class="form-input" placeholder="예: 한국어"/>
+            <select id="nativeLanguage" th:field="*{nativeLanguage}" class="edit-input">
+              <option value="">선택해주세요</option>
+              <option value="ko">한국어</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+              <option value="zh">中文</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+            </select>
             <span th:if="${#fields.hasErrors('nativeLanguage')}" th:errors="*{nativeLanguage}" class="field-error"></span>
           </div>
 
-          <div class="form-actions">
-            <a href="/mypage" class="btn btn-outline">취소</a>
+          <div class="edit-form-group">
+            <label>학습 언어</label>
+            <div class="lang-chip-group">
+              <label th:each="lang : ${allLanguages}" class="lang-chip-label">
+                <input type="checkbox"
+                       name="learningLanguages"
+                       th:value="${lang.languageName}"
+                       th:checked="${#lists.contains(profileUpdateRequest.learningLanguages, lang.languageName)}"/>
+                <span th:text="${lang.languageName}">언어</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="edit-actions">
             <button type="submit" class="btn btn-primary">저장</button>
+            <a href="/mypage" class="btn btn-outline">취소</a>
           </div>
         </form>
       </div>

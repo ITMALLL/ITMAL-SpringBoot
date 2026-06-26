@@ -1,5 +1,6 @@
 package com.itmal.global.config;
 
+import com.itmal.auth.handler.OAuth2LoginSuccessHandler;
 import com.itmal.auth.service.CustomOAuth2UserService;
 import com.itmal.auth.service.CustomOidcUserService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +26,14 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOidcUserService customOidcUserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomOidcUserService customOidcUserService) {
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
+                          CustomOidcUserService customOidcUserService,
+                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
 
     @Bean
@@ -42,6 +47,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/register/social").permitAll()
+                .requestMatchers("/mypage/**").authenticated()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
@@ -65,7 +71,7 @@ public class SecurityConfig {
             )
             .oauth2Login(oauth -> oauth
                 .loginPage("/login")
-                .defaultSuccessUrl("/", true)
+                .successHandler(oAuth2LoginSuccessHandler)
                 .failureHandler((request, response, exception) -> {
                     log.error("[OAuth] 로그인 실패: {}", exception.getMessage(), exception);
                     response.sendRedirect("/login?error");

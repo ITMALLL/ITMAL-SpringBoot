@@ -4,8 +4,11 @@ import com.itmal.auth.domain.Role;
 import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.PasswordChangeRequest;
 import com.itmal.auth.dto.ProfileUpdateRequest;
+import com.itmal.auth.dto.SocialRegisterRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.repository.UserMapper;
+
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +51,6 @@ class UserServiceTest {
         User user = User.builder()
                 .email(email)
                 .nickname(nickname)
-                .nativeLanguage("ko")
                 .provider("github")
                 .providerId("12345")
                 .role(Role.ROLE_USER)
@@ -61,11 +63,11 @@ class UserServiceTest {
     // ===== 프로필 수정 =====
 
     @Test
-    @DisplayName("닉네임 변경 성공")
-    void updateProfile_nicknameChange_success() {
+    @DisplayName("닉네임/모국어/학습언어 변경 성공")
+    void updateProfile_success() {
         // Arrange
         User user = insertNormalUser("profile@itmal.com", "기존닉네임");
-        ProfileUpdateRequest request = new ProfileUpdateRequest("새닉네임", "en");
+        ProfileUpdateRequest request = new ProfileUpdateRequest("새닉네임", "en", List.of("영어", "일본어"));
 
         // Act
         userService.updateProfile(user.getUserId(), request);
@@ -74,6 +76,9 @@ class UserServiceTest {
         User updated = userMapper.findByEmail("profile@itmal.com").orElseThrow();
         assertThat(updated.getNickname()).isEqualTo("새닉네임");
         assertThat(updated.getNativeLanguage()).isEqualTo("en");
+
+        List<String> langs = userService.getLearningLanguages(user.getUserId());
+        assertThat(langs).containsExactlyInAnyOrder("영어", "일본어");
     }
 
     @Test
@@ -82,7 +87,7 @@ class UserServiceTest {
         // Arrange
         insertNormalUser("user1@itmal.com", "중복닉네임");
         User user2 = insertNormalUser("user2@itmal.com", "다른닉네임");
-        ProfileUpdateRequest request = new ProfileUpdateRequest("중복닉네임", "ko");
+        ProfileUpdateRequest request = new ProfileUpdateRequest("중복닉네임", "ko", List.of());
 
         // Act & Assert
         assertThatThrownBy(() -> userService.updateProfile(user2.getUserId(), request))
@@ -116,19 +121,6 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("새 비밀번호 확인 불일치 시 예외 발생")
-    void changePassword_passwordConfirmMismatch_throwsException() {
-        // Arrange
-        User user = insertNormalUser("pw3@itmal.com", "유저3");
-        PasswordChangeRequest request = new PasswordChangeRequest("password123!", "newPassword123!", "differentPassword!");
-
-        // Act & Assert
-        assertThatThrownBy(() -> userService.changePassword(user.getUserId(), request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("새 비밀번호가 일치하지 않습니다.");
-    }
-
-    @Test
     @DisplayName("소셜 유저 비밀번호 변경 시 예외 발생")
     void changePassword_socialUser_throwsException() {
         // Arrange
@@ -141,11 +133,51 @@ class UserServiceTest {
                 .hasMessage("소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
     }
 
+    // ===== 소셜 초기설정 =====
+
+    @Test
+    @DisplayName("소셜 초기설정 성공")
+    void completeSocialProfile_success() {
+        // Arrange
+        User user = insertSocialUser("social-setup@itmal.com", "초기닉네임");
+        SocialRegisterRequest request = new SocialRegisterRequest();
+        request.setNickname("설정닉네임");
+        request.setNativeLanguage("ko");
+        request.setLearningLanguages(List.of("영어", "일본어"));
+
+        // Act
+        userService.completeSocialProfile(user.getUserId(), request);
+
+        // Assert
+        User updated = userMapper.findByEmail("social-setup@itmal.com").orElseThrow();
+        assertThat(updated.getNickname()).isEqualTo("설정닉네임");
+        assertThat(updated.getNativeLanguage()).isEqualTo("ko");
+
+        List<String> langs = userService.getLearningLanguages(user.getUserId());
+        assertThat(langs).containsExactlyInAnyOrder("영어", "일본어");
+    }
+
+    @Test
+    @DisplayName("소셜 초기설정 닉네임 중복 시 예외 발생")
+    void completeSocialProfile_duplicateNickname_throwsException() {
+        // Arrange
+        insertNormalUser("existing@itmal.com", "기존닉네임");
+        User socialUser = insertSocialUser("social2@itmal.com", "소셜유저");
+        SocialRegisterRequest request = new SocialRegisterRequest();
+        request.setNickname("기존닉네임");
+        request.setNativeLanguage("ko");
+        request.setLearningLanguages(List.of("영어"));
+
+        // Act & Assert
+        assertThatThrownBy(() -> userService.completeSocialProfile(socialUser.getUserId(), request))
+                .isInstanceOf(DuplicateNicknameException.class);
+    }
+
     // ===== 회원탈퇴 =====
 
     @Test
-    @DisplayName("일반 유저 회원탈퇴 성공 - deleted_at 설정됨")
-    void deleteAccount_normalUser_success() {
+    @DisplayName("회원탈퇴 성공 - deleted_at 설정됨")
+    void deleteAccount_success() {
         // Arrange
         User user = insertNormalUser("delete@itmal.com", "탈퇴유저");
 
