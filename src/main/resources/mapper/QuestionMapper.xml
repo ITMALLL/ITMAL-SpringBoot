@@ -24,7 +24,7 @@
                      NOW(),
                      NOW(),
                      #{category},
-                     1, <!-- 임시로그인을 위한 값 추후 (수정)-->
+                     #{userId},
                      #{languageId},
                      #{target}
                  )

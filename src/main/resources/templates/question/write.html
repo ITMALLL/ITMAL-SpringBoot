@@ -208,11 +208,12 @@
           li.className = 'attachment-file-item';
           li.innerHTML = `
             <span class="material-symbols-outlined attachment-file-icon">${isAudio ? 'mic' : 'description'}</span>
-            <span class="attachment-file-name">${file.name}</span>
+            <span class="attachment-file-name"></span>
             <span class="attachment-file-size">${sizeText}</span>
             <button type="button" class="attachment-file-remove" data-index="${index}">
               <span class="material-symbols-outlined">close</span>
             </button>`;
+          li.querySelector('.attachment-file-name').textContent = file.name;
           fileListEl.appendChild(li);
         });
       }
