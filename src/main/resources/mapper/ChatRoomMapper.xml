@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itmal.chat.mapper.ChatRoomMapper">
+
+    <!-- 채팅방 생성 -->
+    <insert id="insertChatRoom" parameterType="ChatRoomDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat_room (chat_request_id, chat_title, created_at, updated_at)
+        VALUES (#{chatRequestId}, #{chatTitle}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- ID로 조회 -->
+    <select id="selectById" parameterType="Long" resultType="ChatRoomDto">
+        SELECT *
+        FROM chat_room
+        WHERE id = #{id}
+    </select>
+
+    <!-- chat_request_id로 조회 -->
+    <select id="selectByChatRequestId" parameterType="Long" resultType="ChatRoomDto">
+        SELECT *
+        FROM chat_room
+        WHERE chat_request_id = #{chatRequestId}
+    </select>
+
+    <!-- 마지막 메시지 시간 업데이트 -->
+    <update id="updateLastMessageAt">
+        UPDATE chat_room
+        SET last_message_at = #{lastMessageAt},
+            updated_at      = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- last_read_at_a 업데이트 (사용자 A) -->
+    <update id="updateLastReadAtA">
+        UPDATE chat_room
+        SET last_read_at_a = #{lastReadAtA}
+        WHERE id = #{id}
+    </update>
+
+    <!-- last_read_at_b 업데이트 (사용자 B) -->
+    <update id="updateLastReadAtB">
+        UPDATE chat_room
+        SET last_read_at_b = #{lastReadAtB}
+        WHERE id = #{id}
+    </update>
+    <!-- 채팅방 나가기 -->
+    <update id="leaveRoom">
+        <choose>
+            <when test="userId == null">
+                <!-- userId가 없으면 에러 -->
+            </when>
+            <otherwise>
+                UPDATE chat_room
+                SET
+                <if test="userId == (SELECT requester_id FROM chat_request WHERE chat_request_id = #{chatRequestId})">
+                    hidden_by_a = true,
+                    left_at_a = NOW()
+                </if>
+                <if test="userId != (SELECT requester_id FROM chat_request WHERE chat_request_id = #{chatRequestId})">
+                    hidden_by_b = true,
+                    left_at_b = NOW()
+                </if>
+                WHERE id = #{chatRoomId}
+            </otherwise>
+        </choose>
+    </update>
+
+    <!-- A 복구 (B가 메시지 보냈을 때) -->
+    <update id="restoreHiddenA">
+        UPDATE chat_room
+        SET hidden_by_a = false,
+            left_at_a   = NULL
+        WHERE id = #{id}
+    </update>
+
+    <!-- B 복구 (A가 메시지 보냈을 때) -->
+    <update id="restoreHiddenB">
+        UPDATE chat_room
+        SET hidden_by_b = false,
+            left_at_b   = NULL
+        WHERE id = #{id}
+    </update>
+</mapper>
