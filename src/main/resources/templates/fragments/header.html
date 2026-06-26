@@ -73,9 +73,12 @@
       <!-- Notification + Auth -->
       <div class="flex items-center gap-4">
         <!-- Notification -->
-        <button class="p-2 hover:bg-primary-fixed rounded-lg text-on-surface-variant">
+        <a th:href="@{/notifications}" class="relative p-2 hover:bg-primary-fixed rounded-lg text-on-surface-variant inline-flex">
           <span class="material-symbols-outlined">notifications</span>
-        </button>
+          <span id="notification-badge"
+                class="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                style="display:none">0</span>
+        </a>
 
         <!-- Auth Buttons -->
         <div sec:authorize="isAnonymous()">
@@ -95,6 +98,29 @@
     </div>
   </div>
 </header>
+
+<script th:inline="javascript" sec:authorize="isAuthenticated()">
+  fetch('/api/notifications/unread-count')
+    .then(res => res.json())
+    .then(count => updateBadge(count))
+    .catch(() => {});
+
+  const eventSource = new EventSource('/api/notifications/sse');
+  eventSource.addEventListener('notification', (e) => {
+    updateBadge(parseInt(e.data));
+  });
+  eventSource.onerror = () => eventSource.close();
+
+  function updateBadge(count) {
+    const badge = document.getElementById('notification-badge');
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+</script>
 
 <script th:inline="javascript">
   window.addEventListener("scroll", () => {
