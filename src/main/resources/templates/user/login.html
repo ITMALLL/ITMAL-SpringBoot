@@ -124,10 +124,16 @@
 
           <!-- Remember & Forgot -->
           <div class="form-footer">
-            <label class="checkbox-group">
-              <input type="checkbox" id="remember" />
-              <span class="checkbox-label">로그인 상태 유지</span>
-            </label>
+            <div class="checkbox-groups">
+              <label class="checkbox-group">
+                <input type="checkbox" id="save-email" />
+                <span class="checkbox-label">아이디 저장</span>
+              </label>
+              <label class="checkbox-group">
+                <input type="checkbox" id="remember" name="remember-me" />
+                <span class="checkbox-label">로그인 상태 유지</span>
+              </label>
+            </div>
             <a href="#" class="forgot-link">비밀번호 찾기</a>
           </div>
 
@@ -163,6 +169,24 @@
             icon.textContent = "visibility";
           }
         });
+
+      // 아이디 저장
+      const emailInput = document.getElementById("email");
+      const saveEmailCheckbox = document.getElementById("save-email");
+      const savedEmail = localStorage.getItem("savedEmail");
+
+      if (savedEmail) {
+        emailInput.value = savedEmail;
+        saveEmailCheckbox.checked = true;
+      }
+
+      document.querySelector(".login-form").addEventListener("submit", () => {
+        if (saveEmailCheckbox.checked) {
+          localStorage.setItem("savedEmail", emailInput.value);
+        } else {
+          localStorage.removeItem("savedEmail");
+        }
+      });
 
       // Social login handlers
       document.querySelector(".github").addEventListener("click", () => {

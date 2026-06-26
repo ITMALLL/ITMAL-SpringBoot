@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title>잇말 - 질문 상세</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
@@ -16,6 +18,7 @@
     <link rel="stylesheet" href="/css/footer.css" />
     <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/questions-detail.css" />
+    <link rel="stylesheet" href="/css/comment.css" />
   </head>
   <body>
   <div th:replace="~{fragments/header :: header}"></div>
@@ -130,33 +133,9 @@
                   </div>
 
                   <!-- Comments -->
-                  <div class="comments-section">
-                    <div class="comment-item">
-                      <div class="comment-avatar">K</div>
-                      <div class="comment-content">
-                        <div class="comment-author">
-                          김민준
-                          <span class="comment-time"
-                            >질문자 입니다. 그렇 "I'm doing well"이 제일 무난한
-                            간기요?</span
-                          >
-                        </div>
-                        <div class="comment-text"></div>
-                      </div>
-                    </div>
-
-                    <div class="comment-item">
-                      <div class="comment-avatar">T</div>
-                      <div class="comment-content">
-                        <div class="comment-author">
-                          Tom
-                          <span class="comment-time"
-                            >Exactly! "I'm doing well" works in most situations.
-                            👍</span
-                          >
-                        </div>
-                      </div>
-                    </div>
+                  <!-- TODO: data-answer-id 테스트 한다고 2를 넣어놨어요. 답변 기능 합쳐지면 값 교체해야 합니다!! -->
+                  <div class="comments-section" data-answer-id="2">
+                    <div class="comments-list"></div>
 
                     <div class="comment-input">
                       <label>
@@ -311,5 +290,6 @@
         window.location.href = "/answer-write";
       });
     </script>
+    <script src="/js/comment.js"></script>
   </body>
 </html>
