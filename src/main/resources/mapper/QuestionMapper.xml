@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itmal.question.mapper.QuestionMapper">
+
+    <insert id="insertQuestion" useGeneratedKeys="true" keyProperty="questionId">
+        INSERT INTO question (
+            title,
+            content,
+            view_count,
+            created_at,
+            updated_at,
+            category,
+            user_id,
+            language_id,
+            target
+
+        ) VALUES (
+                     #{title},
+                     #{content},
+                     0,
+                     NOW(),
+                     NOW(),
+                     #{category},
+                     #{userId},
+                     #{languageId},
+                     #{target}
+                 )
+    </insert>
+
+    <select id="findByUserId" parameterType="Long" resultType="QuestionDto">
+        SELECT *
+        FROM question
+        WHERE user_id = #{userId}
+        AND deleted_at IS NULL
+    </select>
+
+    <select id="findAllQuestions" resultType="QuestionDto">
+        SELECT *
+        FROM question
+        WHERE deleted_at IS NULL
+    </select>
+
+    <insert id="insertAttachment">
+        INSERT INTO question_attachment (
+            original_name,
+            stored_name,
+            file_path,
+            file_type,
+            file_size,
+            created_at,
+            question_id
+        ) VALUES (
+            #{originalName},
+            #{storedName},
+            #{filePath},
+            #{fileType},
+            #{fileSize},
+            NOW(),
+            #{questionId}
+        )
+    </insert>
+
+    <select id="findAllLanguages" resultType="LanguageDto">
+        SELECT language_id, language_name
+        FROM language
+        ORDER BY language_id
+    </select>
+
+    <select id="findAttachmentById" parameterType="Long" resultType="QuestionAttachmentDto">
+        SELECT * FROM question_attachment WHERE id = #{id}
+    </select>
+
+    <select id="findAttachmentsByQuestionId" parameterType="Long" resultType="QuestionAttachmentDto">
+        SELECT * FROM question_attachment WHERE question_id = #{questionId}
+    </select>
+
+</mapper>
