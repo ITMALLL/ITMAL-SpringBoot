@@ -1,5 +1,8 @@
 package com.itmal.global.config;
 
+import com.itmal.auth.service.CustomOAuth2UserService;
+import com.itmal.auth.service.CustomOidcUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,12 +15,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Value("${app.remember-me.key}")
     private String rememberMeKey;
+
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
+
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService, CustomOidcUserService customOidcUserService) {
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.customOidcUserService = customOidcUserService;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -50,12 +62,19 @@ public class SecurityConfig {
             .rememberMe(remember -> remember
                 .key(rememberMeKey)
                 .tokenValiditySeconds(60 * 60 * 24 * 14) // 14일
+            )
+            .oauth2Login(oauth -> oauth
+                .loginPage("/login")
+                .defaultSuccessUrl("/", true)
+                .failureHandler((request, response, exception) -> {
+                    log.error("[OAuth] 로그인 실패: {}", exception.getMessage(), exception);
+                    response.sendRedirect("/login?error");
+                })
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)       // GitHub 등 non-OIDC
+                    .oidcUserService(customOidcUserService)     // Google 등 OIDC
+                )
             );
-            // TODO: OAuth2 credentials 준비되면 아래 추가
-            // .oauth2Login(oauth -> oauth
-            //     .loginPage("/login")
-            //     .defaultSuccessUrl("/questions")
-            // );
 
         return http.build();
     }
