@@ -6,6 +6,7 @@ import com.itmal.comment.dto.CommentResponseDto;
 import com.itmal.comment.mapper.CommentMapper;
 import com.itmal.global.exception.ApiException;
 import com.itmal.global.exception.ErrorCode;
+import com.itmal.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.List;
 public class CommentService {
 
     private final CommentMapper commentMapper;
+    private final NotificationService notificationService;
 
     public CommentResponseDto createComment(Long answerId,
                                             Long userId,
@@ -31,6 +33,8 @@ public class CommentService {
 
         //DB에 저장
         commentMapper.insert(comment);
+        //알림을 위한 코드
+        notificationService.createCommentNotification(answerId, comment.getCommentId());
         //값을 다시 가져오기
         Comment saved = commentMapper.findById(comment.getCommentId());
 
