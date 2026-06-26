@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itmal.chat.mapper.ChatRequestMapper">
+
+    <!-- 채팅 요청 생성 -->
+    <insert id="insertChatRequest" parameterType="ChatRequestDto">
+        INSERT INTO chat_request (requester_id, responder_id, intro_message, status, created_at)
+        VALUES (#{requesterId}, #{responderId}, #{introMessage}, #{status}, #{createdAt})
+    </insert>
+
+    <!-- ID로 조회 -->
+    <select id="selectById" parameterType="Long" resultType="ChatRequestDto">
+        SELECT * FROM chat_request WHERE chat_request_id = #{chatRequestId}
+    </select>
+
+    <!-- 요청자 ID로 조회 -->
+    <select id="selectByRequesterId" parameterType="Long" resultType="ChatRequestDto">
+        SELECT * FROM chat_request WHERE requester_id = #{requesterId}
+    </select>
+
+    <!-- 응답자 ID로 조회 (PENDING 상태) -->
+    <select id="selectByResponderIdAndPending" parameterType="Long" resultType="ChatRequestDto">
+        SELECT * FROM chat_request WHERE responder_id = #{responderId} AND status = 'PENDING'
+    </select>
+
+    <!-- 상태 업데이트 -->
+    <update id="updateStatus">
+        UPDATE chat_request
+        SET status = #{status}, responded_at = NOW()
+        WHERE chat_request_id = #{chatRequestId}
+    </update>
+
+</mapper>
