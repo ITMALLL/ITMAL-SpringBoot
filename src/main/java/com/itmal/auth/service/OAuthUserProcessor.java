@@ -22,8 +22,18 @@ public class OAuthUserProcessor {
                         .map(existingUser -> {
                             // 2. 동일 이메일 일반 가입 계정 → OAuth 연결
                             userMapper.updateProvider(existingUser.getUserId(), attributes.getProvider(), attributes.getProviderId());
-                            return userMapper.findByProviderAndProviderId(attributes.getProvider(), attributes.getProviderId())
-                                    .orElseThrow();
+                            return User.builder()
+                                    .userId(existingUser.getUserId())
+                                    .email(existingUser.getEmail())
+                                    .password(existingUser.getPassword())
+                                    .nickname(existingUser.getNickname())
+                                    .nativeLanguage(existingUser.getNativeLanguage())
+                                    .role(existingUser.getRole())
+                                    .provider(attributes.getProvider())
+                                    .providerId(attributes.getProviderId())
+                                    .emailVerified(existingUser.isEmailVerified())
+                                    .deletedAt(existingUser.getDeletedAt())
+                                    .build();
                         })
                         .orElseGet(() -> {
                             // 3. 신규 유저 생성

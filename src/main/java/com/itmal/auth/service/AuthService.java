@@ -23,10 +23,6 @@ public class AuthService {
 
     @Transactional
     public void register(RegisterRequest request) {
-        if (!request.getPassword().equals(request.getPasswordConfirm())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
         if (userMapper.existsByEmail(request.getEmail())) {
             throw new DuplicateEmailException();
         }

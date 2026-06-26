@@ -24,6 +24,14 @@ public class UserService {
     private final LearningLanguageMapper learningLanguageMapper;
     private final PasswordEncoder passwordEncoder;
 
+    public boolean existsByEmail(String email) {
+        return userMapper.existsByEmail(email);
+    }
+
+    public boolean existsByNickname(String nickname) {
+        return userMapper.existsByNickname(nickname);
+    }
+
     public User findById(Long userId) {
         return userMapper.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다. userId=" + userId));
