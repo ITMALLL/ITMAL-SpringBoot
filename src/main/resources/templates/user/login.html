@@ -188,15 +188,12 @@
         }
       });
 
-      // Social login handlers
       document.querySelector(".github").addEventListener("click", () => {
-        console.log("GitHub login");
-        // GitHub OAuth 로직
+        location.href = "/oauth2/authorization/github";
       });
 
       document.querySelector(".google").addEventListener("click", () => {
-        console.log("Google login");
-        // Google OAuth 로직
+        location.href = "/oauth2/authorization/google";
       });
     </script>
   </body>
