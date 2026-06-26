@@ -3,7 +3,6 @@ package com.itmal.auth.service;
 import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.OAuthAttributes;
-import com.itmal.auth.repository.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -25,7 +24,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final UserMapper userMapper;
     private final OAuthUserProcessor oAuthUserProcessor;
     private final RestClient restClient = RestClient.builder()
             .requestFactory(new SimpleClientHttpRequestFactory() {{

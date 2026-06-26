@@ -46,6 +46,13 @@ public class UserService {
     }
 
     @Transactional
+    public void registerLearningLanguages(Long userId, List<String> names) {
+        if (names != null && !names.isEmpty()) {
+            learningLanguageMapper.insertUserLearningLanguagesByNames(userId, names);
+        }
+    }
+
+    @Transactional
     public void updateProfile(Long userId, ProfileUpdateRequest request) {
         applyProfileUpdate(userId, request.getNickname(), request.getNativeLanguage(), request.getLearningLanguages());
     }
