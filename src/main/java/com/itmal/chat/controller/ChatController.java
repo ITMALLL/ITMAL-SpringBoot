@@ -1,11 +1,7 @@
 package com.itmal.chat.controller;
 
 import com.itmal.chat.dto.ChatMessageDto;
-import com.itmal.chat.dto.ChatRequestDto;
-import com.itmal.chat.dto.ChatRoomDto;
 import com.itmal.chat.service.ChatMessageService;
-import com.itmal.chat.service.ChatRoomService;
-import com.itmal.chat.service.ChatRequestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;

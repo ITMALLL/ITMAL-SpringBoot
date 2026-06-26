@@ -23,6 +23,7 @@ public class ChatRoomController {
     private final ChatRequestService chatRequestService;
     private final ChatMessageService chatMessageService;
 
+    // 채팅방 진입 - 메시지 목록 + 읽음 처리
     @GetMapping("/{chatRoomId}")
     public ResponseEntity<Map<String, Object>> getChatRoom(
             @PathVariable Long chatRoomId,
@@ -37,6 +38,8 @@ public class ChatRoomController {
         } else {
             chatRoomService.updateLastReadAtB(chatRoomId);
         }
+
+        // ✅ 업데이트 후 최신 데이터 조회
         chatRoom = chatRoomService.getChatRoom(chatRoomId);
 
         // 메시지 목록 조회
@@ -50,6 +53,8 @@ public class ChatRoomController {
         return ResponseEntity.ok(response);
     }
 
+    // 채팅방 나가기
+    @PostMapping("/{chatRoomId}/leave")
     public ResponseEntity<String> leaveRoom(
             @PathVariable Long chatRoomId,
             @RequestParam Long userId,
@@ -57,5 +62,4 @@ public class ChatRoomController {
         chatRoomService.leaveRoom(chatRoomId, userId, chatRequestId);
         return ResponseEntity.ok("채팅방을 나갔습니다.");
     }
-
 }
