@@ -1,21 +1,20 @@
 package com.itmal.auth.controller;
 
 import com.itmal.auth.domain.CustomUserDetails;
-import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.PasswordChangeRequest;
 import com.itmal.auth.dto.ProfileUpdateRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.service.CustomUserDetailsService;
 import com.itmal.auth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,8 +24,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 
 @Controller
 @RequestMapping("/mypage")
@@ -39,15 +36,8 @@ public class MypageController {
     @GetMapping
     public String mypage(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         model.addAttribute("user", userDetails);
-        loadProfileModel(userDetails.getUserId(), model);
+        loadProfileModel(userDetails, model);
         return "user/mypage";
-    }
-
-    @GetMapping("/edit")
-    public String editForm(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
-        model.addAttribute("user", userDetails);
-        loadProfileModel(userDetails.getUserId(), model);
-        return "user/mypage-edit";
     }
 
     @PostMapping("/edit")
@@ -123,12 +113,11 @@ public class MypageController {
         return "redirect:/login?deleted";
     }
 
-    private void loadProfileModel(Long userId, Model model) {
-        User user = userService.findById(userId);
+    private void loadProfileModel(CustomUserDetails userDetails, Model model) {
         ProfileUpdateRequest profileRequest = new ProfileUpdateRequest();
-        profileRequest.setNickname(user.getNickname());
-        profileRequest.setNativeLanguage(user.getNativeLanguage());
-        profileRequest.setLearningLanguages(userService.getLearningLanguages(userId));
+        profileRequest.setNickname(userDetails.getNickname());
+        profileRequest.setNativeLanguage(userDetails.getNativeLanguage());
+        profileRequest.setLearningLanguages(userService.getLearningLanguages(userDetails.getUserId()));
         model.addAttribute("profileUpdateRequest", profileRequest);
         model.addAttribute("allLanguages", userService.getAllLanguages());
     }

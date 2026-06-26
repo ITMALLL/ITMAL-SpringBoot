@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -41,6 +41,8 @@
               <a href="/mypage/password" class="btn btn-outline" th:if="${!user.isSocialUser()}">비밀번호 변경</a>
             </div>
           </div>
+
+          <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
 
           <!-- Profile Stats -->
           <div class="profile-stats">
@@ -284,7 +286,6 @@
 
   <!-- 계정 설정 섹션 -->
   <section class="account-section" style="max-width:900px;margin:0 auto 40px;padding:0 20px;">
-    <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
     <form th:action="@{/mypage/delete}" method="post"
           onsubmit="return confirm('정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">
       <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>

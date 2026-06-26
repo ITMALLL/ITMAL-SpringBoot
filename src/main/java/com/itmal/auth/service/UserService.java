@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public User findById(Long userId) {
-        return userMapper.findById(userId).orElseThrow();
+        return userMapper.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다. userId=" + userId));
     }
 
     public List<String> getLearningLanguages(Long userId) {
@@ -37,18 +39,13 @@ public class UserService {
 
     @Transactional
     public void updateProfile(Long userId, ProfileUpdateRequest request) {
-        User current = userMapper.findById(userId).orElseThrow();
-        if (!current.getNickname().equals(request.getNickname()) &&
-                userMapper.existsByNickname(request.getNickname())) {
-            throw new DuplicateNicknameException();
-        }
-        userMapper.updateProfile(userId, request.getNickname(), request.getNativeLanguage());
-        saveLanguages(userId, request.getLearningLanguages());
+        applyProfileUpdate(userId, request.getNickname(), request.getNativeLanguage(), request.getLearningLanguages());
     }
 
     @Transactional
     public void changePassword(Long userId, PasswordChangeRequest request) {
-        User user = userMapper.findById(userId).orElseThrow();
+        User user = userMapper.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다. userId=" + userId));
 
         if (user.isSocialUser()) {
             throw new IllegalStateException("소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
@@ -63,13 +60,17 @@ public class UserService {
 
     @Transactional
     public void completeSocialProfile(Long userId, SocialRegisterRequest request) {
-        User current = userMapper.findById(userId).orElseThrow();
-        if (!current.getNickname().equals(request.getNickname()) &&
-                userMapper.existsByNickname(request.getNickname())) {
+        applyProfileUpdate(userId, request.getNickname(), request.getNativeLanguage(), request.getLearningLanguages());
+    }
+
+    private void applyProfileUpdate(Long userId, String nickname, String nativeLanguage, List<String> languageNames) {
+        User current = userMapper.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다. userId=" + userId));
+        if (!current.getNickname().equals(nickname) && userMapper.existsByNickname(nickname)) {
             throw new DuplicateNicknameException();
         }
-        userMapper.updateProfile(userId, request.getNickname(), request.getNativeLanguage());
-        saveLanguages(userId, request.getLearningLanguages());
+        userMapper.updateProfile(userId, nickname, nativeLanguage);
+        saveLanguages(userId, languageNames);
     }
 
     @Transactional

@@ -46,8 +46,8 @@ public class SecurityConfig {
                 )
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/register", "/register/social").permitAll()
-                .requestMatchers("/mypage/**").authenticated()
+                .requestMatchers("/", "/login", "/register").permitAll()
+                .requestMatchers("/mypage/**", "/register/social").authenticated()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()

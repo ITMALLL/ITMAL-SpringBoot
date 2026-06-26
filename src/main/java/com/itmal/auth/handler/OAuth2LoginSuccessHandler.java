@@ -16,11 +16,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        if (userDetails.getNativeLanguage() == null) {
-            response.sendRedirect("/register/social");
-        } else {
-            response.sendRedirect("/");
-        }
+        String targetUrl = userDetails.getNativeLanguage() == null ? "/register/social" : "/";
+        clearAuthenticationAttributes(request);
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

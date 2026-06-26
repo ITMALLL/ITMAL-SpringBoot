@@ -4,17 +4,6 @@
 
 <mapper namespace="com.itmal.auth.repository.LearningLanguageMapper">
 
-    <select id="findLanguageIdByName" resultType="long">
-        SELECT language_id
-        FROM language
-        WHERE language_name = #{languageName}
-    </select>
-
-    <insert id="insertUserLearningLanguage">
-        INSERT INTO user_learning_language (user_id, language_id)
-        VALUES (#{userId}, #{languageId})
-    </insert>
-
     <select id="findAllLanguages" resultType="com.itmal.question.dto.LanguageDto">
         SELECT language_id, language_name
         FROM language

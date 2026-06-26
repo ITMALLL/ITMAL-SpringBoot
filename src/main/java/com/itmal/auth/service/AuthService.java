@@ -57,12 +57,8 @@ public class AuthService {
                 .map(User::getUserId)
                 .orElseThrow(() -> new IllegalStateException("회원가입 후 사용자를 찾을 수 없습니다."));
 
-        for (String languageName : request.getLearningLanguages()) {
-            Long languageId = learningLanguageMapper.findLanguageIdByName(languageName);
-            if (languageId == null) {
-                throw new IllegalArgumentException("지원하지 않는 학습 언어입니다: " + languageName);
-            }
-            learningLanguageMapper.insertUserLearningLanguage(userId, languageId);
+        if (!request.getLearningLanguages().isEmpty()) {
+            learningLanguageMapper.insertUserLearningLanguagesByNames(userId, request.getLearningLanguages());
         }
     }
 }
