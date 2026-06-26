@@ -1,7 +1,6 @@
 package com.itmal.auth.service;
 
 import com.itmal.auth.domain.CustomUserDetails;
-import com.itmal.auth.domain.Role;
 import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.OAuthAttributes;
 import com.itmal.auth.repository.UserMapper;
@@ -25,6 +24,8 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserMapper userMapper;
+    private final OAuthUserProcessor oAuthUserProcessor;
+    private final RestClient restClient = RestClient.create();
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -32,7 +33,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         try {
             oAuth2User = super.loadUser(userRequest);
         } catch (Exception e) {
-            log.error("[OAuth] GitHub 사용자 정보 조회 실패: {}", e.getMessage(), e);
+            log.error("[OAuth] 사용자 정보 조회 실패: {}", e.getMessage(), e);
             throw e;
         }
 
@@ -58,7 +59,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         try {
-            User user = getOrSaveUser(attributes);
+            User user = oAuthUserProcessor.getOrSaveUser(attributes);
             log.info("[OAuth] 로그인 성공 - userId={}, email={}", user.getUserId(), user.getEmail());
             return new CustomUserDetails(user, attributes.getAttributes());
         } catch (Exception e) {
@@ -67,28 +68,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
-    private User getOrSaveUser(OAuthAttributes attributes) {
-        return userMapper.findByProviderAndProviderId(attributes.getProvider(), attributes.getProviderId())
-                .orElseGet(() -> {
-                    String nickname = resolveNickname(attributes.getNickname());
-                    User newUser = User.builder()
-                            .email(attributes.getEmail())
-                            .nickname(nickname)
-                            .provider(attributes.getProvider())
-                            .providerId(attributes.getProviderId())
-                            .role(Role.ROLE_USER)
-                            .emailVerified(true)
-                            .build();
-                    userMapper.insert(newUser);
-                    return userMapper.findByProviderAndProviderId(attributes.getProvider(), attributes.getProviderId())
-                            .orElseThrow();
-                });
-    }
-
     private String fetchGitHubPrimaryEmail(String accessToken) {
         try {
-            List<Map<String, Object>> emails = RestClient.create()
-                    .get()
+            List<Map<String, Object>> emails = restClient.get()
                     .uri("https://api.github.com/user/emails")
                     .header("Authorization", "Bearer " + accessToken)
                     .header("Accept", "application/vnd.github.v3+json")
@@ -106,19 +88,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             log.warn("[OAuth] GitHub 이메일 API 조회 실패: {}", e.getMessage());
             return null;
         }
-    }
-
-    private String resolveNickname(String base) {
-        if (!userMapper.existsByNickname(base)) {
-            return base;
-        }
-        // TODO: 닉네임 설정 페이지로 개선 예정
-        for (int i = 0; i < 5; i++) {
-            String candidate = base + "_" + UUID.randomUUID().toString().substring(0, 4);
-            if (!userMapper.existsByNickname(candidate)) {
-                return candidate;
-            }
-        }
-        return base + "_" + UUID.randomUUID().toString().substring(0, 8);
     }
 }
