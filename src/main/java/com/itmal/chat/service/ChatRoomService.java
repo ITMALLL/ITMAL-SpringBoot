@@ -1,5 +1,6 @@
 package com.itmal.chat.service;
 
+import com.itmal.chat.dto.ChatRequestDto;
 import com.itmal.chat.dto.ChatRoomDto;
 import com.itmal.chat.mapper.ChatRoomMapper;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 public class ChatRoomService {
 
     private final ChatRoomMapper chatRoomMapper;
+    private final ChatRequestService chatRequestService;
 
     // 채팅방 생성
     public Long createChatRoom(ChatRoomDto chatRoom) {
@@ -46,7 +48,14 @@ public class ChatRoomService {
     }
     // 채팅방 나가기
     public void leaveRoom(Long chatRoomId, Long userId, Long chatRequestId) {
-        chatRoomMapper.leaveRoom(chatRoomId, userId, chatRequestId);
+        if (userId == null || chatRequestId == null || chatRoomId == null) {
+            throw new IllegalArgumentException("필수 파라미터가 누락되었습니다.");
+        }
+
+        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
+        Boolean isRequester = userId.equals(chatRequest.getRequesterId());
+
+        chatRoomMapper.leaveRoom(chatRoomId, isRequester);
     }
 
     // A 복구

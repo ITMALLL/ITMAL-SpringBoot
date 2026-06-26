@@ -37,6 +37,7 @@ public class ChatRoomController {
         } else {
             chatRoomService.updateLastReadAtB(chatRoomId);
         }
+        chatRoom = chatRoomService.getChatRoom(chatRoomId);
 
         // 메시지 목록 조회
         List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoom(chatRoomId);
@@ -49,8 +50,6 @@ public class ChatRoomController {
         return ResponseEntity.ok(response);
     }
 
-    // 채팅방 나가기
-    @PostMapping("/{chatRoomId}/leave")
     public ResponseEntity<String> leaveRoom(
             @PathVariable Long chatRoomId,
             @RequestParam Long userId,

@@ -29,10 +29,9 @@ public interface ChatRoomMapper {
     void updateLastReadAtB(@Param("id") Long id,
                            @Param("lastReadAtB") LocalDateTime lastReadAtB);
 
-    // 사용자가 채팅방 나감 (현재 사용자 ID를 받아서 A인지 B인지 판단)
+    // isRequester 플래그를 받아서 처리
     void leaveRoom(@Param("chatRoomId") Long chatRoomId,
-                   @Param("userId") Long userId,
-                   @Param("chatRequestId") Long chatRequestId);
+                   @Param("isRequester") Boolean isRequester);
 
     // A가 복구 (B가 메시지 보냈을 때)
     void restoreHiddenA(@Param("id") Long id);

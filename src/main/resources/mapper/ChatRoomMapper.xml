@@ -47,24 +47,17 @@
     </update>
     <!-- 채팅방 나가기 -->
     <update id="leaveRoom">
-        <choose>
-            <when test="userId == null">
-                <!-- userId가 없으면 에러 -->
-            </when>
-            <otherwise>
-                UPDATE chat_room
-                SET
-                <if test="userId == (SELECT requester_id FROM chat_request WHERE chat_request_id = #{chatRequestId})">
-                    hidden_by_a = true,
-                    left_at_a = NOW()
-                </if>
-                <if test="userId != (SELECT requester_id FROM chat_request WHERE chat_request_id = #{chatRequestId})">
-                    hidden_by_b = true,
-                    left_at_b = NOW()
-                </if>
-                WHERE id = #{chatRoomId}
-            </otherwise>
-        </choose>
+        UPDATE chat_room
+        SET
+        <if test="isRequester">
+            hidden_by_a = true,
+            left_at_a = NOW()
+        </if>
+        <if test="!isRequester">
+            hidden_by_b = true,
+            left_at_b = NOW()
+        </if>
+        WHERE id = #{chatRoomId}
     </update>
 
     <!-- A 복구 (B가 메시지 보냈을 때) -->
