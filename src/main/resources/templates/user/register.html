@@ -15,6 +15,8 @@
 
     <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/register.css" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
   </head>
   <body class="register-body">
 
@@ -73,6 +75,10 @@
                 인증코드 발송
               </button>
             </div>
+          <div class="verified-badge" id="verifiedBadge" style="display: none; margin-top: 8px;">
+            <span class="material-symbols-outlined">check_circle</span>
+            이메일 인증 완료
+          </div>
           </div>
 
           <!-- Verify Code Field -->
@@ -95,19 +101,19 @@
               <span class="timer" id="timer">3:00</span>
               <button
                 type="button"
+                id="btnExtend"
+                class="btn btn-secondary btn-send"
+                onclick="extendTimer()"
+              >
+                연장 (2회 남음)
+              </button>
+              <button
+                type="button"
                 class="btn btn-secondary btn-verify"
                 onclick="verifyCode()"
               >
                 확인
               </button>
-            </div>
-            <div
-              class="verified-badge"
-              id="verifiedBadge"
-              style="display: none"
-            >
-              <span class="material-symbols-outlined">check_circle</span>
-              이메일 인증 완료
             </div>
           </div>
 
@@ -241,6 +247,11 @@
     <script>
       let timerInterval = null;
       let isVerified = false;
+      let timerSeconds = 0;
+      let extensionCount = 0;
+      const MAX_EXTENSIONS = 2;
+      const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
       // Language chip toggle
       document.querySelectorAll(".lang-chip").forEach((chip) => {
@@ -351,7 +362,7 @@
         try {
           const res = await fetch("/api/email/send", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", [csrfHeader]: csrfToken },
             body: JSON.stringify({ email })
           });
 
@@ -373,20 +384,39 @@
       // Start countdown timer
       function startTimer() {
         clearInterval(timerInterval);
-        let seconds = 180;
+        timerSeconds = 180;
+        extensionCount = 0;
+        updateExtendBtn();
         const timerEl = document.getElementById("timer");
+        timerEl.style.color = "var(--error)";
 
         timerInterval = setInterval(() => {
-          const m = Math.floor(seconds / 60);
-          const s = String(seconds % 60).padStart(2, "0");
+          const m = Math.floor(timerSeconds / 60);
+          const s = String(timerSeconds % 60).padStart(2, "0");
           timerEl.textContent = `${m}:${s}`;
 
-          if (--seconds < 0) {
+          if (--timerSeconds < 0) {
             clearInterval(timerInterval);
             timerEl.textContent = "만료됨";
             timerEl.style.color = "var(--on-surface-variant)";
           }
         }, 1000);
+      }
+
+      function extendTimer() {
+        if (extensionCount >= MAX_EXTENSIONS) return;
+        extensionCount++;
+        timerSeconds += 60;
+        updateExtendBtn();
+      }
+
+      function updateExtendBtn() {
+        const btn = document.getElementById("btnExtend");
+        if (!btn) return;
+        btn.disabled = extensionCount >= MAX_EXTENSIONS;
+        btn.textContent = extensionCount >= MAX_EXTENSIONS
+          ? "연장 불가"
+          : `연장 (${MAX_EXTENSIONS - extensionCount}회 남음)`;
       }
 
       // Verify code
@@ -401,7 +431,7 @@
         try {
           const res = await fetch("/api/email/verify", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", [csrfHeader]: csrfToken },
             body: JSON.stringify({ email, code })
           });
 
@@ -411,6 +441,7 @@
             document.getElementById("verifiedBadge").style.display = "flex";
             document.getElementById("email").readOnly = true;
             document.getElementById("btnSendCode").disabled = true;
+            document.getElementById("verifySection").style.display = "none";
             isVerified = true;
           } else {
             alert("인증코드가 올바르지 않거나 만료되었습니다.");

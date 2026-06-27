@@ -39,7 +39,7 @@ class EmailVerificationServiceTest {
         service.sendCode(email);
 
         // Assert
-        verify(store).save(eq(email), anyString(), eq(Duration.ofMinutes(3)));
+        verify(store).save(eq(email), anyString(), eq(Duration.ofMinutes(5)));
         verify(mailSender).send(any(MimeMessage.class));
     }
 

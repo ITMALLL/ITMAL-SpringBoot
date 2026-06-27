@@ -1,5 +1,6 @@
 package com.itmal.auth.service;
 
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import java.time.Duration;
 public class EmailVerificationService {
 
     public static final String SESSION_KEY = "VERIFIED_EMAIL";
-    private static final Duration CODE_TTL = Duration.ofMinutes(3);
+    private static final Duration CODE_TTL = Duration.ofMinutes(5);
 
     private final JavaMailSender mailSender;
     private final EmailVerificationStore store;
@@ -27,7 +28,12 @@ public class EmailVerificationService {
     public void sendCode(String email) {
         String code = generateCode();
         store.save(email, code, CODE_TTL);
-        sendEmail(email, code);
+        try {
+            sendEmail(email, code);
+        } catch (Exception e) {
+            store.delete(email);
+            throw e;
+        }
     }
 
     public void verifyCode(String email, String code, HttpSession session) {
@@ -46,15 +52,22 @@ public class EmailVerificationService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
-            helper.setFrom(fromEmail);
+            helper.setFrom(new InternetAddress(fromEmail, "잇말 - ITMAL"));
             helper.setTo(to);
             helper.setSubject("[잇말] 이메일 인증코드");
             helper.setText("""
-                    안녕하세요! 잇말입니다.
+                    안녕하세요, 잇말(ITMAL)입니다.
 
-                    이메일 인증코드: %s
+                    언어 학습 커뮤니티 잇말에 가입해주셔서 감사합니다.
+                    아래 인증코드를 입력해 이메일 인증을 완료해주세요.
 
-                    3분 이내에 입력해주세요.
+                    [인증코드] %s
+
+                    인증코드는 발급 후 5분간 유효합니다.
+                    본인이 요청하지 않은 경우 이 메일을 무시해주세요.
+
+                    감사합니다.
+                    잇말(ITMAL) 팀 드림
                     """.formatted(code));
             mailSender.send(message);
         } catch (Exception e) {

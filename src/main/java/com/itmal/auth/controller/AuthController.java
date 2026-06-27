@@ -60,6 +60,7 @@ public class AuthController {
             authService.register(request);
             session.removeAttribute(EmailVerificationService.SESSION_KEY);
         } catch (DuplicateEmailException e) {
+            session.removeAttribute(EmailVerificationService.SESSION_KEY);
             model.addAttribute("errorMessage", "이미 사용 중인 이메일입니다.");
             return "user/register";
         } catch (DuplicateNicknameException e) {
