@@ -4,6 +4,9 @@ import com.itmal.auth.dto.RegisterRequest;
 import com.itmal.auth.exception.DuplicateEmailException;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.service.AuthService;
+import com.itmal.auth.service.EmailVerificationService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -39,14 +42,23 @@ public class AuthController {
     public String register(
             @Valid @ModelAttribute RegisterRequest request,
             BindingResult bindingResult,
-            Model model
+            Model model,
+            HttpServletRequest httpRequest
     ) {
         if (bindingResult.hasErrors()) {
             return "user/register";
         }
 
+        HttpSession session = httpRequest.getSession(false);
+        String verifiedEmail = session != null ? (String) session.getAttribute(EmailVerificationService.SESSION_KEY) : null;
+        if (!request.getEmail().equals(verifiedEmail)) {
+            model.addAttribute("errorMessage", "이메일 인증이 필요합니다.");
+            return "user/register";
+        }
+
         try {
             authService.register(request);
+            session.removeAttribute(EmailVerificationService.SESSION_KEY);
         } catch (DuplicateEmailException e) {
             model.addAttribute("errorMessage", "이미 사용 중인 이메일입니다.");
             return "user/register";
