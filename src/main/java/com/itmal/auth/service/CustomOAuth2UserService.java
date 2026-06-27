@@ -3,7 +3,6 @@ package com.itmal.auth.service;
 import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.OAuthAttributes;
-import com.itmal.auth.repository.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -25,7 +24,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final UserMapper userMapper;
     private final OAuthUserProcessor oAuthUserProcessor;
     private final RestClient restClient = RestClient.builder()
             .requestFactory(new SimpleClientHttpRequestFactory() {{
@@ -36,13 +34,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User;
-        try {
-            oAuth2User = super.loadUser(userRequest);
-        } catch (Exception e) {
-            log.error("[OAuth] 사용자 정보 조회 실패: {}", e.getMessage(), e);
-            throw e;
-        }
+        OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
         String userNameAttributeName = userRequest.getClientRegistration()

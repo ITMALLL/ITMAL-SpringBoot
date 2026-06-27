@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>잇말 - 프로필 설정</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/register.css" />
+  </head>
+  <body class="register-body">
+    <div class="register-container">
+      <div class="register-card">
+        <div class="register-header-text">
+          <h2 class="register-title">거의 다 왔어요!</h2>
+          <p class="register-subtitle">프로필을 설정하고 잇말을 시작해보세요.</p>
+        </div>
+
+        <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/register/social}" th:object="${socialRegisterRequest}" method="post" class="register-form">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+          <!-- 닉네임 -->
+          <div class="form-group">
+            <label for="nickname" class="form-label">닉네임 <span class="required">*</span></label>
+            <input type="text" id="nickname" th:field="*{nickname}" class="form-input"
+                   placeholder="2~20자 닉네임을 입력하세요"/>
+            <span th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" class="field-error"></span>
+          </div>
+
+          <!-- 모국어 -->
+          <div class="form-group">
+            <label for="nativeLanguage" class="form-label">모국어 <span class="required">*</span></label>
+            <select id="nativeLanguage" th:field="*{nativeLanguage}" class="form-select">
+              <option value="">선택해주세요</option>
+              <option value="ko">한국어</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+              <option value="zh">中文</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+            </select>
+            <span th:if="${#fields.hasErrors('nativeLanguage')}" th:errors="*{nativeLanguage}" class="field-error"></span>
+          </div>
+
+          <!-- 학습 언어 -->
+          <div class="form-group">
+            <label class="form-label">학습 언어 <span class="required">*</span></label>
+            <div class="lang-grid">
+              <label th:each="lang : ${allLanguages}" class="lang-chip">
+                <input type="checkbox" name="learningLanguages" th:value="${lang.languageName}"
+                       th:checked="${#lists.contains(socialRegisterRequest.learningLanguages, lang.languageName)}"
+                       class="lang-chip-input"/>
+                <span th:text="${lang.languageName}">언어</span>
+              </label>
+            </div>
+            <span th:if="${#fields.hasErrors('learningLanguages')}" th:errors="*{learningLanguages}" class="field-error"></span>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-register">시작하기</button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

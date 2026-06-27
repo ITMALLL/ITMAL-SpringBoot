@@ -5,7 +5,6 @@ import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.RegisterRequest;
 import com.itmal.auth.exception.DuplicateEmailException;
 import com.itmal.auth.exception.DuplicateNicknameException;
-import com.itmal.auth.repository.LearningLanguageMapper;
 import com.itmal.auth.repository.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
@@ -18,15 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserMapper userMapper;
-    private final LearningLanguageMapper learningLanguageMapper;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public void register(RegisterRequest request) {
-        if (!request.getPassword().equals(request.getPasswordConfirm())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-
         if (userMapper.existsByEmail(request.getEmail())) {
             throw new DuplicateEmailException();
         }
@@ -44,7 +39,7 @@ public class AuthService {
                 .emailVerified(false)
                 .build();
         try {
-            userMapper.insert(user);
+            userMapper.insert(user); // useGeneratedKeys → user.getUserId() 자동 세팅
         } catch (DuplicateKeyException e) {
             String message = e.getMessage();
             if (message != null && message.contains("email")) {
@@ -53,16 +48,6 @@ public class AuthService {
             throw new DuplicateNicknameException();
         }
 
-        Long userId = userMapper.findByEmail(request.getEmail())
-                .map(User::getUserId)
-                .orElseThrow(() -> new IllegalStateException("회원가입 후 사용자를 찾을 수 없습니다."));
-
-        for (String languageName : request.getLearningLanguages()) {
-            Long languageId = learningLanguageMapper.findLanguageIdByName(languageName);
-            if (languageId == null) {
-                throw new IllegalArgumentException("지원하지 않는 학습 언어입니다: " + languageName);
-            }
-            learningLanguageMapper.insertUserLearningLanguage(userId, languageId);
-        }
+        userService.registerLearningLanguages(user.getUserId(), request.getLearningLanguages());
     }
 }
