@@ -1,5 +1,9 @@
 package com.itmal.global.exception;
 
+import com.itmal.auth.exception.DuplicateEmailException;
+import com.itmal.auth.exception.DuplicateNicknameException;
+import com.itmal.auth.exception.EmailSendException;
+import com.itmal.auth.exception.TooManyRequestsException;
 import com.itmal.global.common.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -27,6 +31,34 @@ public class RestExceptionHandler {
 
         return ResponseEntity.status(errorCode.getStatus())
                 .body(new ApiResponse<>(errorCode.getCode(), message, null));
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDuplicateEmail(DuplicateEmailException e) {
+        ErrorCode errorCode = ErrorCode.DUPLICATE_EMAIL;
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(new ApiResponse<>(errorCode.getCode(), errorCode.getMessage(), null));
+    }
+
+    @ExceptionHandler(DuplicateNicknameException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDuplicateNickname(DuplicateNicknameException e) {
+        ErrorCode errorCode = ErrorCode.DUPLICATE_NICKNAME;
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(new ApiResponse<>(errorCode.getCode(), errorCode.getMessage(), null));
+    }
+
+    @ExceptionHandler(EmailSendException.class)
+    public ResponseEntity<ApiResponse<Object>> handleEmailSend(EmailSendException e) {
+        ErrorCode errorCode = ErrorCode.EMAIL_SEND_FAILED;
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(new ApiResponse<>(errorCode.getCode(), errorCode.getMessage(), null));
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiResponse<Object>> handleTooManyRequests(TooManyRequestsException e) {
+        ErrorCode errorCode = ErrorCode.TOO_MANY_REQUESTS;
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(new ApiResponse<>(errorCode.getCode(), errorCode.getMessage(), null));
     }
 
     @ExceptionHandler(Exception.class)
