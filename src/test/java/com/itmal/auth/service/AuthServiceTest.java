@@ -1,16 +1,20 @@
 package com.itmal.auth.service;
 
+import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.RegisterRequest;
 import com.itmal.auth.exception.DuplicateEmailException;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.repository.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,13 +53,20 @@ class AuthServiceTest {
         RegisterRequest request = createRequest();
         when(userMapper.existsByEmail(request.getEmail())).thenReturn(false);
         when(userMapper.existsByNickname(request.getNickname())).thenReturn(false);
+        doAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            ReflectionTestUtils.setField(user, "userId", 1L); // useGeneratedKeys 시뮬레이션
+            return null;
+        }).when(userMapper).insert(any(User.class));
 
         // Act
         service.register(request);
 
         // Assert
-        verify(userMapper).insert(any());
-        verify(userService).registerLearningLanguages(any(), eq(request.getLearningLanguages()));
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userMapper).insert(userCaptor.capture());
+        assertEquals("encodedPassword", userCaptor.getValue().getPassword());
+        verify(userService).registerLearningLanguages(eq(1L), eq(request.getLearningLanguages()));
     }
 
     @Test
