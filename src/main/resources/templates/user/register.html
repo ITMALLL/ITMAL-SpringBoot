@@ -246,12 +246,20 @@
 
     <script>
       let timerInterval = null;
-      let isVerified = false;
+      let isVerified = /*[[${emailVerified != null && emailVerified}]]*/ false;
       let timerSeconds = 0;
       let extensionCount = 0;
       const MAX_EXTENSIONS = 2;
       const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
       const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      // 서버 재렌더링 후 이메일 인증 상태 복원
+      if (isVerified) {
+        document.getElementById("email").readOnly = true;
+        document.getElementById("btnSendCode").disabled = true;
+        document.getElementById("verifiedBadge").style.display = "flex";
+        document.getElementById("verifySection").style.display = "none";
+      }
 
       // Language chip toggle
       document.querySelectorAll(".lang-chip").forEach((chip) => {
@@ -366,6 +374,12 @@
             body: JSON.stringify({ email })
           });
 
+          if (res.status === 429) {
+            alert("잠시 후 다시 시도해주세요. (60초에 한 번만 발송 가능)");
+            btn.disabled = false;
+            btn.textContent = "인증코드 발송";
+            return;
+          }
           if (!res.ok) throw new Error();
 
           document.getElementById("verifySection").style.display = "block";
@@ -374,6 +388,7 @@
           isVerified = false;
           startTimer();
           btn.textContent = "재발송";
+          btn.disabled = false;
         } catch (e) {
           alert("인증코드 발송에 실패했습니다. 다시 시도해주세요.");
           btn.disabled = false;
@@ -397,14 +412,16 @@
 
           if (--timerSeconds < 0) {
             clearInterval(timerInterval);
+            timerInterval = null;
             timerEl.textContent = "만료됨";
             timerEl.style.color = "var(--on-surface-variant)";
+            updateExtendBtn();
           }
         }, 1000);
       }
 
       function extendTimer() {
-        if (extensionCount >= MAX_EXTENSIONS) return;
+        if (timerSeconds <= 0 || extensionCount >= MAX_EXTENSIONS) return;
         extensionCount++;
         timerSeconds += 60;
         updateExtendBtn();

@@ -2,10 +2,12 @@ package com.itmal.auth.controller;
 
 import com.itmal.auth.dto.EmailSendRequest;
 import com.itmal.auth.dto.EmailVerifyRequest;
+import com.itmal.auth.exception.TooManyRequestsException;
 import com.itmal.auth.service.EmailVerificationService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,8 +25,12 @@ public class EmailVerificationController {
 
     @PostMapping("/send")
     public ResponseEntity<Void> send(@Valid @RequestBody EmailSendRequest request) {
-        emailVerificationService.sendCode(request.getEmail());
-        return ResponseEntity.ok().build();
+        try {
+            emailVerificationService.sendCode(request.getEmail());
+            return ResponseEntity.ok().build();
+        } catch (TooManyRequestsException e) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+        }
     }
 
     @PostMapping("/verify")

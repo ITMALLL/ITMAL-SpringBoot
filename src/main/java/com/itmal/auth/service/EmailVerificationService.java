@@ -27,21 +27,17 @@ public class EmailVerificationService {
     private String fromEmail;
 
     public void sendCode(String email) {
+        store.checkCooldown(email);
         String code = generateCode();
+        sendEmail(email, code);
         store.save(email, code, CODE_TTL);
-        try {
-            sendEmail(email, code);
-        } catch (Exception e) {
-            store.delete(email);
-            throw e;
-        }
+        store.recordSend(email);
     }
 
     public void verifyCode(String email, String code) {
         if (!store.verify(email, code)) {
             throw new IllegalArgumentException("인증코드가 올바르지 않거나 만료되었습니다.");
         }
-        store.delete(email);
     }
 
     private String generateCode() {

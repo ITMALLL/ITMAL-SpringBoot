@@ -46,6 +46,11 @@ public class AuthController {
             HttpServletRequest httpRequest
     ) {
         if (bindingResult.hasErrors()) {
+            HttpSession errorSession = httpRequest.getSession(false);
+            String verifiedEmail = errorSession != null ? (String) errorSession.getAttribute(EmailVerificationService.SESSION_KEY) : null;
+            if (request.getEmail() != null && request.getEmail().equals(verifiedEmail)) {
+                model.addAttribute("emailVerified", true);
+            }
             return "user/register";
         }
 

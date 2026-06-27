@@ -1,5 +1,7 @@
 package com.itmal.auth.service;
 
+import com.itmal.auth.exception.EmailSendException;
+import com.itmal.auth.exception.TooManyRequestsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -38,12 +40,38 @@ class EmailVerificationServiceTest {
         service.sendCode(email);
 
         // Assert
-        verify(store).save(eq(email), anyString(), eq(Duration.ofMinutes(5)));
         verify(mailSender).send(any(MimeMessage.class));
+        verify(store).save(eq(email), anyString(), eq(Duration.ofMinutes(5)));
+        verify(store).recordSend(email);
     }
 
     @Test
-    void verifyCode_올바른코드_저장소에서삭제() {
+    void sendCode_쿨다운중_예외발생() {
+        // Arrange
+        String email = "user@test.com";
+        doThrow(new TooManyRequestsException("60초에 한 번만 가능합니다."))
+                .when(store).checkCooldown(email);
+
+        // Act & Assert
+        assertThrows(TooManyRequestsException.class, () -> service.sendCode(email));
+        verify(mailSender, never()).send(any(MimeMessage.class));
+        verify(store, never()).save(any(), any(), any());
+    }
+
+    @Test
+    void sendCode_발송실패시_코드저장안함() {
+        // Arrange
+        String email = "user@test.com";
+        when(mailSender.createMimeMessage()).thenThrow(new RuntimeException("SMTP 연결 실패"));
+
+        // Act & Assert
+        assertThrows(EmailSendException.class, () -> service.sendCode(email));
+        verify(store, never()).save(any(), any(), any());
+        verify(store, never()).recordSend(any());
+    }
+
+    @Test
+    void verifyCode_올바른코드_검증성공() {
         // Arrange
         String email = "user@test.com";
         String code = "123456";
@@ -53,7 +81,8 @@ class EmailVerificationServiceTest {
         service.verifyCode(email, code);
 
         // Assert
-        verify(store).delete(email);
+        verify(store).verify(email, code);
+        verify(store, never()).delete(any());
     }
 
     @Test
@@ -67,17 +96,5 @@ class EmailVerificationServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.verifyCode(email, code));
         verify(store, never()).delete(any());
-    }
-
-    @Test
-    void sendCode_발송실패시_저장된코드삭제() {
-        // Arrange
-        String email = "user@test.com";
-        when(mailSender.createMimeMessage()).thenThrow(new RuntimeException("SMTP 연결 실패"));
-
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> service.sendCode(email));
-        verify(store).save(eq(email), anyString(), eq(Duration.ofMinutes(5)));
-        verify(store).delete(email);
     }
 }
