@@ -59,7 +59,7 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    void sendCode_발송실패시_코드저장안함() {
+    void sendCode_발송실패시_예약롤백() {
         // Arrange
         String email = "user@test.com";
         when(mailSender.createMimeMessage()).thenThrow(new RuntimeException("SMTP 연결 실패"));
@@ -67,6 +67,7 @@ class EmailVerificationServiceTest {
         // Act & Assert
         assertThrows(EmailSendException.class, () -> service.sendCode(email));
         verify(store, never()).save(any(), any(), any());
+        verify(store).releaseReservation(email);
     }
 
     @Test

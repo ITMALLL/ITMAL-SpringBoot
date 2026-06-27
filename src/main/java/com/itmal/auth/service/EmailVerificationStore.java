@@ -36,6 +36,10 @@ public class EmailVerificationStore {
         }
     }
 
+    public void releaseReservation(String email) {
+        lastSentAt.remove(email);
+    }
+
     public void save(String email, String code, Duration ttl) {
         store.put(email, new VerificationEntry(code, LocalDateTime.now().plus(ttl)));
     }

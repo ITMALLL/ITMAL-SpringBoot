@@ -29,7 +29,12 @@ public class EmailVerificationService {
     public void sendCode(String email) {
         store.reserveSend(email);
         String code = generateCode();
-        sendEmail(email, code);
+        try {
+            sendEmail(email, code);
+        } catch (EmailSendException e) {
+            store.releaseReservation(email);
+            throw e;
+        }
         store.save(email, code, CODE_TTL);
     }
 

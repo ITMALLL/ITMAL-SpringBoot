@@ -45,17 +45,14 @@ public class AuthController {
             Model model,
             HttpServletRequest httpRequest
     ) {
+        HttpSession session = httpRequest.getSession(false);
+        String verifiedEmail = session != null ? (String) session.getAttribute(EmailVerificationService.SESSION_KEY) : null;
+
         if (bindingResult.hasErrors()) {
-            HttpSession errorSession = httpRequest.getSession(false);
-            String verifiedEmail = errorSession != null ? (String) errorSession.getAttribute(EmailVerificationService.SESSION_KEY) : null;
-            if (request.getEmail() != null && request.getEmail().equals(verifiedEmail)) {
-                model.addAttribute("emailVerified", true);
-            }
+            restoreEmailVerified(request.getEmail(), verifiedEmail, model);
             return "user/register";
         }
 
-        HttpSession session = httpRequest.getSession(false);
-        String verifiedEmail = session != null ? (String) session.getAttribute(EmailVerificationService.SESSION_KEY) : null;
         if (!request.getEmail().equals(verifiedEmail)) {
             model.addAttribute("errorMessage", "이메일 인증이 필요합니다.");
             return "user/register";
@@ -69,13 +66,21 @@ public class AuthController {
             model.addAttribute("errorMessage", "이미 사용 중인 이메일입니다.");
             return "user/register";
         } catch (DuplicateNicknameException e) {
+            restoreEmailVerified(request.getEmail(), verifiedEmail, model);
             model.addAttribute("errorMessage", "이미 사용 중인 닉네임입니다.");
             return "user/register";
         } catch (IllegalArgumentException e) {
+            restoreEmailVerified(request.getEmail(), verifiedEmail, model);
             model.addAttribute("errorMessage", e.getMessage());
             return "user/register";
         }
 
         return "redirect:/login";
+    }
+
+    private void restoreEmailVerified(String requestEmail, String verifiedEmail, Model model) {
+        if (requestEmail != null && requestEmail.equals(verifiedEmail)) {
+            model.addAttribute("emailVerified", true);
+        }
     }
 }
