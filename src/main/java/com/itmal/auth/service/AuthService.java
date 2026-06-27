@@ -7,6 +7,7 @@ import com.itmal.auth.exception.DuplicateEmailException;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.repository.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,14 @@ public class AuthService {
                 .role(Role.ROLE_USER)
                 .emailVerified(false)
                 .build();
-        userMapper.insert(user); // useGeneratedKeys → user.getUserId() 자동 세팅
+        try {
+            userMapper.insert(user); // useGeneratedKeys → user.getUserId() 자동 세팅
+        } catch (DuplicateKeyException e) {
+            if (userMapper.existsByEmail(user.getEmail())) {
+                throw new DuplicateEmailException();
+            }
+            throw new DuplicateNicknameException();
+        }
         userService.registerLearningLanguages(user.getUserId(), request.getLearningLanguages());
     }
 }

@@ -6,6 +6,7 @@ import com.itmal.auth.dto.ProfileUpdateRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.service.SecuritySessionService;
 import com.itmal.auth.service.UserService;
+import com.itmal.global.exception.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -91,7 +92,7 @@ public class MypageController {
 
         try {
             userService.changePassword(userDetails.getUserId(), request);
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (IllegalStateException | ApiException e) {
             model.addAttribute("user", userDetails);
             model.addAttribute("errorMessage", e.getMessage());
             return "user/mypage-password";
