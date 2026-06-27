@@ -3,18 +3,12 @@ package com.itmal.auth.controller;
 import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.auth.dto.SocialRegisterRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
-import com.itmal.auth.service.CustomUserDetailsService;
+import com.itmal.auth.service.SecuritySessionService;
 import com.itmal.auth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -29,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class SocialRegisterController {
 
     private final UserService userService;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final SecuritySessionService securitySessionService;
 
     @GetMapping
     public String form(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
@@ -65,24 +59,11 @@ public class SocialRegisterController {
             return "user/register-social";
         }
 
-        refreshSession(userDetails.getUsername(), httpRequest);
+        securitySessionService.refreshSession(userDetails.getUsername(), httpRequest);
         return "redirect:/";
     }
 
     private void addLanguagesToModel(Model model) {
         model.addAttribute("allLanguages", userService.getAllLanguages());
-    }
-
-    private void refreshSession(String email, HttpServletRequest request) {
-        UserDetails updated = customUserDetailsService.loadUserByUsername(email);
-        Authentication newAuth = UsernamePasswordAuthenticationToken.authenticated(
-                updated, null, updated.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(newAuth);
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.setAttribute(
-                    HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                    SecurityContextHolder.getContext());
-        }
     }
 }

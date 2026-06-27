@@ -11,11 +11,9 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -25,12 +23,7 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final OAuthUserProcessor oAuthUserProcessor;
-    private final RestClient restClient = RestClient.builder()
-            .requestFactory(new SimpleClientHttpRequestFactory() {{
-                setConnectTimeout(Duration.ofSeconds(5));
-                setReadTimeout(Duration.ofSeconds(5));
-            }})
-            .build();
+    private final RestClient oAuthRestClient;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -69,7 +62,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private String fetchGitHubPrimaryEmail(String accessToken) {
         try {
-            List<Map<String, Object>> emails = restClient.get()
+            List<Map<String, Object>> emails = oAuthRestClient.get()
                     .uri("https://api.github.com/user/emails")
                     .header("Authorization", "Bearer " + accessToken)
                     .header("Accept", "application/vnd.github.v3+json")

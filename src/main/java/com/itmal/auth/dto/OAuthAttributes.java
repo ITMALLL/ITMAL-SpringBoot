@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Getter
 @Builder(toBuilder = true)
@@ -34,9 +35,11 @@ public class OAuthAttributes {
     }
 
     private static OAuthAttributes ofGoogle(Map<String, Object> attributes) {
+        String email = (String) attributes.get("email");
+        String nickname = Optional.ofNullable((String) attributes.get("name")).orElse(email);
         return OAuthAttributes.builder()
-                .email((String) attributes.get("email"))
-                .nickname((String) attributes.get("name"))
+                .email(email)
+                .nickname(nickname)
                 .provider("google")
                 .providerId((String) attributes.get("sub"))
                 .attributes(attributes)
