@@ -1,8 +1,8 @@
 package com.itmal.auth.service;
 
+import com.itmal.auth.exception.EmailSendException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -37,12 +37,11 @@ public class EmailVerificationService {
         }
     }
 
-    public void verifyCode(String email, String code, HttpSession session) {
+    public void verifyCode(String email, String code) {
         if (!store.verify(email, code)) {
             throw new IllegalArgumentException("인증코드가 올바르지 않거나 만료되었습니다.");
         }
         store.delete(email);
-        session.setAttribute(SESSION_KEY, email);
     }
 
     private String generateCode() {
@@ -72,7 +71,7 @@ public class EmailVerificationService {
                     """.formatted(code));
             mailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("이메일 발송에 실패했습니다.", e);
+            throw new EmailSendException("이메일 발송에 실패했습니다.", e);
         }
     }
 }

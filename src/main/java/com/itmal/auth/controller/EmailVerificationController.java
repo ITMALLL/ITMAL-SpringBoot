@@ -33,7 +33,8 @@ public class EmailVerificationController {
             HttpSession session
     ) {
         try {
-            emailVerificationService.verifyCode(request.getEmail(), request.getCode(), session);
+            emailVerificationService.verifyCode(request.getEmail(), request.getCode());
+            session.setAttribute(EmailVerificationService.SESSION_KEY, request.getEmail());
             return ResponseEntity.ok(Map.of("verified", true));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("verified", false));

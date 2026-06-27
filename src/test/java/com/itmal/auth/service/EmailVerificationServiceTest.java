@@ -1,6 +1,5 @@
 package com.itmal.auth.service;
 
-import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -44,19 +43,17 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    void verifyCode_올바른코드_세션에이메일저장() {
+    void verifyCode_올바른코드_저장소에서삭제() {
         // Arrange
         String email = "user@test.com";
         String code = "123456";
-        HttpSession session = mock(HttpSession.class);
         when(store.verify(email, code)).thenReturn(true);
 
         // Act
-        service.verifyCode(email, code, session);
+        service.verifyCode(email, code);
 
         // Assert
         verify(store).delete(email);
-        verify(session).setAttribute(EmailVerificationService.SESSION_KEY, email);
     }
 
     @Test
@@ -64,14 +61,12 @@ class EmailVerificationServiceTest {
         // Arrange
         String email = "user@test.com";
         String code = "000000";
-        HttpSession session = mock(HttpSession.class);
         when(store.verify(email, code)).thenReturn(false);
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
-                () -> service.verifyCode(email, code, session));
+                () -> service.verifyCode(email, code));
         verify(store, never()).delete(any());
-        verify(session, never()).setAttribute(any(), any());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.itmal.auth.service;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -29,5 +30,11 @@ public class EmailVerificationStore {
 
     public void delete(String email) {
         store.remove(email);
+    }
+
+    @Scheduled(fixedRate = 60_000)
+    public void evictExpired() {
+        LocalDateTime now = LocalDateTime.now();
+        store.entrySet().removeIf(e -> now.isAfter(e.getValue().expiredAt()));
     }
 }
