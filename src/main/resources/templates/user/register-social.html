@@ -51,6 +51,7 @@
             <div class="lang-grid">
               <label th:each="lang : ${allLanguages}" class="lang-chip">
                 <input type="checkbox" name="learningLanguages" th:value="${lang.languageName}"
+                       th:checked="${#lists.contains(socialRegisterRequest.learningLanguages, lang.languageName)}"
                        class="lang-chip-input"/>
                 <span th:text="${lang.languageName}">언어</span>
               </label>
