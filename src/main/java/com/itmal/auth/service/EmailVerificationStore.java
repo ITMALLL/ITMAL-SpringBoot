@@ -19,7 +19,7 @@ public class EmailVerificationStore {
 
     private record VerificationEntry(String code, LocalDateTime expiredAt) {}
 
-    public void checkCooldown(String email) {
+    public void reserveSend(String email) {
         AtomicBoolean blocked = new AtomicBoolean(false);
         LocalDateTime now = LocalDateTime.now();
 
@@ -28,16 +28,12 @@ public class EmailVerificationStore {
                 blocked.set(true);
                 return lastSent;
             }
-            return lastSent;
+            return now; // 쿨다운 체크 + 예약 원자적 처리
         });
 
         if (blocked.get()) {
             throw new TooManyRequestsException("이메일 발송은 60초에 한 번만 가능합니다.");
         }
-    }
-
-    public void recordSend(String email) {
-        lastSentAt.put(email, LocalDateTime.now());
     }
 
     public void save(String email, String code, Duration ttl) {

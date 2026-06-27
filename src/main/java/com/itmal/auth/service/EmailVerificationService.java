@@ -27,11 +27,10 @@ public class EmailVerificationService {
     private String fromEmail;
 
     public void sendCode(String email) {
-        store.checkCooldown(email);
+        store.reserveSend(email);
         String code = generateCode();
         sendEmail(email, code);
         store.save(email, code, CODE_TTL);
-        store.recordSend(email);
     }
 
     public void verifyCode(String email, String code) {

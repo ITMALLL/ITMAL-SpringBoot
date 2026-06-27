@@ -40,9 +40,9 @@ class EmailVerificationServiceTest {
         service.sendCode(email);
 
         // Assert
+        verify(store).reserveSend(email);
         verify(mailSender).send(any(MimeMessage.class));
         verify(store).save(eq(email), anyString(), eq(Duration.ofMinutes(5)));
-        verify(store).recordSend(email);
     }
 
     @Test
@@ -50,7 +50,7 @@ class EmailVerificationServiceTest {
         // Arrange
         String email = "user@test.com";
         doThrow(new TooManyRequestsException("60초에 한 번만 가능합니다."))
-                .when(store).checkCooldown(email);
+                .when(store).reserveSend(email);
 
         // Act & Assert
         assertThrows(TooManyRequestsException.class, () -> service.sendCode(email));
@@ -67,7 +67,6 @@ class EmailVerificationServiceTest {
         // Act & Assert
         assertThrows(EmailSendException.class, () -> service.sendCode(email));
         verify(store, never()).save(any(), any(), any());
-        verify(store, never()).recordSend(any());
     }
 
     @Test
