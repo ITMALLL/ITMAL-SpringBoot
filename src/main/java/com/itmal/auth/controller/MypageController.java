@@ -36,7 +36,11 @@ public class MypageController {
     @GetMapping
     public String mypage(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         model.addAttribute("user", userDetails);
-        loadProfileModel(userDetails, model);
+        if (!model.containsAttribute("profileUpdateRequest")) {
+            loadProfileModel(userDetails, model);
+        } else {
+            model.addAttribute("allLanguages", userService.getAllLanguages());
+        }
         return "user/mypage";
     }
 
@@ -49,6 +53,7 @@ public class MypageController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("profileUpdateRequest", request);
             redirectAttributes.addFlashAttribute("editError", "입력값을 확인해주세요.");
             redirectAttributes.addFlashAttribute("openEditModal", true);
             return "redirect:/mypage";
@@ -80,6 +85,7 @@ public class MypageController {
             @Valid @ModelAttribute PasswordChangeRequest request,
             BindingResult bindingResult,
             Model model,
+            HttpServletRequest httpRequest,
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
@@ -95,6 +101,7 @@ public class MypageController {
             return "user/mypage-password";
         }
 
+        refreshSession(userDetails.getUsername(), httpRequest);
         redirectAttributes.addFlashAttribute("successMessage", "비밀번호가 변경되었습니다.");
         return "redirect:/mypage";
     }

@@ -6,6 +6,7 @@ import com.itmal.auth.dto.ProfileUpdateRequest;
 import com.itmal.auth.dto.SocialRegisterRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.repository.LearningLanguageMapper;
+import org.springframework.dao.DuplicateKeyException;
 import com.itmal.auth.repository.UserMapper;
 import com.itmal.question.dto.LanguageDto;
 import lombok.RequiredArgsConstructor;
@@ -84,7 +85,11 @@ public class UserService {
         if (!current.getNickname().equals(nickname) && userMapper.existsByNickname(nickname)) {
             throw new DuplicateNicknameException();
         }
-        userMapper.updateProfile(userId, nickname, nativeLanguage);
+        try {
+            userMapper.updateProfile(userId, nickname, nativeLanguage);
+        } catch (DuplicateKeyException e) {
+            throw new DuplicateNicknameException();
+        }
         saveLanguages(userId, languageNames);
     }
 

@@ -1,9 +1,6 @@
 ### 마이페이지 조회
 GET http://localhost:8080/mypage
 
-### 프로필 수정 폼
-GET http://localhost:8080/mypage/edit
-
 ### 프로필 수정 제출
 POST http://localhost:8080/mypage/edit
 Content-Type: application/x-www-form-urlencoded

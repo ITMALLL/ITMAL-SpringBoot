@@ -75,7 +75,11 @@
 }
 
 .lang-chip-label input[type="checkbox"] {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .lang-chip-label:has(input:checked) {

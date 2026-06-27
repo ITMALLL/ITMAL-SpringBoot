@@ -31,7 +31,7 @@ public class SocialRegisterController {
         SocialRegisterRequest request = new SocialRegisterRequest();
         request.setNickname(userDetails.getNickname());
         model.addAttribute("socialRegisterRequest", request);
-        model.addAttribute("allLanguages", userService.getAllLanguages());
+        addLanguagesToModel(model);
         return "user/register-social";
     }
 
@@ -43,18 +43,22 @@ public class SocialRegisterController {
             Model model
     ) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("allLanguages", userService.getAllLanguages());
+            addLanguagesToModel(model);
             return "user/register-social";
         }
 
         try {
             userService.completeSocialProfile(userDetails.getUserId(), request);
         } catch (DuplicateNicknameException e) {
-            model.addAttribute("allLanguages", userService.getAllLanguages());
+            addLanguagesToModel(model);
             model.addAttribute("errorMessage", "이미 사용 중인 닉네임입니다.");
             return "user/register-social";
         }
 
         return "redirect:/";
+    }
+
+    private void addLanguagesToModel(Model model) {
+        model.addAttribute("allLanguages", userService.getAllLanguages());
     }
 }
