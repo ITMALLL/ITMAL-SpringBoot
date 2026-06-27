@@ -18,6 +18,7 @@ public class EmailVerificationService {
 
     public static final String SESSION_KEY = "VERIFIED_EMAIL";
     private static final Duration CODE_TTL = Duration.ofMinutes(5);
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final JavaMailSender mailSender;
     private final EmailVerificationStore store;
@@ -45,7 +46,7 @@ public class EmailVerificationService {
     }
 
     private String generateCode() {
-        return String.format("%06d", new SecureRandom().nextInt(1_000_000));
+        return String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
     }
 
     private void sendEmail(String to, String code) {

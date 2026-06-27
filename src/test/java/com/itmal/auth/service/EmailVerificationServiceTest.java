@@ -75,15 +75,14 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    void verifyCode_만료된코드_예외발생() {
+    void sendCode_발송실패시_저장된코드삭제() {
         // Arrange
         String email = "user@test.com";
-        String code = "999999";
-        HttpSession session = mock(HttpSession.class);
-        when(store.verify(email, code)).thenReturn(false); // 만료 시 store가 false 반환
+        when(mailSender.createMimeMessage()).thenThrow(new RuntimeException("SMTP 연결 실패"));
 
         // Act & Assert
-        assertThrows(IllegalArgumentException.class,
-                () -> service.verifyCode(email, code, session));
+        assertThrows(RuntimeException.class, () -> service.sendCode(email));
+        verify(store).save(eq(email), anyString(), eq(Duration.ofMinutes(5)));
+        verify(store).delete(email);
     }
 }
