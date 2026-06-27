@@ -294,6 +294,15 @@
   color: var(--primary);
 }
 
+.lang-chip-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lang-chip:has(input:checked),
 .lang-chip.selected {
   border-color: var(--primary);
   background-color: var(--primary-fixed);

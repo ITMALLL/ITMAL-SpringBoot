@@ -49,13 +49,11 @@
           <div class="form-group">
             <label class="form-label">학습 언어 <span class="required">*</span></label>
             <div class="lang-grid">
-              <div th:each="lang : ${allLanguages}"
-                   class="lang-chip"
-                   th:attr="data-lang=${lang.languageName}">
-                <span th:text="${lang.languageName}">언어</span>
+              <label th:each="lang : ${allLanguages}" class="lang-chip">
                 <input type="checkbox" name="learningLanguages" th:value="${lang.languageName}"
-                       style="display:none"/>
-              </div>
+                       class="lang-chip-input"/>
+                <span th:text="${lang.languageName}">언어</span>
+              </label>
             </div>
             <span th:if="${#fields.hasErrors('learningLanguages')}" th:errors="*{learningLanguages}" class="field-error"></span>
           </div>
@@ -64,15 +62,5 @@
         </form>
       </div>
     </div>
-
-    <script>
-      document.querySelectorAll('.lang-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          const checkbox = chip.querySelector('input[type="checkbox"]');
-          chip.classList.toggle('selected');
-          checkbox.checked = chip.classList.contains('selected');
-        });
-      });
-    </script>
   </body>
 </html>
