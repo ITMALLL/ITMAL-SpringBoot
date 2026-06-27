@@ -15,6 +15,8 @@
 
     <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/register.css" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
   </head>
   <body class="register-body">
 
@@ -73,6 +75,10 @@
                 인증코드 발송
               </button>
             </div>
+          <div class="verified-badge" id="verifiedBadge" style="display: none; margin-top: 8px;">
+            <span class="material-symbols-outlined">check_circle</span>
+            이메일 인증 완료
+          </div>
           </div>
 
           <!-- Verify Code Field -->
@@ -95,19 +101,19 @@
               <span class="timer" id="timer">3:00</span>
               <button
                 type="button"
+                id="btnExtend"
+                class="btn btn-secondary btn-send"
+                onclick="extendTimer()"
+              >
+                연장 (2회 남음)
+              </button>
+              <button
+                type="button"
                 class="btn btn-secondary btn-verify"
                 onclick="verifyCode()"
               >
                 확인
               </button>
-            </div>
-            <div
-              class="verified-badge"
-              id="verifiedBadge"
-              style="display: none"
-            >
-              <span class="material-symbols-outlined">check_circle</span>
-              이메일 인증 완료
             </div>
           </div>
 
@@ -240,6 +246,20 @@
 
     <script>
       let timerInterval = null;
+      let isVerified = /*[[${emailVerified != null && emailVerified}]]*/ false;
+      let timerSeconds = 0;
+      let extensionCount = 0;
+      const MAX_EXTENSIONS = 2;
+      const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+      // 서버 재렌더링 후 이메일 인증 상태 복원
+      if (isVerified) {
+        document.getElementById("email").readOnly = true;
+        document.getElementById("btnSendCode").disabled = true;
+        document.getElementById("verifiedBadge").style.display = "flex";
+        document.getElementById("verifySection").style.display = "none";
+      }
 
       // Language chip toggle
       document.querySelectorAll(".lang-chip").forEach((chip) => {
@@ -336,53 +356,126 @@
       }
 
       // Send verification code
-      function sendCode() {
+      async function sendCode() {
         const email = document.getElementById("email").value;
         if (!email) {
           alert("이메일을 입력해주세요.");
           return;
         }
 
-        document.getElementById("verifySection").style.display = "block";
-        document.getElementById("verifiedBadge").style.display = "none";
-        startTimer();
+        const btn = document.getElementById("btnSendCode");
+        btn.disabled = true;
+        btn.textContent = "발송 중...";
+
+        try {
+          const res = await fetch("/api/email/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", [csrfHeader]: csrfToken },
+            body: JSON.stringify({ email })
+          });
+
+          if (res.status === 429) {
+            alert("잠시 후 다시 시도해주세요. (60초에 한 번만 발송 가능)");
+            btn.disabled = false;
+            btn.textContent = "인증코드 발송";
+            return;
+          }
+          if (!res.ok) throw new Error();
+
+          document.getElementById("verifySection").style.display = "block";
+          document.getElementById("verifiedBadge").style.display = "none";
+          document.getElementById("code").value = "";
+          isVerified = false;
+          startTimer();
+          btn.textContent = "재발송";
+          btn.disabled = false;
+        } catch (e) {
+          alert("인증코드 발송에 실패했습니다. 다시 시도해주세요.");
+          btn.disabled = false;
+          btn.textContent = "인증코드 발송";
+        }
       }
 
       // Start countdown timer
       function startTimer() {
         clearInterval(timerInterval);
-        let seconds = 180;
+        timerSeconds = 180;
+        extensionCount = 0;
+        updateExtendBtn();
         const timerEl = document.getElementById("timer");
+        timerEl.style.color = "var(--error)";
 
         timerInterval = setInterval(() => {
-          const m = Math.floor(seconds / 60);
-          const s = String(seconds % 60).padStart(2, "0");
+          const m = Math.floor(timerSeconds / 60);
+          const s = String(timerSeconds % 60).padStart(2, "0");
           timerEl.textContent = `${m}:${s}`;
 
-          if (--seconds < 0) {
+          if (--timerSeconds < 0) {
             clearInterval(timerInterval);
+            timerInterval = null;
             timerEl.textContent = "만료됨";
             timerEl.style.color = "var(--on-surface-variant)";
+            updateExtendBtn();
           }
         }, 1000);
       }
 
+      function extendTimer() {
+        if (timerSeconds <= 0 || extensionCount >= MAX_EXTENSIONS) return;
+        extensionCount++;
+        timerSeconds += 60;
+        updateExtendBtn();
+      }
+
+      function updateExtendBtn() {
+        const btn = document.getElementById("btnExtend");
+        if (!btn) return;
+        btn.disabled = extensionCount >= MAX_EXTENSIONS;
+        btn.textContent = extensionCount >= MAX_EXTENSIONS
+          ? "연장 불가"
+          : `연장 (${MAX_EXTENSIONS - extensionCount}회 남음)`;
+      }
+
       // Verify code
-      function verifyCode() {
+      async function verifyCode() {
+        const email = document.getElementById("email").value;
         const code = document.getElementById("code").value;
         if (code.length !== 6) {
           alert("인증코드 6자리를 입력해주세요.");
           return;
         }
 
-        clearInterval(timerInterval);
-        document.getElementById("verifySection").style.display = "block";
-        document.getElementById("verifiedBadge").style.display = "flex";
-        document.getElementById("email").readOnly = true;
+        try {
+          const res = await fetch("/api/email/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", [csrfHeader]: csrfToken },
+            body: JSON.stringify({ email, code })
+          });
+
+          const data = await res.json();
+          if (data.verified) {
+            clearInterval(timerInterval);
+            document.getElementById("verifiedBadge").style.display = "flex";
+            document.getElementById("email").readOnly = true;
+            document.getElementById("btnSendCode").disabled = true;
+            document.getElementById("verifySection").style.display = "none";
+            isVerified = true;
+          } else {
+            alert("인증코드가 올바르지 않거나 만료되었습니다.");
+          }
+        } catch (e) {
+          alert("인증 확인 중 오류가 발생했습니다. 다시 시도해주세요.");
+        }
       }
 
       // Register form submit
       function handleRegister(event) {
+        if (!isVerified) {
+          event.preventDefault();
+          alert("이메일 인증을 완료해주세요.");
+          return;
+        }
+
         const password = document.getElementById("password").value;
         const passwordConfirm = document.getElementById("password-confirm").value;
 
