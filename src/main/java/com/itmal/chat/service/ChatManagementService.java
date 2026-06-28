@@ -37,7 +37,7 @@ public class ChatManagementService {
                     ? chatRequest.getResponderId()
                     : chatRequest.getRequesterId();
 
-            long unreadCount = getUnreadCount(room.getId(), userId);
+            long unreadCount = getUnreadCount(room, chatRequest, userId);
 
             ChatMessageDto lastMessage = chatMessageService.getLastMessageByChatRoomAndUser(room.getId(), userId);
 
@@ -103,11 +103,13 @@ public class ChatManagementService {
     public long getUnreadCount(Long chatRoomId, Long userId) {
         ChatRoomDto room = chatRoomService.getChatRoom(chatRoomId);
         ChatRequestDto chatRequest = chatRequestService.getChatRequest(room.getChatRequestId());
+        return getUnreadCount(room, chatRequest, userId);
+    }
 
-        List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoomAndUser(chatRoomId, userId);
+    private long getUnreadCount(ChatRoomDto room, ChatRequestDto chatRequest, Long userId) {
+        List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoomAndUser(room.getId(), userId);
 
         boolean isRequester = userId.equals(chatRequest.getRequesterId());
-
         LocalDateTime lastReadAt = isRequester ? room.getLastReadAtA() : room.getLastReadAtB();
 
         return messages.stream()

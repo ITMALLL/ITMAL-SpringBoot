@@ -1,7 +1,11 @@
 package com.itmal.chat.controller;
 
 import com.itmal.auth.domain.CustomUserDetails;
+import com.itmal.chat.dto.ChatRequestDto;
+import com.itmal.chat.dto.ChatRoomDto;
 import com.itmal.chat.service.ChatManagementService;
+import com.itmal.chat.service.ChatRequestService;
+import com.itmal.chat.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -17,6 +21,8 @@ import java.util.Map;
 public class ChatRoomController {
 
     private final ChatManagementService chatManagementService;
+    private final ChatRoomService chatRoomService;
+    private final ChatRequestService chatRequestService;
     private final SimpMessagingTemplate messagingTemplate;
 
     // 채팅 목록
@@ -29,14 +35,22 @@ public class ChatRoomController {
         );
     }
 
-    // 채팅방 진입 
+    // 채팅방 진입
     @GetMapping("/{chatRoomId}")
     public ResponseEntity<Map<String, Object>> getChatRoom(
             @PathVariable Long chatRoomId,
             @AuthenticationPrincipal CustomUserDetails user) {
 
+        ChatRoomDto chatRoom = chatRoomService.getChatRoom(chatRoomId);
+        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRoom.getChatRequestId());
+
+        Long userId = user.getUserId();
+        if (!userId.equals(chatRequest.getRequesterId()) && !userId.equals(chatRequest.getResponderId())) {
+            return ResponseEntity.status(403).build();
+        }
+
         return ResponseEntity.ok(
-                chatManagementService.getChatRoomWithMessages(chatRoomId, user.getUserId())
+                chatManagementService.getChatRoomWithMessages(chatRoomId, userId)
         );
     }
 
@@ -46,6 +60,11 @@ public class ChatRoomController {
             @RequestParam Long chatRoomId,
             @RequestParam Long chatRequestId,
             @AuthenticationPrincipal CustomUserDetails user) {
+
+        ChatRoomDto chatRoom = chatRoomService.getChatRoom(chatRoomId);
+        if (!chatRoom.getChatRequestId().equals(chatRequestId)) {
+            return ResponseEntity.status(403).build();
+        }
 
         Long userId = user.getUserId();
         chatManagementService.markAsRead(chatRoomId, userId, chatRequestId);
@@ -64,6 +83,11 @@ public class ChatRoomController {
             @PathVariable Long chatRoomId,
             @RequestParam Long chatRequestId,
             @AuthenticationPrincipal CustomUserDetails user) {
+
+        ChatRoomDto chatRoom = chatRoomService.getChatRoom(chatRoomId);
+        if (!chatRoom.getChatRequestId().equals(chatRequestId)) {
+            return ResponseEntity.status(403).build();
+        }
 
         chatManagementService.leaveRoom(chatRoomId, user.getUserId(), chatRequestId);
         return ResponseEntity.ok("채팅방을 나갔습니다.");
