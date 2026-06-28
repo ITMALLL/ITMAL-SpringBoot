@@ -27,6 +27,14 @@
         SET status = #{status}, responded_at = NOW()
         WHERE chat_request_id = #{chatRequestId}
     </update>
+
+    <!-- PENDING 상태일 때만 업데이트 (동시성 안전) -->
+    <update id="updateStatusIfPending">
+        UPDATE chat_request
+        SET status = #{status}, responded_at = NOW()
+        WHERE chat_request_id = #{chatRequestId}
+          AND status = 'PENDING'
+    </update>
     <!-- 응답자 ID로 PENDING 상태 요청 조회 -->
     <select id="selectByResponderIdAndPending" parameterType="Long" resultType="ChatRequestDto">
         SELECT * FROM chat_request

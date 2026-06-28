@@ -20,6 +20,10 @@ public interface ChatRequestMapper {
     void updateStatus(@Param("chatRequestId") Long chatRequestId,
                       @Param("status") String status);
 
+    // PENDING 상태일 때만 업데이트 (동시성 안전)
+    int updateStatusIfPending(@Param("chatRequestId") Long chatRequestId,
+                              @Param("status") String status);
+
     // 응답자 ID로 PENDING 상태 요청 조회
     List<ChatRequestDto> selectByResponderIdAndPending(@Param("responderId") Long responderId);
 }

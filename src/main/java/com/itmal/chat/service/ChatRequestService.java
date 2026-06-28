@@ -37,4 +37,10 @@ public class ChatRequestService {
     public void updateStatus(Long chatRequestId, String status) {
         chatRequestMapper.updateStatus(chatRequestId, status);
     }
+
+    // PENDING 상태일 때만 업데이트 (동시성 안전)
+    @Transactional
+    public int updateStatusIfPending(Long chatRequestId, String status) {
+        return chatRequestMapper.updateStatusIfPending(chatRequestId, status);
+    }
 }

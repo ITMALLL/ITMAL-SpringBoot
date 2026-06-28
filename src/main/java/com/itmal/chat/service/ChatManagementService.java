@@ -135,22 +135,21 @@ public class ChatManagementService {
     // 채팅 요청 수락 서비스 로직(트랜잭션 처리)
     @Transactional
     public Long acceptChatRequest(Long chatRequestId) {
-        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
+        // 상태를 먼저 ACCEPTED로 전환 (PENDING인 경우에만)
+        int updated = chatRequestService.updateStatusIfPending(chatRequestId, "ACCEPTED");
 
-        if ("ACCEPTED".equals(chatRequest.getStatus())) {
-            ChatRoomDto existingRoom = chatRoomService.getChatRoomByChatRequestId(chatRequestId);
-            return existingRoom.getId();
-        }
-
-        if (!"PENDING".equals(chatRequest.getStatus())) {
+        if (updated == 0) {
+            // 이미 처리된 요청 - ACCEPTED면 기존 방 반환, 아니면 예외
+            ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
+            if ("ACCEPTED".equals(chatRequest.getStatus())) {
+                return chatRoomService.getChatRoomByChatRequestId(chatRequestId).getId();
+            }
             throw new IllegalStateException("채팅 요청 상태가 올바르지 않습니다.");
         }
 
         ChatRoomDto chatRoom = new ChatRoomDto();
         chatRoom.setChatRequestId(chatRequestId);
         Long chatRoomId = chatRoomService.createChatRoom(chatRoom);
-
-        chatRequestService.updateStatus(chatRequestId, "ACCEPTED");
 
         return chatRoomId;
     }

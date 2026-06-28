@@ -158,6 +158,16 @@ async function displayChatRooms(rooms) {
 // ============ 채팅방 진입 ============
 async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
     try {
+        // 이전 구독 먼저 해제 후 전역 상태 업데이트
+        if (messageSubscription) {
+            await messageSubscription.unsubscribe();
+            messageSubscription = null;
+        }
+        if (readSubscription) {
+            await readSubscription.unsubscribe();
+            readSubscription = null;
+        }
+
         currentChatRoomId = chatRoomId;
         currentChatRequestId = chatRequestId;
 
@@ -169,16 +179,6 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
         const otherUserId = data.otherUserId;
         document.getElementById('chatUserName').textContent = await getUserNickname(otherUserId);
         document.getElementById('messageContainer').innerHTML = '';
-
-        // 이전 구독 해제
-        if (messageSubscription) {
-            await messageSubscription.unsubscribe();
-            messageSubscription = null;
-        }
-        if (readSubscription) {
-            await readSubscription.unsubscribe();
-            readSubscription = null;
-        }
 
         displayMessages(data.messages);
 
@@ -194,15 +194,16 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             if (badge) badge.remove();
         }
 
-        // 메시지 구독
+        // 메시지 구독 (chatRequestId를 클로저로 캡처해 stale 참조 방지)
         if (stompClient && stompClient.connected) {
+            const capturedRequestId = chatRequestId;
             messageSubscription = stompClient.subscribe(`/topic/user/${chatRoomId}`, function (message) {
                 const msg = JSON.parse(message.body);
                 addMessageToUI(msg);
 
                 // 상대방 메시지 수신 시 즉시 읽음 처리
                 if (msg.senderId !== currentUserId) {
-                    fetch(`/api/chat-room/mark-as-read?chatRoomId=${chatRoomId}&chatRequestId=${currentChatRequestId}`, {
+                    fetch(`/api/chat-room/mark-as-read?chatRoomId=${chatRoomId}&chatRequestId=${capturedRequestId}`, {
                         method: 'POST',
                         headers: authHeaders()
                     });
