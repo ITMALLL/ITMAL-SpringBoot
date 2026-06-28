@@ -2,6 +2,7 @@ package com.itmal.auth.service;
 
 import com.itmal.auth.exception.TooManyRequestsException;
 import org.springframework.scheduling.annotation.Scheduled;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 @Component
 public class EmailVerificationStore {
 
