@@ -59,10 +59,17 @@ public class ChatManagementService {
 
         return response;
     }
+    private void verifyParticipant(ChatRequestDto chatRequest, Long userId) {
+        if (!userId.equals(chatRequest.getRequesterId()) && !userId.equals(chatRequest.getResponderId())) {
+            throw new IllegalStateException("채팅방 접근 권한이 없습니다.");
+        }
+    }
+
     // 채팅방 진입 (메시지 + 읽음 상태 로드)
     public Map<String, Object> getChatRoomWithMessages(Long chatRoomId, Long userId) {
         ChatRoomDto chatRoom = chatRoomService.getChatRoom(chatRoomId);
         ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRoom.getChatRequestId());
+        verifyParticipant(chatRequest, userId);
         List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoomAndUser(chatRoomId, userId);
 
         // 읽음 상태 계산 (상대방이 읽었는가)
@@ -82,7 +89,6 @@ public class ChatManagementService {
         Long otherUserId = isRequester
                 ? chatRequest.getResponderId()
                 : chatRequest.getRequesterId();
-        System.out.println(otherUserId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("chatRoom", chatRoom);
@@ -118,6 +124,7 @@ public class ChatManagementService {
         }
 
         ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
+        verifyParticipant(chatRequest, userId);
         Boolean isRequester = userId.equals(chatRequest.getRequesterId());
 
         chatRoomService.leaveRoom(chatRoomId, isRequester);
@@ -155,6 +162,7 @@ public class ChatManagementService {
     @Transactional
     public void markAsRead(Long chatRoomId, Long userId, Long chatRequestId) {
         ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
+        verifyParticipant(chatRequest, userId);
         Boolean isRequester = userId.equals(chatRequest.getRequesterId());
 
         // DB 업데이트

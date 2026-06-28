@@ -85,9 +85,9 @@
         FROM chat_room cr
                  LEFT JOIN chat_request cr2 ON cr.chat_request_id = cr2.chat_request_id
         WHERE (
-                  (cr2.requester_id = #{userId} AND cr.hidden_by_a = false)
+                  (cr2.requester_id = #{userId} AND COALESCE(cr.hidden_by_a, false) = false)
                       OR
-                  (cr2.responder_id = #{userId} AND cr.hidden_by_b = false)
+                  (cr2.responder_id = #{userId} AND COALESCE(cr.hidden_by_b, false) = false)
                   )
         ORDER BY cr.updated_at DESC
     </select>

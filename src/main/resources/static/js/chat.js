@@ -75,10 +75,8 @@ async function initCurrentUser() {
             window.location.href = '/login';
             return;
         }
-
-        await loadChatRooms();
-        await loadChatRequests();
         await setupWebSocket();
+        await Promise.all([loadChatRooms(), loadChatRequests()]);
 
     } catch (error) {
         console.error('사용자 정보 조회 실패:', error);
@@ -149,7 +147,7 @@ async function displayChatRooms(rooms) {
               <span class="chat-item-name">${escapeHtml(nickname)}</span>
               <span class="chat-item-time">${formatTime(room.lastMessageAt)}</span>
             </div>
-            <p class="chat-item-text" style="margin: 0;">${room.lastMessage}</p>
+            <p class="chat-item-text" style="margin: 0;">${escapeHtml(room.lastMessage ?? '')}</p>
           </div>
           ${room.unreadCount > 0 ? `<span class="chat-badge">${room.unreadCount}</span>` : ''}
         `;
