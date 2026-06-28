@@ -6,12 +6,26 @@ let currentUserId = null;
 let messageSubscription = null;
 let readSubscription = null;
 let allRooms = [];
+const userCache = {};
 
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
 const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 
 function authHeaders() {
     return csrfToken ? { [csrfHeader]: csrfToken } : {};
+}
+
+// ============ 유저 정보 조회 (캐시) ============
+async function getUserNickname(userId) {
+    if (userCache[userId]) return userCache[userId];
+    try {
+        const res = await fetch(`/api/users/${userId}`);
+        const json = await res.json();
+        userCache[userId] = json.data.nickname;
+        return json.data.nickname;
+    } catch {
+        return `사용자 ${userId}`;
+    }
 }
 
 // ============ WebSocket 설정 ============
@@ -90,7 +104,7 @@ function applyFilters() {
     const query = document.getElementById('chatSearch')?.value.trim().toLowerCase() || '';
     let rooms = [...allRooms];
     if (currentTab === 'unread') rooms = rooms.filter(r => r.unreadCount > 0);
-    if (query) rooms = rooms.filter(r => String(r.otherUserId).includes(query));
+    if (query) rooms = rooms.filter(r => (userCache[r.otherUserId] || '').toLowerCase().includes(query));
     displayChatRooms(rooms);
 }
 
@@ -100,6 +114,8 @@ async function loadChatRooms() {
         const response = await fetch(`/api/chat-room/list`);
         allRooms = await response.json();
         if (!Array.isArray(allRooms)) allRooms = [];
+        // 닉네임 미리 캐싱
+        await Promise.all(allRooms.map(r => getUserNickname(r.otherUserId)));
         applyFilters();
     } catch (error) {
         console.error('채팅 목록 로드 실패:', error);
@@ -107,7 +123,7 @@ async function loadChatRooms() {
 }
 
 // ============ 채팅 목록 표시 ============
-function displayChatRooms(rooms) {
+async function displayChatRooms(rooms) {
     const container = document.getElementById('chatList');
     container.innerHTML = '';
 
@@ -116,20 +132,21 @@ function displayChatRooms(rooms) {
         return;
     }
 
-    rooms.forEach(room => {
+    for (const room of rooms) {
+        const nickname = await getUserNickname(room.otherUserId);
         const element = document.createElement('div');
         element.className = 'chat-item';
         element.style.cursor = 'pointer';
         element.onclick = () => enterChatRoom(room.id, room.chatRequestId, element);
 
-        const avatarUrl = `https://ui-avatars.com/api/?name=${room.otherUserId}&background=random`;
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=random`;
         element.innerHTML = `
           <div class="chat-item-avatar">
             <img src="${avatarUrl}" alt="user" />
           </div>
           <div class="chat-item-content">
             <div class="chat-item-header">
-              <span class="chat-item-name">사용자 ID</span>
+              <span class="chat-item-name">${escapeHtml(nickname)}</span>
               <span class="chat-item-time">${formatTime(room.lastMessageAt)}</span>
             </div>
             <p class="chat-item-text" style="margin: 0;">${room.lastMessage}</p>
@@ -137,7 +154,7 @@ function displayChatRooms(rooms) {
           ${room.unreadCount > 0 ? `<span class="chat-badge">${room.unreadCount}</span>` : ''}
         `;
         container.appendChild(element);
-    });
+    }
 }
 
 // ============ 채팅방 진입 ============
@@ -151,7 +168,8 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
 
         document.getElementById('chatMain').style.display = 'flex';
         document.getElementById('noChat').style.display = 'none';
-        document.getElementById('chatUserName').textContent = `사용자 ${data.responderInfo.requesterId === currentUserId ? data.responderInfo.responderId : data.responderInfo.requesterId}`;
+        const otherUserId = data.otherUserId;
+        document.getElementById('chatUserName').textContent = await getUserNickname(otherUserId);
         document.getElementById('messageContainer').innerHTML = '';
 
         // 이전 구독 해제
@@ -219,7 +237,7 @@ function displayMessages(messages) {
 }
 
 // ============ 메시지 추가 (UI) ============
-function addMessageToUI(message) {
+async function addMessageToUI(message) {
     const container = document.getElementById('messageContainer');
     const isOwn = message.senderId === currentUserId;
 
@@ -227,7 +245,6 @@ function addMessageToUI(message) {
     messageElement.className = `message ${isOwn ? 'own' : ''}`;
 
     if (isOwn) {
-        // 자신의 메시지
         messageElement.innerHTML = `
           <div class="message-content" style="align-items: flex-end;">
             <div class="message-bubble own">
@@ -238,10 +255,11 @@ function addMessageToUI(message) {
           </div>
         `;
     } else {
-        // 상대방 메시지
+        const nickname = await getUserNickname(message.senderId);
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=random`;
         messageElement.innerHTML = `
           <div class="message-avatar">
-            <img src="https://ui-avatars.com/api/?name=User${message.senderId}&background=random" alt="user" />
+            <img src="${avatarUrl}" alt="user" />
           </div>
           <div class="message-content">
             <div class="message-bubble other">
@@ -335,7 +353,7 @@ async function loadChatRequests() {
     }
 }
 
-function displayChatRequests(requests) {
+async function displayChatRequests(requests) {
     const container = document.getElementById('chatRequestContainer');
     container.innerHTML = '';
 
@@ -344,12 +362,13 @@ function displayChatRequests(requests) {
         return;
     }
 
-    requests.forEach(req => {
+    for (const req of requests) {
+        const nickname = await getUserNickname(req.requesterId);
         const element = document.createElement('div');
         element.className = 'chat-request-item';
         element.innerHTML = `
           <div class="chat-request-info">
-            <span class="chat-request-sender">사용자 ${req.requesterId}</span>
+            <span class="chat-request-sender">${escapeHtml(nickname)}</span>
             <p class="chat-request-message">${escapeHtml(req.introMessage)}</p>
           </div>
           <div class="chat-request-actions">
@@ -358,7 +377,7 @@ function displayChatRequests(requests) {
           </div>
         `;
         container.appendChild(element);
-    });
+    }
 }
 
 async function acceptRequest(chatRequestId) {
