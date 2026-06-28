@@ -25,6 +25,12 @@
         WHERE email = #{email}
     </select>
 
+    <select id="findById" resultType="com.itmal.auth.domain.User">
+        SELECT *
+        FROM users
+        WHERE user_id = #{userId}
+    </select>
+
     <select id="findByProviderAndProviderId" resultType="com.itmal.auth.domain.User">
         SELECT *
         FROM users
@@ -49,5 +55,23 @@
         FROM users
         WHERE nickname = #{nickname}
     </select>
+
+    <update id="updateProfile">
+        UPDATE users
+        SET nickname = #{nickname}, native_language = #{nativeLanguage}
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE users
+        SET password = #{password}
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="softDelete">
+        UPDATE users
+        SET deleted_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
 
 </mapper>

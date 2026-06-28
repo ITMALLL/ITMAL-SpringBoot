@@ -232,6 +232,7 @@ buildNumber.properties
 # Project Custom
 src/main/resources/application-local.properties
 src/main/resources/application-prod.properties
+src/test/resources/application.properties
 .env
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,intellij,maven
 /.idea/inspectionProfiles/Project_Default.xml

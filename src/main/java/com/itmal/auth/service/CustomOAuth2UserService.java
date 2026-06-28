@@ -3,7 +3,6 @@ package com.itmal.auth.service;
 import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.OAuthAttributes;
-import com.itmal.auth.repository.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -12,11 +11,9 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -25,24 +22,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final UserMapper userMapper;
     private final OAuthUserProcessor oAuthUserProcessor;
-    private final RestClient restClient = RestClient.builder()
-            .requestFactory(new SimpleClientHttpRequestFactory() {{
-                setConnectTimeout(Duration.ofSeconds(5));
-                setReadTimeout(Duration.ofSeconds(5));
-            }})
-            .build();
+    private final RestClient oAuthRestClient;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User;
-        try {
-            oAuth2User = super.loadUser(userRequest);
-        } catch (Exception e) {
-            log.error("[OAuth] 사용자 정보 조회 실패: {}", e.getMessage(), e);
-            throw e;
-        }
+        OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
         String userNameAttributeName = userRequest.getClientRegistration()
@@ -77,7 +62,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private String fetchGitHubPrimaryEmail(String accessToken) {
         try {
-            List<Map<String, Object>> emails = restClient.get()
+            List<Map<String, Object>> emails = oAuthRestClient.get()
                     .uri("https://api.github.com/user/emails")
                     .header("Authorization", "Bearer " + accessToken)
                     .header("Accept", "application/vnd.github.v3+json")
