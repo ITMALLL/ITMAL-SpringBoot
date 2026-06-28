@@ -14,4 +14,12 @@ public interface ChatMessageMapper {
 
     List<ChatMessageDto> selectByChatRoomId(@Param("chatRoomId") Long chatRoomId);
 
+    List<ChatMessageDto> selectByChatRoomIdAndUser(
+            @Param("chatRoomId") Long chatRoomId,
+            @Param("userId") Long userId
+    );
+    ChatMessageDto selectLastMessageByChatRoomAndUser(
+            @Param("chatRoomId") Long chatRoomId,
+            @Param("userId") Long userId
+    );
 }

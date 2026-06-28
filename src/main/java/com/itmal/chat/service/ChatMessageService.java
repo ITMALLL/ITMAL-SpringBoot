@@ -22,35 +22,38 @@ public class ChatMessageService {
     // 메시지 저장 + 채팅방 업데이트 (원자적 처리)
     @Transactional
     public void saveMessageAndUpdateRoom(ChatMessageDto message) {
-        // 1. 메시지 저장
         saveChatMessage(message);
 
-        // 2. 채팅방 정보 조회
+        // 채팅방 정보 조회
         ChatRoomDto chatRoom = chatRoomService.getChatRoom(message.getChatRoomId());
 
-        // 3. 채팅방 업데이트
+        // 채팅방 업데이트
         chatRoomService.updateLastMessageAt(message.getChatRoomId());
 
-        // 4. A/B 판단
+        // A/B 판단
         ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRoom.getChatRequestId());
 
-        // 5. 나간 사용자 복구
+        // 나간 사용자 복구
         if (message.getSenderId().equals(chatRequest.getRequesterId())) {
             chatRoomService.restoreHiddenB(message.getChatRoomId());
         } else {
             chatRoomService.restoreHiddenA(message.getChatRoomId());
         }
     }
-
+    public ChatMessageDto getLastMessageByChatRoomAndUser(Long chatRoomId, Long userId) {
+        return chatMessageMapper.selectLastMessageByChatRoomAndUser(chatRoomId, userId);
+    }
     public void saveChatMessage(ChatMessageDto chatMessage) {
         chatMessage.setCreatedAt(LocalDateTime.now());
         chatMessage.setIsRead(false);
         chatMessageMapper.insertChatMessage(chatMessage);
     }
-
-    public List<ChatMessageDto> getChatMessagesByChatRoom(Long chatRoomId) {
-        return chatMessageMapper.selectByChatRoomId(chatRoomId);
+    public List<ChatMessageDto> getChatMessagesByChatRoomAndUser(Long chatRoomId, Long userId) {
+        return chatMessageMapper.selectByChatRoomIdAndUser(chatRoomId, userId);
     }
+//    public List<ChatMessageDto> getChatMessagesByChatRoom(Long chatRoomId) {
+//        return chatMessageMapper.selectByChatRoomId(chatRoomId);
+//    }
     // 채팅방의 메시지 조회 (last_read_at 기준으로 읽음 처리)
     public List<ChatMessageDto> getChatMessagesByChatRoomWithReadStatus(Long chatRoomId, LocalDateTime lastReadAt) {
         List<ChatMessageDto> messages = chatMessageMapper.selectByChatRoomId(chatRoomId);

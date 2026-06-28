@@ -18,11 +18,52 @@ public class ChatManagementService {
     private final ChatRoomService chatRoomService;
     private final ChatMessageService chatMessageService;
 
-    // 채팅방 진입 (메시지 + 읽음 상태)
+    public List<Map<String, Object>> getChatListWithUnreadCount(Long userId) {
+        List<ChatRoomDto> rooms = chatRoomService.getChatRoomsByUser(userId);
+        List<Map<String, Object>> response = new ArrayList<>();
+
+        for (ChatRoomDto room : rooms) {
+            ChatRequestDto chatRequest = chatRequestService.getChatRequest(room.getChatRequestId());
+            boolean isRequester = userId.equals(chatRequest.getRequesterId());
+
+            if (isRequester && Boolean.TRUE.equals(room.getHiddenByA())) {
+                continue;
+            }
+            if (!isRequester && Boolean.TRUE.equals(room.getHiddenByB())) {
+                continue;
+            }
+
+            Long otherUserId = isRequester
+                    ? chatRequest.getResponderId()
+                    : chatRequest.getRequesterId();
+
+            long unreadCount = getUnreadCount(room.getId(), userId);
+
+            ChatMessageDto lastMessage = chatMessageService.getLastMessageByChatRoomAndUser(room.getId(), userId);
+
+            Map<String, Object> roomInfo = new HashMap<>();
+            roomInfo.put("id", room.getId());
+            roomInfo.put("chatRequestId", room.getChatRequestId());
+            roomInfo.put("lastMessageAt", room.getLastMessageAt());
+            roomInfo.put("unreadCount", unreadCount);
+            roomInfo.put("otherUserId", otherUserId);
+
+            if (lastMessage != null) {
+                roomInfo.put("lastMessage", lastMessage.getContent());
+            } else {
+                roomInfo.put("lastMessage", ". . .");
+            }
+
+            response.add(roomInfo);
+        }
+
+        return response;
+    }
+    // 채팅방 진입 (메시지 + 읽음 상태 로드)
     public Map<String, Object> getChatRoomWithMessages(Long chatRoomId, Long userId) {
         ChatRoomDto chatRoom = chatRoomService.getChatRoom(chatRoomId);
         ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRoom.getChatRequestId());
-        List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoom(chatRoomId);
+        List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoomAndUser(chatRoomId, userId);
 
         // 읽음 상태 계산 (상대방이 읽었는가)
         boolean isRequester = userId.equals(chatRequest.getRequesterId());
@@ -38,54 +79,38 @@ public class ChatManagementService {
                 msg.setIsRead(true);
             }
         });
+        Long otherUserId = isRequester
+                ? chatRequest.getResponderId()
+                : chatRequest.getRequesterId();
+        System.out.println(otherUserId);
 
         Map<String, Object> response = new HashMap<>();
         response.put("chatRoom", chatRoom);
         response.put("messages", messages);
         response.put("responderInfo", chatRequest);
+        response.put("otherUserId", otherUserId);
 
         return response;
     }
 
-    public List<Map<String, Object>> getChatRoomsWithUnreadCount(Long userId) {
-        List<ChatRoomDto> rooms = chatRoomService.getChatRoomsByUser(userId);
-        List<Map<String, Object>> response = new ArrayList<>();
+    //안읽은 메세지 개수
+    public long getUnreadCount(Long chatRoomId, Long userId) {
+        ChatRoomDto room = chatRoomService.getChatRoom(chatRoomId);
+        ChatRequestDto chatRequest = chatRequestService.getChatRequest(room.getChatRequestId());
 
-        for (ChatRoomDto room : rooms) {
-            ChatRequestDto chatRequest = chatRequestService.getChatRequest(room.getChatRequestId());
-            List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoom(room.getId());
+        List<ChatMessageDto> messages = chatMessageService.getChatMessagesByChatRoomAndUser(chatRoomId, userId);
 
-            // ✅ 읽지 않은 메시지 수 계산 (수정됨!)
-            long unreadCount = 0;
-            if (userId.equals(chatRequest.getRequesterId())) {
-                LocalDateTime lastReadAt = room.getLastReadAtA();
-                unreadCount = messages.stream()
-                        .filter(msg -> msg.getSenderId() != userId  // 상대방 메시지만!
-                                && (lastReadAt == null || msg.getCreatedAt().isAfter(lastReadAt)))
-                        .count();
-            } else {
-                LocalDateTime lastReadAt = room.getLastReadAtB();
-                unreadCount = messages.stream()
-                        .filter(msg -> msg.getSenderId() != userId  // 상대방 메시지만!
-                                && (lastReadAt == null || msg.getCreatedAt().isAfter(lastReadAt)))
-                        .count();
-            }
+        boolean isRequester = userId.equals(chatRequest.getRequesterId());
 
-            Map<String, Object> roomInfo = new HashMap<>();
-            roomInfo.put("id", room.getId());
-            roomInfo.put("chatRequestId", room.getChatRequestId());
-            roomInfo.put("lastMessageAt", room.getLastMessageAt());
-            roomInfo.put("unreadCount", unreadCount);
+        LocalDateTime lastReadAt = isRequester ? room.getLastReadAtA() : room.getLastReadAtB();
 
-            response.add(roomInfo);
-        }
-
-        return response;
+        return messages.stream()
+                .filter(msg -> !Objects.equals(msg.getSenderId(), userId)
+                        && (lastReadAt == null || msg.getCreatedAt().isAfter(lastReadAt)))
+                .count();
     }
 
-
-
-    // ✅ 채팅방 나가기
+    // 채팅방 나가기
     @Transactional
     public void leaveRoom(Long chatRoomId, Long userId, Long chatRequestId) {
         if (userId == null || chatRequestId == null || chatRoomId == null) {
@@ -126,7 +151,7 @@ public class ChatManagementService {
     public void rejectChatRequest(Long chatRequestId) {
         chatRequestService.updateStatus(chatRequestId, "REJECTED");
     }
-    // ✅ 읽음 처리 (비즈니스 로직만)
+    // 읽음 처리 (비즈니스 로직만)
     @Transactional
     public void markAsRead(Long chatRoomId, Long userId, Long chatRequestId) {
         ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);

@@ -1,7 +1,9 @@
 package com.itmal.chat.controller;
 
 import com.itmal.auth.domain.CustomUserDetails;
+import com.itmal.chat.dto.ChatRequestDto;
 import com.itmal.chat.service.ChatManagementService;
+import com.itmal.chat.service.ChatRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,9 +20,20 @@ import java.util.Optional;
 public class ChatRoomController {
 
     private final ChatManagementService chatManagementService;
-    private final SimpMessagingTemplate messagingTemplate;  // ← 추가
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ChatRequestService chatRequestService;
 
-    // 채팅방 진입
+    // 채팅 목록
+    @GetMapping("/list")
+    public ResponseEntity<List<Map<String, Object>>> getChatRoomsByUser(
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        return ResponseEntity.ok(
+                chatManagementService.getChatListWithUnreadCount(user.getUserId())
+        );
+    }
+
+    // 채팅방 진입 
     @GetMapping("/{chatRoomId}")
     public ResponseEntity<Map<String, Object>> getChatRoom(
             @PathVariable Long chatRoomId,
@@ -31,15 +44,6 @@ public class ChatRoomController {
         );
     }
 
-    // 채팅 목록
-    @GetMapping("/user")
-    public ResponseEntity<List<Map<String, Object>>> getChatRoomsByUser(
-            @AuthenticationPrincipal CustomUserDetails user) {
-
-        return ResponseEntity.ok(
-                chatManagementService.getChatRoomsWithUnreadCount(user.getUserId())
-        );
-    }
 
     @PostMapping("/mark-as-read")
     public ResponseEntity<Void> markAsRead(
@@ -48,12 +52,11 @@ public class ChatRoomController {
             @AuthenticationPrincipal CustomUserDetails user) {
 
         Long userId = user.getUserId();
-
         chatManagementService.markAsRead(chatRoomId, userId, chatRequestId);
 
         messagingTemplate.convertAndSend(
-                "/topic/chat-read/" + chatRoomId,
-                Optional.of(Map.of("userId", userId, "readAt", System.currentTimeMillis()))
+                "/topic/read/" + chatRoomId,
+                (Object) Map.of("chatRoomId", chatRoomId)
         );
 
         return ResponseEntity.ok().build();

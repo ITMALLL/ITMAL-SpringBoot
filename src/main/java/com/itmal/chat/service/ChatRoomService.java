@@ -15,7 +15,7 @@ public class ChatRoomService {
 
     private final ChatRoomMapper chatRoomMapper;
 
-    // ✅ 채팅방 생성
+    // 채팅방 생성
     public Long createChatRoom(ChatRoomDto chatRoom) {
         chatRoom.setCreatedAt(LocalDateTime.now());
         chatRoom.setUpdatedAt(LocalDateTime.now());
@@ -23,28 +23,28 @@ public class ChatRoomService {
         return chatRoom.getId();
     }
 
-    // ✅ 채팅방 조회
+    // 채팅방 조회
     public ChatRoomDto getChatRoom(Long chatRoomId) {
         return chatRoomMapper.selectById(chatRoomId);
     }
 
-    // ✅ chatRequestId로 채팅방 조회
+    // chatRequestId로 채팅방 조회
     public ChatRoomDto getChatRoomByChatRequestId(Long chatRequestId) {
         return chatRoomMapper.selectByChatRequestId(chatRequestId);
     }
 
-    // ✅ 사용자의 모든 채팅방
+    // 사용자의 모든 채팅방 조회
     public List<ChatRoomDto> getChatRoomsByUser(Long userId) {
         return chatRoomMapper.selectByUserId(userId);
     }
 
-    // ✅ 마지막 메시지 시간 업데이트
+    // 마지막 메시지 시간 업데이트
     @Transactional
     public void updateLastMessageAt(Long chatRoomId) {
         chatRoomMapper.updateLastMessageAt(chatRoomId, LocalDateTime.now());
     }
 
-    // ✅ 읽음 시각 업데이트 (A: 요청자, B: 응답자)
+    // 읽음 시각 업데이트 (A: 요청자, B: 응답자)
     @Transactional
     public void updateLastReadAt(Long chatRoomId, Long userId, Boolean isRequester) {
         if (isRequester) {
@@ -54,7 +54,7 @@ public class ChatRoomService {
         }
     }
 
-    // ✅ 채팅방 나가기
+    // 채팅방 나가기
     @Transactional
     public void leaveRoom(Long chatRoomId, Boolean isRequester) {
         if (isRequester == null || chatRoomId == null) {
@@ -63,13 +63,13 @@ public class ChatRoomService {
         chatRoomMapper.leaveRoom(chatRoomId, isRequester);
     }
 
-    // ✅ 숨겨진 채팅방 복구 (A)
+    // 숨겨진 채팅방 복구 (A)
     @Transactional
     public void restoreHiddenA(Long chatRoomId) {
         chatRoomMapper.restoreHiddenA(chatRoomId);
     }
 
-    // ✅ 숨겨진 채팅방 복구 (B)
+    // 숨겨진 채팅방 복구 (B)
     @Transactional
     public void restoreHiddenB(Long chatRoomId) {
         chatRoomMapper.restoreHiddenB(chatRoomId);

@@ -45,18 +45,19 @@
         SET last_read_at_b = #{lastReadAtB}
         WHERE id = #{id}
     </update>
-    <!-- 채팅방 나가기 -->
     <update id="leaveRoom">
         UPDATE chat_room
         SET
-        <if test="isRequester">
-            hidden_by_a = true,
-            left_at_a = NOW()
-        </if>
-        <if test="!isRequester">
-            hidden_by_b = true,
-            left_at_b = NOW()
-        </if>
+        <choose>
+            <when test="isRequester == true">
+                hidden_by_a = true,
+                left_at_a = NOW()
+            </when>
+            <otherwise>
+                hidden_by_b = true,
+                left_at_b = NOW()
+            </otherwise>
+        </choose>
         WHERE id = #{chatRoomId}
     </update>
 

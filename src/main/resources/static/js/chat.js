@@ -2,291 +2,105 @@
 let stompClient = null;
 let currentChatRoomId = null;
 let currentChatRequestId = null;
-let chatRequestUsers = {};
-let currentTab = 'all';
+let currentUserId = null;
+let messageSubscription = null;
+let readSubscription = null;
+let allRooms = [];
 
-// URL 파라미터에서 userId 가져오기
-const urlParams = new URLSearchParams(window.location.search);
-let currentUserId = parseInt(urlParams.get('userId'));
-// let currentUserId = [[${#authentication.principal.userId}]];
+const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 
-
-// ============ 초기화 ============
-document.addEventListener('DOMContentLoaded', async function () {
-    //요청 리스트 로드
-    await loadChatRequests();
-    //대화중인 리스트 로드
-    await loadChatRooms();
-    //웹소켓 세팅
-    setupWebSocket();
-    //현재 탭 버튼 클릭 리스너 등록
-    setupTabListeners();
-});
-
-// ============ 채팅 요청 함 로드 ============
-async function loadChatRequests() {
-    try {
-        const response = await fetch(`/api/chat-request/pending`);
-        const requests = await response.json();
-        displayChatRequests(requests);
-    } catch (error) {
-        console.error('채팅 요청 로드 실패:', error);
-    }
-}
-
-// ============ 채팅 요청 표시 ============
-function displayChatRequests(requests) {
-    const container = document.getElementById('chatRequestContainer');
-    container.innerHTML = '';
-
-    if (requests.length === 0) return;
-
-    requests.forEach(req => {
-        chatRequestUsers[req.chatRequestId] = req.requesterId;
-
-        const element = document.createElement('div');
-        element.className = 'chat-item waiting';
-        element.innerHTML = `
-          <div class="chat-item-avatar">
-            <img src="https://ui-avatars.com/api/?name=채원&background=0D8ABC" alt="requester" />
-          </div>
-          <div class="chat-item-content" style="flex: 1;">
-            <div class="chat-item-header">
-              <span class="chat-item-name">사용자 ${req.requesterId}</span>
-              <span class="waiting-badge">수락 대기 중</span>
-            </div>
-            <p class="chat-item-message" style="margin: 0; font-size: 12px; opacity: 0.8; margin-bottom: 8px;">
-              ${req.introMessage}
-            </p>
-            <div style="display: flex; gap: 8px;">
-              <button onclick="acceptRequest(${req.chatRequestId})"
-                      style="flex: 1; padding: 6px 8px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
-                수락
-              </button>
-              <button onclick="rejectRequest(${req.chatRequestId})"
-                      style="flex: 1; padding: 6px 8px; background: var(--outline); color: var(--on-surface); border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600;">
-                거절
-              </button>
-            </div>
-          </div>
-        `;
-        container.appendChild(element);
-    });
-}
-
-// ============ 요청 수락 ============
-async function acceptRequest(chatRequestId) {
-    try {
-        const response = await fetch(`/api/chat-request/${chatRequestId}/accept`, {
-            method: 'PUT',
-            headers: {'Content-Type': 'application/json'}
-        });
-
-        const data = await response.json();
-        if (data.chatRoomId) {
-            await enterChatRoom(data.chatRoomId, chatRequestId);
-            await loadChatRequests();
-            await loadChatRooms();
-        }
-    } catch (error) {
-        console.error('요청 수락 실패:', error);
-        alert('요청 수락에 실패했습니다.');
-    }
-}
-
-// ============ 요청 거절 ============
-async function rejectRequest(chatRequestId) {
-    try {
-        await fetch(`/api/chat-request/${chatRequestId}/reject`, {
-            method: 'PUT'
-        });
-        await loadChatRequests();
-    } catch (error) {
-        console.error('요청 거절 실패:', error);
-        alert('요청 거절에 실패했습니다.');
-    }
+function authHeaders() {
+    return csrfToken ? { [csrfHeader]: csrfToken } : {};
 }
 
 // ============ WebSocket 설정 ============
 function setupWebSocket() {
-    let socket = new SockJS('/ws');
-    stompClient = Stomp.over(socket);
+    return new Promise((resolve, reject) => {
+        let socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
 
-    stompClient.connect({}, function () {
-        console.log('WebSocket 연결됨');
-    }, function (error) {
-        console.error('WebSocket 연결 실패:', error);
-    });
-}
+        stompClient.connect(authHeaders(), function () {
+            console.log('WebSocket 연결됨');
 
-// ============ 채팅방 진입 ============
-async function enterChatRoom(chatRoomId, chatRequestId) {
-    try {
-        currentChatRoomId = chatRoomId;
-        currentChatRequestId = chatRequestId;
-
-        const response = await fetch(`/api/chat-room/${chatRoomId}`);
-        const data = await response.json();
-
-        document.getElementById('chatMain').style.display = 'flex';
-        document.getElementById('noChat').style.display = 'none';
-        document.getElementById('chatUserName').textContent = `사용자 ${data.responderInfo.requesterId === currentUserId ? data.responderInfo.responderId : data.responderInfo.requesterId}`;
-        document.getElementById('messageContainer').innerHTML = '';
-
-        displayMessages(data.messages);
-
-        if (stompClient && stompClient.connected) {
-            await stompClient.subscribe(`/topic/user/${chatRoomId}`, function (message) {
-                const msg = JSON.parse(message.body);
-                addMessageToUI(msg);
-            });
-
-            await stompClient.subscribe(`/topic/chat-read/${chatRoomId}`, function (message) {
+            // 채팅방 생성 알림 구독 (내가 요청자일 때 수락되면 받음)
+            stompClient.subscribe(`/topic/chat-rooms/${currentUserId}`, function (message) {
                 const data = JSON.parse(message.body);
-                if (data.userId !== currentUserId) {
-                    markOwnMessagesAsRead();
+                if (data.type === 'ROOM_CREATED') {
+                    loadChatRooms();
                 }
             });
-        }
 
-        await fetch(`/api/chat-room/mark-as-read?chatRoomId=${chatRoomId}&chatRequestId=${chatRequestId}`, {
-            method: 'POST'
+            // 배지 업데이트 구독 (상대방이 메시지 보내면 목록 갱신)
+            stompClient.subscribe(`/topic/unread-count/${currentUserId}`, function (message) {
+                const data = JSON.parse(message.body);
+                // 현재 열려있는 채팅방이면 배지 갱신 스킵
+                if (data.chatRoomId === currentChatRoomId) return;
+                loadChatRooms();
+            });
+
+            resolve();
+        }, function (error) {
+            console.error('WebSocket 연결 실패:', error);
+            reject(error);
         });
-
-        document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('active');
-        }
-    } catch (error) {
-        console.error('채팅방 진입 실패:', error);
-        alert('채팅방 진입에 실패했습니다.');
-    }
-}
-// ============ 메시지 목록 표시 ============
-function displayMessages(messages) {
-    const container = document.getElementById('messageContainer');
-    container.innerHTML = '';
-    messages.forEach(msg => addMessageToUI(msg));
-    container.scrollTop = container.scrollHeight;
-}
-
-// ============ 메시지 추가 (UI) ============
-function addMessageToUI(message) {
-    const container = document.getElementById('messageContainer');
-    const isOwn = message.senderId === currentUserId;
-
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${isOwn ? 'own' : ''}`;
-
-    if (isOwn) {
-        const statusText = message.isRead ? '읽음' : '1';
-        messageElement.innerHTML = `
-          <div class="message-content" style="align-items: flex-end;">
-            <div style="display: flex; align-items: flex-end; gap: 8px;">
-              <span class="message-status">${statusText}</span>
-              <div class="message-bubble own">
-                <p style="margin: 0">${escapeHtml(message.content)}</p>
-              </div>
-            </div>
-            <span class="message-timestamp">${formatTime(message.createdAt)}</span>
-          </div>
-        `;
-    } else {
-        messageElement.innerHTML = `
-          <div class="message-avatar">
-            <img src="https://ui-avatars.com/api/?name=User${message.senderId}&background=random" alt="user" />
-          </div>
-          <div class="message-content">
-            <div class="message-bubble other">
-              <p style="margin: 0">${escapeHtml(message.content)}</p>
-            </div>
-            <span class="message-timestamp">${formatTime(message.createdAt)}</span>
-          </div>
-        `;
-    }
-
-    container.appendChild(messageElement);
-    container.scrollTop = container.scrollHeight;
-}
-
-// ============ 내가 보낸 메시지 읽음 표시 ============
-function markOwnMessagesAsRead() {
-    const messages = document.querySelectorAll('.message.own .message-status');
-    messages.forEach(status => {
-        status.textContent = '읽음';
     });
 }
 
-// ============ 메시지 전송 ============
-function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const content = input.value.trim();
-
-    if (!content || !currentChatRoomId) return;
-
-    if (!stompClient || !stompClient.connected) {
-        alert('WebSocket이 연결되지 않았습니다.');
-        return;
-    }
-
-    const message = {
-        chatRoomId: currentChatRoomId,
-        senderId: currentUserId,
-        content: content,
-        type: 'CHAT'
-    };
-
-    stompClient.send('/app/chat', {}, JSON.stringify(message));
-    input.value = '';
-    input.style.height = 'auto';
-}
-
-// ============ 나가기 ============
-async function leaveRoom() {
-    if (!confirm('채팅방을 나가시겠습니까?')) return;
-
+// ============ 초기화 ============
+async function initCurrentUser() {
     try {
-        await fetch(`/api/chat-room/${currentChatRoomId}/leave`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'}
-        });
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+        currentUserId = data.userId;
 
-        document.getElementById('chatMain').style.display = 'none';
-        document.getElementById('noChat').style.display = 'flex';
-        currentChatRoomId = null;
-        currentChatRequestId = null;
+        console.log('Current User ID:', currentUserId);
 
-        loadChatRooms();
+        if (!currentUserId) {
+            alert('로그인이 필요합니다.');
+            window.location.href = '/login';
+            return;
+        }
+
+        await loadChatRooms();
+        await loadChatRequests();
+        await setupWebSocket();
+
     } catch (error) {
-        console.error('채팅방 나가기 실패:', error);
-        alert('채팅방 나가기에 실패했습니다.');
+        console.error('사용자 정보 조회 실패:', error);
+        window.location.href = '/login';
     }
 }
 
-// ============ 탭 설정 ============
-function setupTabListeners() {
-    document.querySelectorAll('.chat-tab-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.chat-tab-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentTab = this.textContent.includes('안') ? '안 읽은 채팅' : '모든 채팅';
-            loadChatRooms();
-        });
-    });
+document.addEventListener('DOMContentLoaded', async function () {
+    await initCurrentUser();
+});
+
+// ============ 탭 전환 ============
+let currentTab = 'all';
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tabAll').classList.toggle('active', tab === 'all');
+    document.getElementById('tabUnread').classList.toggle('active', tab === 'unread');
+    applyFilters();
+}
+
+function applyFilters() {
+    const query = document.getElementById('chatSearch')?.value.trim().toLowerCase() || '';
+    let rooms = [...allRooms];
+    if (currentTab === 'unread') rooms = rooms.filter(r => r.unreadCount > 0);
+    if (query) rooms = rooms.filter(r => String(r.otherUserId).includes(query));
+    displayChatRooms(rooms);
 }
 
 // ============ 채팅 목록 로드 ============
 async function loadChatRooms() {
     try {
-        const response = await fetch(`/api/chat-room/user`);  // ← 파라미터 제거!
-        const rooms = await response.json();
-
-        let filteredRooms = rooms;
-        if (currentTab === 'unread') {
-            filteredRooms = rooms.filter(room => room.unreadCount > 0);
-        }
-
-        displayChatRooms(filteredRooms);
+        const response = await fetch(`/api/chat-room/list`);
+        allRooms = await response.json();
+        if (!Array.isArray(allRooms)) allRooms = [];
+        applyFilters();
     } catch (error) {
         console.error('채팅 목록 로드 실패:', error);
     }
@@ -306,9 +120,9 @@ function displayChatRooms(rooms) {
         const element = document.createElement('div');
         element.className = 'chat-item';
         element.style.cursor = 'pointer';
-        element.onclick = () => enterChatRoom(room.id, room.chatRequestId);
+        element.onclick = () => enterChatRoom(room.id, room.chatRequestId, element);
 
-        const avatarUrl = `https://ui-avatars.com/api/?name=User&background=random`;
+        const avatarUrl = `https://ui-avatars.com/api/?name=${room.otherUserId}&background=random`;
         element.innerHTML = `
           <div class="chat-item-avatar">
             <img src="${avatarUrl}" alt="user" />
@@ -318,12 +132,178 @@ function displayChatRooms(rooms) {
               <span class="chat-item-name">사용자 ID</span>
               <span class="chat-item-time">${formatTime(room.lastMessageAt)}</span>
             </div>
-            <p class="chat-item-text" style="margin: 0;">마지막 메시지...</p>
+            <p class="chat-item-text" style="margin: 0;">${room.lastMessage}</p>
           </div>
-          ${room.unreadCount > 0 ? `<div class="chat-badge">${room.unreadCount}</div>` : ''}
+          ${room.unreadCount > 0 ? `<span class="chat-badge">${room.unreadCount}</span>` : ''}
         `;
         container.appendChild(element);
     });
+}
+
+// ============ 채팅방 진입 ============
+async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
+    try {
+        currentChatRoomId = chatRoomId;
+        currentChatRequestId = chatRequestId;
+
+        const response = await fetch(`/api/chat-room/${chatRoomId}`);
+        const data = await response.json();
+
+        document.getElementById('chatMain').style.display = 'flex';
+        document.getElementById('noChat').style.display = 'none';
+        document.getElementById('chatUserName').textContent = `사용자 ${data.responderInfo.requesterId === currentUserId ? data.responderInfo.responderId : data.responderInfo.requesterId}`;
+        document.getElementById('messageContainer').innerHTML = '';
+
+        // 이전 구독 해제
+        if (messageSubscription) {
+            await messageSubscription.unsubscribe();
+            messageSubscription = null;
+        }
+        if (readSubscription) {
+            await readSubscription.unsubscribe();
+            readSubscription = null;
+        }
+
+        displayMessages(data.messages);
+
+        // 읽음 처리
+        await fetch(`/api/chat-room/mark-as-read?chatRoomId=${chatRoomId}&chatRequestId=${chatRequestId}`, {
+            method: 'POST',
+            headers: authHeaders()
+        });
+
+        // 뱃지 초기화
+        if (clickedElement) {
+            const badge = clickedElement.querySelector('.chat-badge');
+            if (badge) badge.remove();
+        }
+
+        // 메시지 구독
+        if (stompClient && stompClient.connected) {
+            messageSubscription = stompClient.subscribe(`/topic/user/${chatRoomId}`, function (message) {
+                const msg = JSON.parse(message.body);
+                addMessageToUI(msg);
+
+                // 상대방 메시지 수신 시 즉시 읽음 처리
+                if (msg.senderId !== currentUserId) {
+                    fetch(`/api/chat-room/mark-as-read?chatRoomId=${chatRoomId}&chatRequestId=${currentChatRequestId}`, {
+                        method: 'POST',
+                        headers: authHeaders()
+                    });
+                }
+            });
+
+            // 읽음 처리 구독 (상대방이 읽으면 "1" 제거)
+            readSubscription = stompClient.subscribe(`/topic/read/${chatRoomId}`, function () {
+                document.querySelectorAll('.read-indicator').forEach(el => el.remove());
+            });
+        }
+
+        document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+        if (clickedElement) {
+            clickedElement.classList.add('active');
+        }
+        console.log('채팅방 진입 완료');
+    } catch (error) {
+        console.error('채팅방 진입 실패:', error);
+        alert('채팅방 진입에 실패했습니다.');
+    }
+}
+
+// ============ 메시지 목록 표시 ============
+function displayMessages(messages) {
+    const container = document.getElementById('messageContainer');
+    container.innerHTML = '';
+    messages.forEach(msg => addMessageToUI(msg));
+    container.scrollTop = container.scrollHeight;
+}
+
+// ============ 메시지 추가 (UI) ============
+function addMessageToUI(message) {
+    const container = document.getElementById('messageContainer');
+    const isOwn = message.senderId === currentUserId;
+
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${isOwn ? 'own' : ''}`;
+
+    if (isOwn) {
+        // 자신의 메시지
+        messageElement.innerHTML = `
+          <div class="message-content" style="align-items: flex-end;">
+            <div class="message-bubble own">
+              <p style="margin: 0">${escapeHtml(message.content)}</p>
+            </div>
+            ${message.isRead === false ? '<span class="read-indicator">1</span>' : ''}
+            <span class="message-timestamp">${formatTime(message.createdAt)}</span>
+          </div>
+        `;
+    } else {
+        // 상대방 메시지
+        messageElement.innerHTML = `
+          <div class="message-avatar">
+            <img src="https://ui-avatars.com/api/?name=User${message.senderId}&background=random" alt="user" />
+          </div>
+          <div class="message-content">
+            <div class="message-bubble other">
+              <p style="margin: 0">${escapeHtml(message.content)}</p>
+            </div>
+            <span class="message-timestamp">${formatTime(message.createdAt)}</span>
+          </div>
+        `;
+    }
+
+    container.appendChild(messageElement);
+    container.scrollTop = container.scrollHeight;
+}
+
+// ============ 메시지 전송 ============
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const content = input.value.trim();
+
+    if (!content || !currentChatRoomId) {
+        return;
+    }
+
+    if (!stompClient || !stompClient.connected) {
+        console.error('WebSocket 미연결');
+        alert('WebSocket이 연결되지 않았습니다.');
+        return;
+    }
+
+    const message = {
+        chatRoomId: currentChatRoomId,
+        senderId: currentUserId,
+        content: content,
+        isRead: false,
+        type: 'CHAT'
+    };
+
+    stompClient.send('/app/chat', {}, JSON.stringify(message));
+
+    input.value = '';
+    input.style.height = 'auto';
+}
+
+// ============ 채팅방 나가기 ============
+async function leaveRoom() {
+    if (!confirm('채팅방을 나가시겠습니까?')) return;
+
+    try {
+        await fetch(`/api/chat-room/${currentChatRoomId}/leave?chatRequestId=${currentChatRequestId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders() }
+        });
+
+        document.getElementById('chatMain').style.display = 'none';
+        document.getElementById('noChat').style.display = 'flex';
+        currentChatRoomId = null;
+        currentChatRequestId = null;
+        await loadChatRooms();
+    } catch (error) {
+        console.error('채팅방 나가기 실패:', error);
+        alert('채팅방 나가기에 실패했습니다.');
+    }
 }
 
 // ============ 유틸리티 ============
@@ -344,7 +324,67 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// ============ 채팅 요청함 ============
+async function loadChatRequests() {
+    try {
+        const response = await fetch('/api/chat-request/pending');
+        const requests = await response.json();
+        displayChatRequests(Array.isArray(requests) ? requests : []);
+    } catch (error) {
+        console.error('채팅 요청 로드 실패:', error);
+    }
+}
+
+function displayChatRequests(requests) {
+    const container = document.getElementById('chatRequestContainer');
+    container.innerHTML = '';
+
+    if (requests.length === 0) {
+        container.innerHTML = '<p style="padding: 12px 16px; font-size: 13px; color: var(--on-surface-variant);">받은 요청이 없습니다.</p>';
+        return;
+    }
+
+    requests.forEach(req => {
+        const element = document.createElement('div');
+        element.className = 'chat-request-item';
+        element.innerHTML = `
+          <div class="chat-request-info">
+            <span class="chat-request-sender">사용자 ${req.requesterId}</span>
+            <p class="chat-request-message">${escapeHtml(req.introMessage)}</p>
+          </div>
+          <div class="chat-request-actions">
+            <button class="btn-accept" onclick="acceptRequest(${req.chatRequestId})">수락</button>
+            <button class="btn-reject" onclick="rejectRequest(${req.chatRequestId}, this)">거절</button>
+          </div>
+        `;
+        container.appendChild(element);
+    });
+}
+
+async function acceptRequest(chatRequestId) {
+    try {
+        const response = await fetch(`/api/chat-request/${chatRequestId}/accept`, { method: 'PUT', headers: authHeaders() });
+        const data = await response.json();
+        await loadChatRooms();
+        await loadChatRequests();
+        enterChatRoom(data.chatRoomId, chatRequestId);
+    } catch (error) {
+        console.error('채팅 요청 수락 실패:', error);
+    }
+}
+
+async function rejectRequest(chatRequestId, btn) {
+    try {
+        await fetch(`/api/chat-request/${chatRequestId}/reject`, { method: 'PUT', headers: authHeaders() });
+        btn.closest('.chat-request-item').remove();
+    } catch (error) {
+        console.error('채팅 요청 거절 실패:', error);
+    }
+}
+
 // ============ 이벤트 리스너 ============
+document.getElementById('chatSearch')?.addEventListener('input', applyFilters);
+
 document.getElementById('messageInput')?.addEventListener('keypress', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();

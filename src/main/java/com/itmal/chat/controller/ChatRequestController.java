@@ -7,12 +7,14 @@ import com.itmal.chat.service.ChatRequestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/chat-request")
@@ -21,6 +23,7 @@ public class ChatRequestController {
 
     private final ChatRequestService chatRequestService;
     private final ChatManagementService chatManagementService;
+    private final SimpMessagingTemplate messagingTemplate;  // ← 추가
 
     // 채팅 요청 생성
     @PostMapping
@@ -28,20 +31,6 @@ public class ChatRequestController {
             @Valid @RequestBody ChatRequestDto chatRequest) {
         chatRequestService.createChatRequest(chatRequest);
         return ResponseEntity.ok("채팅 요청이 전송되었습니다.");
-    }
-
-    // 채팅 요청 수락
-    @PutMapping("/{chatRequestId}/accept")
-    public ResponseEntity<Map<String, Object>> acceptChatRequest(
-            @PathVariable Long chatRequestId) {
-
-        Long chatRoomId = chatManagementService.acceptChatRequest(chatRequestId);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "채팅 요청을 수락했습니다.");
-        response.put("chatRoomId", chatRoomId);
-
-        return ResponseEntity.ok(response);
     }
 
     // 채팅 요청 거절
@@ -67,5 +56,26 @@ public class ChatRequestController {
         return ResponseEntity.ok(
                 chatRequestService.getPendingRequestsForResponder(user.getUserId())
         );
+    }
+    @PutMapping("/{chatRequestId}/accept")
+    public ResponseEntity<Map<String, Long>> acceptChatRequest(
+            @PathVariable Long chatRequestId,
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        Long chatRoomId = chatManagementService.acceptChatRequest(chatRequestId);
+
+        // ✅ 요청자에게 STOMP 알림!
+        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
+        messagingTemplate.convertAndSend(
+                "/topic/chat-rooms/" + chatRequest.getRequesterId(),
+                Optional.of(new HashMap<String, Object>() {{
+                    put("type", "ROOM_CREATED");
+                    put("chatRoomId", chatRoomId);
+                }})
+        );
+
+        Map<String, Long> response = new HashMap<>();
+        response.put("chatRoomId", chatRoomId);
+        return ResponseEntity.ok(response);
     }
 }
