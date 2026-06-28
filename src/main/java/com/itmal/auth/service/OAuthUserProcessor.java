@@ -5,10 +5,12 @@ import com.itmal.auth.domain.User;
 import com.itmal.auth.dto.OAuthAttributes;
 import com.itmal.auth.repository.UserMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuthUserProcessor {
