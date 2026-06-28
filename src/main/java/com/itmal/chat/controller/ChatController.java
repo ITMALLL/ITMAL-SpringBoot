@@ -13,10 +13,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.security.Principal;
 import java.util.Map;
 
 @Controller
@@ -34,7 +36,21 @@ public class ChatController {
     }
 
     @MessageMapping("/chat")
-    public void sendMessage(@Valid @Payload ChatMessageDto message) {
+    public void sendMessage(@Valid @Payload ChatMessageDto message, Principal principal) {
+        CustomUserDetails userDetails = (CustomUserDetails) ((Authentication) principal).getPrincipal();
+        Long authenticatedUserId = userDetails.getUserId();
+
+        // 채팅방 및 참여자 검증
+        ChatRoomDto chatRoom = chatRoomService.getChatRoom(message.getChatRoomId());
+        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRoom.getChatRequestId());
+
+        boolean isParticipant = authenticatedUserId.equals(chatRequest.getRequesterId())
+                || authenticatedUserId.equals(chatRequest.getResponderId());
+        if (!isParticipant) return;
+
+        // 클라이언트 senderId 무시하고 인증된 사용자로 덮어쓰기
+        message.setSenderId(authenticatedUserId);
+
         chatMessageService.saveMessageAndUpdateRoom(message);
 
         messagingTemplate.convertAndSend(
@@ -43,9 +59,7 @@ public class ChatController {
         );
 
         // 상대방 배지 업데이트 알림
-        ChatRoomDto chatRoom = chatRoomService.getChatRoom(message.getChatRoomId());
-        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRoom.getChatRequestId());
-        Long otherUserId = message.getSenderId().equals(chatRequest.getRequesterId())
+        Long otherUserId = authenticatedUserId.equals(chatRequest.getRequesterId())
                 ? chatRequest.getResponderId()
                 : chatRequest.getRequesterId();
 
