@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
+
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +37,7 @@ public class UserService {
 
     public User findById(Long userId) {
         return userMapper.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다. userId=" + userId));
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
     }
 
     public List<String> getLearningLanguages(Long userId) {
@@ -63,7 +63,7 @@ public class UserService {
     @Transactional
     public void changePassword(Long userId, PasswordChangeRequest request) {
         User user = userMapper.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다. userId=" + userId));
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         if (user.isSocialUser()) {
             throw new IllegalStateException("소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
@@ -83,7 +83,7 @@ public class UserService {
 
     private void applyProfileUpdate(Long userId, String nickname, String nativeLanguage, List<String> languageNames) {
         User current = userMapper.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("사용자를 찾을 수 없습니다. userId=" + userId));
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
         if (!current.getNickname().equals(nickname) && userMapper.existsByNickname(nickname)) {
             throw new DuplicateNicknameException();
         }
