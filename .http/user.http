@@ -1,0 +1,5 @@
+### 사용자 조회 (채팅 연동용)
+GET http://localhost:8080/api/users/1
+
+### 존재하지 않는 사용자 조회 (404)
+GET http://localhost:8080/api/users/99999
