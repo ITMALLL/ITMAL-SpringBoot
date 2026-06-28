@@ -62,10 +62,14 @@ public class ChatRequestController {
             @PathVariable Long chatRequestId,
             @AuthenticationPrincipal CustomUserDetails user) {
 
+        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
+
+        if (!chatRequest.getResponderId().equals(user.getUserId())) {
+            return ResponseEntity.status(403).build();
+        }
+
         Long chatRoomId = chatManagementService.acceptChatRequest(chatRequestId);
 
-        // ✅ 요청자에게 STOMP 알림!
-        ChatRequestDto chatRequest = chatRequestService.getChatRequest(chatRequestId);
         messagingTemplate.convertAndSend(
                 "/topic/chat-rooms/" + chatRequest.getRequesterId(),
                 Optional.of(new HashMap<String, Object>() {{

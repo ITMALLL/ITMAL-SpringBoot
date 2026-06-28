@@ -4,7 +4,6 @@ import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.chat.dto.ChatMessageDto;
 import com.itmal.chat.dto.ChatRequestDto;
 import com.itmal.chat.dto.ChatRoomDto;
-import com.itmal.chat.service.ChatManagementService;
 import com.itmal.chat.service.ChatMessageService;
 import com.itmal.chat.service.ChatRequestService;
 import com.itmal.chat.service.ChatRoomService;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.Map;
-import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor

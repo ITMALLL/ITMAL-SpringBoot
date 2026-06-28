@@ -1,7 +1,6 @@
 package com.itmal.chat.controller;
 
 import com.itmal.auth.domain.CustomUserDetails;
-import com.itmal.chat.dto.ChatRequestDto;
 import com.itmal.chat.service.ChatManagementService;
 import com.itmal.chat.service.ChatRequestService;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/chat-room")
@@ -21,7 +19,6 @@ public class ChatRoomController {
 
     private final ChatManagementService chatManagementService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final ChatRequestService chatRequestService;
 
     // 채팅 목록
     @GetMapping("/list")

@@ -158,6 +158,6 @@ public class ChatManagementService {
         Boolean isRequester = userId.equals(chatRequest.getRequesterId());
 
         // DB 업데이트
-        chatRoomService.updateLastReadAt(chatRoomId, userId, isRequester);
+        chatRoomService.updateLastReadAt(chatRoomId, isRequester);
     }
 }

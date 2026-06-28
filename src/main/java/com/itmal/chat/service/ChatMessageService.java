@@ -51,22 +51,4 @@ public class ChatMessageService {
     public List<ChatMessageDto> getChatMessagesByChatRoomAndUser(Long chatRoomId, Long userId) {
         return chatMessageMapper.selectByChatRoomIdAndUser(chatRoomId, userId);
     }
-//    public List<ChatMessageDto> getChatMessagesByChatRoom(Long chatRoomId) {
-//        return chatMessageMapper.selectByChatRoomId(chatRoomId);
-//    }
-    // 채팅방의 메시지 조회 (last_read_at 기준으로 읽음 처리)
-    public List<ChatMessageDto> getChatMessagesByChatRoomWithReadStatus(Long chatRoomId, LocalDateTime lastReadAt) {
-        List<ChatMessageDto> messages = chatMessageMapper.selectByChatRoomId(chatRoomId);
-
-        // lastReadAt 이전의 메시지는 읽음 처리
-        if (lastReadAt != null) {
-            messages.forEach(msg -> {
-                if (msg.getCreatedAt().isBefore(lastReadAt) || msg.getCreatedAt().isEqual(lastReadAt)) {
-                    msg.setIsRead(true);
-                }
-            });
-        }
-
-        return messages;
-    }
 }

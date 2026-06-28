@@ -46,7 +46,7 @@ public class ChatRoomService {
 
     // 읽음 시각 업데이트 (A: 요청자, B: 응답자)
     @Transactional
-    public void updateLastReadAt(Long chatRoomId, Long userId, Boolean isRequester) {
+    public void updateLastReadAt(Long chatRoomId, Boolean isRequester) {
         if (isRequester) {
             chatRoomMapper.updateLastReadAtA(chatRoomId, LocalDateTime.now());
         } else {
