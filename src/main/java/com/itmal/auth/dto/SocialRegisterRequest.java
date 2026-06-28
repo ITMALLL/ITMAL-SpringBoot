@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -22,5 +23,5 @@ public class SocialRegisterRequest {
     private String nativeLanguage;
 
     @NotEmpty(message = "학습 언어를 1개 이상 선택해주세요.")
-    private List<String> learningLanguages;
+    private List<String> learningLanguages = new ArrayList<>();
 }

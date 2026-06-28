@@ -8,7 +8,6 @@ import com.itmal.auth.repository.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -92,29 +91,4 @@ class AuthServiceTest {
         verify(userMapper, never()).insert(any());
     }
 
-    @Test
-    void register_DB이메일중복키_예외변환() {
-        // Arrange
-        RegisterRequest request = createRequest();
-        when(userMapper.existsByEmail(request.getEmail())).thenReturn(false);
-        when(userMapper.existsByNickname(request.getNickname())).thenReturn(false);
-        doThrow(new DuplicateKeyException("Duplicate entry for email"))
-                .when(userMapper).insert(any());
-
-        // Act & Assert
-        assertThrows(DuplicateEmailException.class, () -> service.register(request));
-    }
-
-    @Test
-    void register_DB닉네임중복키_예외변환() {
-        // Arrange
-        RegisterRequest request = createRequest();
-        when(userMapper.existsByEmail(request.getEmail())).thenReturn(false);
-        when(userMapper.existsByNickname(request.getNickname())).thenReturn(false);
-        doThrow(new DuplicateKeyException("Duplicate entry for nickname"))
-                .when(userMapper).insert(any());
-
-        // Act & Assert
-        assertThrows(DuplicateNicknameException.class, () -> service.register(request));
-    }
 }

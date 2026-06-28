@@ -6,10 +6,12 @@ import com.itmal.auth.dto.ProfileUpdateRequest;
 import com.itmal.auth.dto.SocialRegisterRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.repository.LearningLanguageMapper;
-import org.springframework.dao.DuplicateKeyException;
 import com.itmal.auth.repository.UserMapper;
+import com.itmal.global.exception.ApiException;
+import com.itmal.global.exception.ErrorCode;
 import com.itmal.question.dto.LanguageDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,7 +70,7 @@ public class UserService {
         }
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+            throw new ApiException(ErrorCode.PASSWORD_MISMATCH);
         }
 
         userMapper.updatePassword(userId, passwordEncoder.encode(request.getNewPassword()));

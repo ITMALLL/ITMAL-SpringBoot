@@ -3,6 +3,7 @@ package com.itmal.auth.controller;
 import com.itmal.auth.dto.EmailSendRequest;
 import com.itmal.auth.dto.EmailVerifyRequest;
 import com.itmal.auth.service.EmailVerificationService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,10 +31,11 @@ public class EmailVerificationController {
     @PostMapping("/verify")
     public ResponseEntity<Map<String, Boolean>> verify(
             @Valid @RequestBody EmailVerifyRequest request,
-            HttpSession session
+            HttpServletRequest httpRequest
     ) {
         try {
             emailVerificationService.verifyCode(request.getEmail(), request.getCode());
+            HttpSession session = httpRequest.getSession(true);
             session.setAttribute(EmailVerificationService.SESSION_KEY, request.getEmail());
             return ResponseEntity.ok(Map.of("verified", true));
         } catch (IllegalArgumentException e) {

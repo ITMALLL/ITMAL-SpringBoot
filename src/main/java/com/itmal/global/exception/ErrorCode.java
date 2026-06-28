@@ -20,6 +20,9 @@ public enum ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "A002", "이미 사용 중인 닉네임입니다."),
     EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "A003", "이메일 발송에 실패했습니다."),
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "A004", "이메일 발송은 60초에 한 번만 가능합니다."),
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "A005", "현재 비밀번호가 일치하지 않습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A006", "인증이 필요합니다."),
+    DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "A007", "이미 사용 중인 정보입니다."),
 
     // Papago 추가
     N2MT01(HttpStatus.BAD_REQUEST, "N2MT01", "source 파라미터 누락"),

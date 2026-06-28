@@ -3,7 +3,9 @@ package com.itmal.auth.controller;
 import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.auth.dto.SocialRegisterRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
+import com.itmal.auth.service.SecuritySessionService;
 import com.itmal.auth.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class SocialRegisterController {
 
     private final UserService userService;
+    private final SecuritySessionService securitySessionService;
 
     @GetMapping
     public String form(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
@@ -40,7 +43,8 @@ public class SocialRegisterController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @ModelAttribute SocialRegisterRequest request,
             BindingResult bindingResult,
-            Model model
+            Model model,
+            HttpServletRequest httpRequest
     ) {
         if (bindingResult.hasErrors()) {
             addLanguagesToModel(model);
@@ -55,6 +59,7 @@ public class SocialRegisterController {
             return "user/register-social";
         }
 
+        securitySessionService.refreshSession(userDetails.getUsername(), httpRequest);
         return "redirect:/";
     }
 

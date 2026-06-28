@@ -61,6 +61,13 @@ public class RestExceptionHandler {
                 .body(new ApiResponse<>(errorCode.getCode(), errorCode.getMessage(), null));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException e) {
+        ErrorCode errorCode = ErrorCode.INVALID_REQUEST;
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(new ApiResponse<>(errorCode.getCode(), e.getMessage(), null));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleException(Exception e) {
         ErrorCode errorCode = ErrorCode.SERVER_ERROR;  // ← INVALID_REQUEST → SERVER_ERROR

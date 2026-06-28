@@ -4,18 +4,15 @@ import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.auth.dto.PasswordChangeRequest;
 import com.itmal.auth.dto.ProfileUpdateRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
-import com.itmal.auth.service.CustomUserDetailsService;
+import com.itmal.auth.service.SecuritySessionService;
 import com.itmal.auth.service.UserService;
+import com.itmal.global.exception.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -31,7 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class MypageController {
 
     private final UserService userService;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final SecuritySessionService securitySessionService;
 
     @GetMapping
     public String mypage(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
@@ -67,7 +64,7 @@ public class MypageController {
             return "redirect:/mypage";
         }
 
-        refreshSession(userDetails.getUsername(), httpRequest);
+        securitySessionService.refreshSession(userDetails.getUsername(), httpRequest);
         redirectAttributes.addFlashAttribute("successMessage", "프로필이 수정되었습니다.");
         return "redirect:/mypage";
     }
@@ -95,13 +92,13 @@ public class MypageController {
 
         try {
             userService.changePassword(userDetails.getUserId(), request);
-        } catch (IllegalStateException | IllegalArgumentException e) {
+        } catch (IllegalStateException | ApiException e) {
             model.addAttribute("user", userDetails);
             model.addAttribute("errorMessage", e.getMessage());
             return "user/mypage-password";
         }
 
-        refreshSession(userDetails.getUsername(), httpRequest);
+        securitySessionService.refreshSession(userDetails.getUsername(), httpRequest);
         redirectAttributes.addFlashAttribute("successMessage", "비밀번호가 변경되었습니다.");
         return "redirect:/mypage";
     }
@@ -129,16 +126,5 @@ public class MypageController {
         model.addAttribute("allLanguages", userService.getAllLanguages());
     }
 
-    private void refreshSession(String email, HttpServletRequest request) {
-        UserDetails updated = customUserDetailsService.loadUserByUsername(email);
-        Authentication newAuth = UsernamePasswordAuthenticationToken.authenticated(
-                updated, null, updated.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(newAuth);
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.setAttribute(
-                    HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                    SecurityContextHolder.getContext());
-        }
-    }
+
 }
