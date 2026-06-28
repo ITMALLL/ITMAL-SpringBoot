@@ -2,7 +2,6 @@ package com.itmal.chat.controller;
 
 import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.chat.service.ChatManagementService;
-import com.itmal.chat.service.ChatRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

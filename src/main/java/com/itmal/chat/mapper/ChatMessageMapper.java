@@ -12,8 +12,6 @@ public interface ChatMessageMapper {
     // 메시지 저장
     void insertChatMessage(ChatMessageDto chatMessage);
 
-    List<ChatMessageDto> selectByChatRoomId(@Param("chatRoomId") Long chatRoomId);
-
     List<ChatMessageDto> selectByChatRoomIdAndUser(
             @Param("chatRoomId") Long chatRoomId,
             @Param("userId") Long userId
