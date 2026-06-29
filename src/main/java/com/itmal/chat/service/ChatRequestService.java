@@ -17,6 +17,14 @@ public class ChatRequestService {
 
     // ✅ 채팅 요청 생성
     public void createChatRequest(ChatRequestDto chatRequest) {
+        ChatRequestDto existing = chatRequestMapper.selectActiveRequestBetweenUsers(
+                chatRequest.getRequesterId(), chatRequest.getResponderId());
+        if (existing != null) {
+            String msg = "PENDING".equals(existing.getStatus())
+                    ? "이미 채팅 요청을 보냈습니다."
+                    : "이미 채팅방이 존재합니다.";
+            throw new IllegalStateException(msg);
+        }
         chatRequest.setStatus("PENDING");
         chatRequest.setCreatedAt(LocalDateTime.now());
         chatRequestMapper.insertChatRequest(chatRequest);
