@@ -7,6 +7,7 @@ let messageSubscription = null;
 let readSubscription = null;
 let allRooms = [];
 const userCache = {};
+let messageRenderQueue = Promise.resolve();
 
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
 const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
@@ -182,7 +183,7 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
         document.getElementById('chatUserAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(otherNickname)}&length=1&background=random`;
         document.getElementById('messageContainer').innerHTML = '';
 
-        displayMessages(data.messages);
+        await displayMessages(data.messages);
 
         // 읽음 처리
         await fetch(`/api/chat-room/mark-as-read?chatRoomId=${chatRoomId}&chatRequestId=${chatRequestId}`, {
@@ -201,7 +202,9 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             const capturedRequestId = chatRequestId;
             messageSubscription = stompClient.subscribe(`/topic/user/${chatRoomId}`, function (message) {
                 const msg = JSON.parse(message.body);
-                addMessageToUI(msg);
+                messageRenderQueue = messageRenderQueue
+                    .then(() => addMessageToUI(msg))
+                    .catch(err => console.error('메시지 렌더링 실패:', err));
 
                 // 상대방 메시지 수신 시 즉시 읽음 처리
                 if (msg.senderId !== currentUserId) {
