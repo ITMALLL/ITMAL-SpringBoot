@@ -39,7 +39,7 @@
            OR
             (cq.responder_id = #{userId} AND (cr.left_at_b IS NULL OR cm.created_at > cr.left_at_b))
             )
-        ORDER BY cm.created_at DESC
+        ORDER BY cm.created_at DESC, cm.chat_message_id DESC
             LIMIT 1
     </select>
 </mapper>
