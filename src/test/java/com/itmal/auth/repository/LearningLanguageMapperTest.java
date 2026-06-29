@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -36,54 +38,39 @@ class LearningLanguageMapperTest {
     }
 
     @Test
-    @DisplayName("존재하는 언어 이름으로 language_id 조회 성공")
-    void findLanguageIdByName_whenExists_returnsId() {
-        // Arrange & Act
-        Long languageId = learningLanguageMapper.findLanguageIdByName("영어");
-
-        // Assert
-        assertThat(languageId).isNotNull();
-        assertThat(languageId).isPositive();
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 언어 이름 조회 → null")
-    void findLanguageIdByName_whenNotExists_returnsNull() {
-        // Arrange & Act
-        Long languageId = learningLanguageMapper.findLanguageIdByName("존재하지않는언어");
-
-        // Assert
-        assertThat(languageId).isNull();
-    }
-
-    @Test
-    @DisplayName("user_learning_language insert 성공")
-    void insertUserLearningLanguage_success() {
+    @DisplayName("배치 insert 후 학습 언어 조회 성공")
+    void insertUserLearningLanguagesByNames_success() {
         // Arrange
         Long userId = insertTestUser("lang@itmal.com", "언어테스터");
-        Long languageId = learningLanguageMapper.findLanguageIdByName("일본어");
 
-        // Act & Assert
-        assertThat(languageId).isNotNull();
-        learningLanguageMapper.insertUserLearningLanguage(userId, languageId);
-        // 예외 없이 실행되면 성공
+        // Act
+        learningLanguageMapper.insertUserLearningLanguagesByNames(userId, List.of("영어", "일본어"));
+
+        // Assert
+        List<String> result = learningLanguageMapper.findLanguageNamesByUserId(userId);
+        assertThat(result).containsExactlyInAnyOrder("영어", "일본어");
     }
 
     @Test
-    @DisplayName("여러 학습 언어 insert 성공")
-    void insertUserLearningLanguage_multipleLanguages() {
+    @DisplayName("학습 언어 삭제 후 재등록 성공")
+    void deleteByUserId_thenReinsert_success() {
         // Arrange
-        Long userId = insertTestUser("multi@itmal.com", "멀티언어");
-        Long englishId = learningLanguageMapper.findLanguageIdByName("영어");
-        Long japaneseId = learningLanguageMapper.findLanguageIdByName("일본어");
-        Long chineseId = learningLanguageMapper.findLanguageIdByName("중국어");
+        Long userId = insertTestUser("reset@itmal.com", "리셋유저");
+        learningLanguageMapper.insertUserLearningLanguagesByNames(userId, List.of("영어", "중국어"));
 
+        // Act
+        learningLanguageMapper.deleteByUserId(userId);
+        learningLanguageMapper.insertUserLearningLanguagesByNames(userId, List.of("일본어"));
+
+        // Assert
+        List<String> result = learningLanguageMapper.findLanguageNamesByUserId(userId);
+        assertThat(result).containsExactly("일본어");
+    }
+
+    @Test
+    @DisplayName("전체 언어 목록 조회 성공")
+    void findAllLanguages_returnsNonEmptyList() {
         // Act & Assert
-        assertThat(englishId).isNotNull();
-        assertThat(japaneseId).isNotNull();
-        assertThat(chineseId).isNotNull();
-        learningLanguageMapper.insertUserLearningLanguage(userId, englishId);
-        learningLanguageMapper.insertUserLearningLanguage(userId, japaneseId);
-        learningLanguageMapper.insertUserLearningLanguage(userId, chineseId);
+        assertThat(learningLanguageMapper.findAllLanguages()).isNotEmpty();
     }
 }

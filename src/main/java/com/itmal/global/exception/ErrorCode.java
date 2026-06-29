@@ -15,6 +15,15 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CM001", "댓글을 찾을 수 없습니다."),
     COMMENT_FORBIDDEN(HttpStatus.FORBIDDEN, "CM002", "본인 댓글만 수정/삭제할 수 있습니다."),
 
+    // Auth
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "A001", "이미 사용 중인 이메일입니다."),
+    DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "A002", "이미 사용 중인 닉네임입니다."),
+    EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "A003", "이메일 발송에 실패했습니다."),
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "A004", "이메일 발송은 60초에 한 번만 가능합니다."),
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "A005", "현재 비밀번호가 일치하지 않습니다."),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A006", "인증이 필요합니다."),
+    DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "A007", "이미 사용 중인 정보입니다."),
+
     // Papago 추가
     N2MT01(HttpStatus.BAD_REQUEST, "N2MT01", "source 파라미터 누락"),
     N2MT02(HttpStatus.BAD_REQUEST, "N2MT02", "source를 지원하지 않음"),

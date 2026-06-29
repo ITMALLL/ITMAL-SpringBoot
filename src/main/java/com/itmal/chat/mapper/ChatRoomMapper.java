@@ -4,6 +4,7 @@ import com.itmal.chat.dto.ChatRoomDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Mapper
 public interface ChatRoomMapper {
@@ -39,4 +40,6 @@ public interface ChatRoomMapper {
     // B가 복구 (A가 메시지 보냈을 때)
     void restoreHiddenB(@Param("id") Long id);
 
+    // 사용자의 모든 채팅방 조회 (hidden_by 고려)
+    List<ChatRoomDto> selectByUserId(@Param("userId") Long userId);
 }

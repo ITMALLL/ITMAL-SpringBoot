@@ -1,5 +1,6 @@
 package com.itmal.auth.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -29,6 +30,12 @@ public class RegisterRequest {
 
     @NotBlank
     private String passwordConfirm;
+
+    @AssertTrue(message = "비밀번호가 일치하지 않습니다.")
+    public boolean isPasswordConfirmed() {
+        if (password == null) return true;
+        return password.equals(passwordConfirm);
+    }
 
     @NotBlank
     @Size(min = 2, max = 20)

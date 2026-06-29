@@ -17,4 +17,29 @@
         ORDER BY created_at ASC
     </select>
 
+    <select id="selectByChatRoomIdAndUser" parameterType="map" resultType="ChatMessageDto">
+        SELECT cm.* FROM chat_message cm
+                             JOIN chat_room cr ON cm.chat_room_id = cr.id
+                             JOIN chat_request cq ON cr.chat_request_id = cq.chat_request_id
+        WHERE cm.chat_room_id = #{chatRoomId}
+          AND (
+            (cq.requester_id = #{userId} AND (cr.left_at_a IS NULL OR cm.created_at > cr.left_at_a))
+                OR
+            (cq.responder_id = #{userId} AND (cr.left_at_b IS NULL OR cm.created_at > cr.left_at_b))
+            )
+        ORDER BY cm.created_at ASC, cm.chat_message_id ASC
+    </select>
+    <select id="selectLastMessageByChatRoomAndUser" parameterType="map" resultType="ChatMessageDto">
+        SELECT cm.* FROM chat_message cm
+                             JOIN chat_room cr ON cm.chat_room_id = cr.id
+                             JOIN chat_request cq ON cr.chat_request_id = cq.chat_request_id
+        WHERE cm.chat_room_id = #{chatRoomId}
+          AND (
+            (cq.requester_id = #{userId} AND (cr.left_at_a IS NULL OR cm.created_at > cr.left_at_a))
+           OR
+            (cq.responder_id = #{userId} AND (cr.left_at_b IS NULL OR cm.created_at > cr.left_at_b))
+            )
+        ORDER BY cm.created_at DESC, cm.chat_message_id DESC
+            LIMIT 1
+    </select>
 </mapper>

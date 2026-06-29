@@ -38,9 +38,29 @@
     </select>
 
     <select id="findAllQuestions" resultType="QuestionDto">
-        SELECT *
-        FROM question
-        WHERE deleted_at IS NULL
+        SELECT q.question_id,
+        q.title,
+        q.category,
+        q.target,
+        q.view_count,
+        q.created_at,
+        u.nickname,
+        l.language_name,
+        CASE
+        WHEN EXISTS (SELECT 1 FROM answer a
+        WHERE a.question_id = q.question_id
+        AND a.is_accepted = 1
+        AND a.deleted_at IS NULL) THEN 'ADOPTED'
+        WHEN EXISTS (SELECT 1 FROM answer a
+        WHERE a.question_id = q.question_id
+        AND a.deleted_at IS NULL) THEN 'ANSWERED'
+        ELSE 'PENDING'
+        END AS status
+        FROM question q
+        LEFT JOIN users u    ON q.user_id = u.user_id
+        LEFT JOIN language l ON q.language_id = l.language_id
+        WHERE q.deleted_at IS NULL
+        ORDER BY q.created_at DESC
     </select>
 
     <insert id="insertAttachment">
@@ -75,6 +95,78 @@
 
     <select id="findAttachmentsByQuestionId" parameterType="Long" resultType="QuestionAttachmentDto">
         SELECT * FROM question_attachment WHERE question_id = #{questionId}
+    </select>
+
+    <select id="findQuestionDetailById" parameterType="Long" resultType="QuestionDto">
+        SELECT q.question_id,
+        q.title,
+        q.content,
+        q.view_count,
+        q.created_at,
+        q.category,
+        q.target,
+        q.user_id,
+        q.language_id,
+        u.nickname,
+        u.native_language,
+        u.role,
+        u.created_at    AS author_joined_at,
+        l.language_name,
+        CASE
+        WHEN EXISTS (SELECT 1 FROM answer a
+        WHERE a.question_id = q.question_id
+        AND a.is_accepted = 1
+        AND a.deleted_at IS NULL) THEN 'ADOPTED'
+        WHEN EXISTS (SELECT 1 FROM answer a
+        WHERE a.question_id = q.question_id
+        AND a.deleted_at IS NULL) THEN 'ANSWERED'
+        ELSE 'PENDING'
+        END AS status
+        FROM question q
+        LEFT JOIN users u    ON q.user_id = u.user_id
+        LEFT JOIN language l ON q.language_id = l.language_id
+        WHERE q.question_id = #{id}
+        AND q.deleted_at IS NULL
+    </select>
+
+    <select id="countQuestionsByUserId" parameterType="Long" resultType="int">
+        SELECT COUNT(*)
+        FROM question
+        WHERE user_id = #{userId}
+        AND deleted_at IS NULL
+    </select>
+
+    <update id="increaseViewCount" parameterType="Long">
+        UPDATE question
+        SET view_count = view_count + 1
+        WHERE question_id = #{id}
+    </update>
+
+    <select id="findRelatedQuestions" resultType="QuestionDto">
+        SELECT q.question_id,
+        q.title,
+        q.category,
+        q.language_id,
+        q.target,
+        l.language_name,
+        CASE
+        WHEN EXISTS (SELECT 1 FROM answer a
+        WHERE a.question_id = q.question_id
+        AND a.is_accepted = 1
+        AND a.deleted_at IS NULL) THEN 'ADOPTED'
+        WHEN EXISTS (SELECT 1 FROM answer a
+        WHERE a.question_id = q.question_id
+        AND a.deleted_at IS NULL) THEN 'ANSWERED'
+        ELSE 'PENDING'
+        END AS status
+        FROM question q
+        LEFT JOIN language l ON q.language_id = l.language_id
+        WHERE q.question_id != #{questionId}
+        AND q.deleted_at IS NULL
+        AND q.language_id = #{languageId}
+        AND q.category = #{category}
+        ORDER BY q.created_at DESC
+        LIMIT 3
     </select>
 
 </mapper>
