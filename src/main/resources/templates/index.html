@@ -251,17 +251,34 @@
 
         const item = document.createElement('div');
         item.className = 'user-item';
-        item.innerHTML = `
-          <div class="user-info">
-            <div class="user-avatar">
-              <img src="${avatarUrl}" alt="${nickname}" />
-            </div>
-            <div class="user-details">
-              <div class="user-name">${nickname}</div>
-            </div>
-          </div>
-          <button class="btn-chat" onclick="location.href='/chat?roomId=${room.id}'">채팅 보기</button>
-        `;
+
+        const userInfo = document.createElement('div');
+        userInfo.className = 'user-info';
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'user-avatar';
+        const img = document.createElement('img');
+        img.src = avatarUrl;
+        img.alt = nickname;
+        avatarDiv.appendChild(img);
+
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'user-details';
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'user-name';
+        nameDiv.textContent = nickname;
+        detailsDiv.appendChild(nameDiv);
+
+        userInfo.appendChild(avatarDiv);
+        userInfo.appendChild(detailsDiv);
+
+        const btn = document.createElement('button');
+        btn.className = 'btn-chat';
+        btn.textContent = '채팅 보기';
+        btn.addEventListener('click', () => { location.href = `/chat?roomId=${room.id}`; });
+
+        item.appendChild(userInfo);
+        item.appendChild(btn);
         container.appendChild(item);
       }
     } catch (e) {
