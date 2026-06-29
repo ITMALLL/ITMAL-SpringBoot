@@ -1,9 +1,87 @@
 package com.itmal.answer.service;
 
+import com.itmal.answer.domain.Answer;
+import com.itmal.answer.domain.AnswerLike;
+import com.itmal.answer.dto.AnswerCreateRequest;
+import com.itmal.answer.dto.AnswerUpdateRequest;
+import com.itmal.answer.mapper.AnswerMapper;
+import com.itmal.global.exception.BusinessException;
+import com.itmal.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AnswerServiceImpl implements AnswerService {
+
+    private final AnswerMapper answerMapper;
+
+    // 답변 등록
+    @Override
+    public void createAnswer(AnswerCreateRequest request, Long userId) {
+        // userId는 폼이 아닌 로그인 세션에서 가져와서 세팅
+        request.setUserId(userId);
+        answerMapper.insertAnswer(request);
+    }
+
+    // 답변 목록 조회
+    @Override
+    public List<Answer> getAnswerByQuestionId(Long questionId) {
+        return answerMapper.findByQuestionId(questionId);
+    }
+
+    // 답변 단건 조회
+    @Override
+    public Answer getAnswer(Long answerId) {
+        Answer answer = answerMapper.findById(answerId);
+        if (answer == null) {
+            throw new BusinessException(ErrorCode.ANSWER_NOT_FOUND);
+        }
+        return answer;
+    }
+
+    // 답변 수정 (본인만 가능)
+    @Override
+    public void updateAnswer(Long answerId, AnswerUpdateRequest request, Long userId) {
+        Answer answer = getAnswer(answerId);
+        if (!answer.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        request.setAnswerId(answerId);
+        answerMapper.updateAnswer(request);
+    }
+
+    // 답변 삭제 (본인만 가능)
+    @Override
+    public void deleteAnswer(Long answerId, Long userId) {
+        Answer answer = getAnswer(answerId);
+        if (!answer.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        answerMapper.deleteAnswer(answerId);
+    }
+
+    // 좋아요 토글 (있으면 취소, 없으면 추가)
+    @Override
+    public void toggleLike(Long answerId, Long userId) {
+        AnswerLike answerLike = new AnswerLike();
+        answerLike.setAnswerId(answerId);
+        answerLike.setUserId(userId);
+
+        AnswerLike existing = answerMapper.findAnswerLike(answerLike);
+        if (existing != null) {
+            answerMapper.deleteAnswerLike(answerLike);
+        } else {
+            answerMapper.insertAnswerLike(answerLike);
+        }
+    }
+
+    // 채택
+    @Override
+    public void adoptAnswer(Long answerId, Long userId) {
+        getAnswer(answerId); // 존재 여부 확인
+        answerMapper.acceptAnswer(answerId);
+    }
 }
