@@ -42,4 +42,13 @@
           AND status = 'PENDING'
         ORDER BY created_at DESC
     </select>
+
+    <!-- 두 유저 간 PENDING 또는 ACCEPTED 요청 조회 -->
+    <select id="selectActiveRequestBetweenUsers" resultType="ChatRequestDto">
+        SELECT * FROM chat_request
+        WHERE requester_id = #{requesterId}
+          AND responder_id = #{responderId}
+          AND status IN ('PENDING', 'ACCEPTED')
+        LIMIT 1
+    </select>
 </mapper>

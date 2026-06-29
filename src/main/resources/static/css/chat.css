@@ -528,6 +528,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
 }
 
 .message-bubble {
@@ -557,12 +558,36 @@
   padding: 0 4px;
 }
 
+.translate-btn {
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  background: none;
+  border: 1px solid var(--outline-variant);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+.translate-btn:hover {
+  background: var(--surface-container);
+}
+.translate-error {
+  font-size: 11px;
+  color: #e53e3e;
+  position: absolute;
+  bottom: -18px;
+  left: 0;
+  white-space: nowrap;
+}
+
 .read-indicator {
   font-size: 10px;
   color: var(--primary);
   font-weight: 700;
   align-self: flex-end;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .message-status {

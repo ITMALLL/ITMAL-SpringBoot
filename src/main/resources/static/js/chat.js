@@ -7,6 +7,7 @@ let messageSubscription = null;
 let readSubscription = null;
 let allRooms = [];
 const userCache = {};
+let messageRenderQueue = Promise.resolve();
 
 const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
 const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
@@ -147,7 +148,7 @@ async function displayChatRooms(rooms) {
         element.style.cursor = 'pointer';
         element.onclick = () => enterChatRoom(room.id, room.chatRequestId, element);
 
-        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=random`;
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&length=1&background=random`;
         element.innerHTML = `
           <div class="chat-item-avatar">
             <img src="${avatarUrl}" alt="user" />
@@ -187,10 +188,12 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
         document.getElementById('chatMain').style.display = 'flex';
         document.getElementById('noChat').style.display = 'none';
         const otherUserId = data.otherUserId;
-        document.getElementById('chatUserName').textContent = await getUserNickname(otherUserId);
+        const otherNickname = await getUserNickname(otherUserId);
+        document.getElementById('chatUserName').textContent = otherNickname;
+        document.getElementById('chatUserAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(otherNickname)}&length=1&background=random`;
         document.getElementById('messageContainer').innerHTML = '';
 
-        displayMessages(data.messages);
+        await displayMessages(data.messages);
 
         // 읽음 처리
         await fetch(`/api/chat-room/mark-as-read?chatRoomId=${chatRoomId}&chatRequestId=${chatRequestId}`, {
@@ -209,7 +212,9 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             const capturedRequestId = chatRequestId;
             messageSubscription = stompClient.subscribe(`/topic/user/${chatRoomId}`, function (message) {
                 const msg = JSON.parse(message.body);
-                addMessageToUI(msg);
+                messageRenderQueue = messageRenderQueue
+                    .then(() => addMessageToUI(msg))
+                    .catch(err => console.error('메시지 렌더링 실패:', err));
 
                 // 상대방 메시지 수신 시 즉시 읽음 처리
                 if (msg.senderId !== currentUserId) {
@@ -238,10 +243,12 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
 }
 
 // ============ 메시지 목록 표시 ============
-function displayMessages(messages) {
+async function displayMessages(messages) {
     const container = document.getElementById('messageContainer');
     container.innerHTML = '';
-    messages.forEach(msg => addMessageToUI(msg));
+    for (const msg of messages) {
+        await addMessageToUI(msg);
+    }
     container.scrollTop = container.scrollHeight;
 }
 
@@ -259,13 +266,13 @@ async function addMessageToUI(message) {
             <div class="message-bubble own">
               <p style="margin: 0">${escapeHtml(message.content)}</p>
             </div>
-            ${message.isRead === false ? '<span class="read-indicator">1</span>' : ''}
             <span class="message-timestamp">${formatTime(message.createdAt)}</span>
           </div>
+          ${message.isRead === false ? '<span class="read-indicator">1</span>' : ''}
         `;
     } else {
         const nickname = await getUserNickname(message.senderId);
-        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=random`;
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&length=1&background=random`;
         messageElement.innerHTML = `
           <div class="message-avatar">
             <img src="${avatarUrl}" alt="user" />
@@ -274,13 +281,66 @@ async function addMessageToUI(message) {
             <div class="message-bubble other">
               <p style="margin: 0">${escapeHtml(message.content)}</p>
             </div>
+            <button class="translate-btn">번역</button>
             <span class="message-timestamp">${formatTime(message.createdAt)}</span>
           </div>
         `;
+        const translateBtn = messageElement.querySelector('.translate-btn');
+        translateBtn.addEventListener('click', () => translateMessage(translateBtn, message.content));
     }
 
     container.appendChild(messageElement);
     container.scrollTop = container.scrollHeight;
+}
+
+// ============ 번역 ============
+function showTranslateError(btn, message) {
+    const content = btn.closest('.message-content');
+    let errorEl = content.querySelector('.translate-error');
+    if (!errorEl) {
+        errorEl = document.createElement('span');
+        errorEl.className = 'translate-error';
+        btn.after(errorEl);
+    }
+    errorEl.textContent = message;
+    btn.textContent = '번역';
+    setTimeout(() => errorEl.remove(), 3000);
+}
+
+async function translateMessage(btn, text) {
+    const bubble = btn.closest('.message-content').querySelector('.message-bubble p');
+
+    if (btn.dataset.translated === 'true') {
+        bubble.textContent = btn.dataset.original;
+        btn.dataset.translated = 'false';
+        btn.textContent = '번역';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '번역 중...';
+    try {
+        const res = await fetch('/api/papago/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            body: JSON.stringify({ source: 'auto', target: 'ko', text })
+        });
+        const json = await res.json();
+        if (!res.ok) {
+            const errorMap = { 'N2MT05': '원문과 모국어가 동일합니다.' };
+            showTranslateError(btn, errorMap[json.code] || json.message || '번역에 실패했습니다.');
+            return;
+        }
+        const translated = json.data?.translatedText;
+        btn.dataset.original = bubble.textContent;
+        btn.dataset.translated = 'true';
+        bubble.textContent = translated;
+        btn.textContent = '원문 보기';
+    } catch {
+        showTranslateError(btn, '번역에 실패했습니다.');
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 // ============ 메시지 전송 ============

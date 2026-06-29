@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>잇말 - 오류</title>
+  <link rel="stylesheet" href="/css/header.css"/>
+  <link rel="stylesheet" href="/css/footer.css"/>
+  <link rel="stylesheet" href="/css/common.css"/>
+</head>
+<body>
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <main style="text-align:center; padding:80px 20px;">
+    <h1 th:text="${status}" style="font-size:48px; margin-bottom:16px;">404</h1>
+    <p th:text="${message}" style="margin-bottom:24px;">요청을 찾을 수 없습니다.</p>
+    <a href="/questions/list">목록으로 돌아가기</a>
+  </main>
+
+  <div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

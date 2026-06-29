@@ -26,5 +26,9 @@ public interface ChatRequestMapper {
 
     // 응답자 ID로 PENDING 상태 요청 조회
     List<ChatRequestDto> selectByResponderIdAndPending(@Param("responderId") Long responderId);
+
+    // 두 유저 간 PENDING 또는 ACCEPTED 요청 조회
+    ChatRequestDto selectActiveRequestBetweenUsers(@Param("requesterId") Long requesterId,
+                                                   @Param("responderId") Long responderId);
 }
 
