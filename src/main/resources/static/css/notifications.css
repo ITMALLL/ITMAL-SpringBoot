@@ -170,12 +170,12 @@
   background-color: var(--surface-container-low);
 }
 
-.notification-item.unread {
-  background-color: rgba(0, 88, 190, 0.02);
+.notification-item.read {
+  opacity: 0.5;
 }
 
-.notification-item.unread .notification-avatar {
-  box-shadow: 0 0 0 2px var(--primary);
+.notification-item.unread {
+  background-color: #ffffff;
 }
 
 .notification-avatar {
@@ -243,20 +243,31 @@
   line-height: 1.5;
 }
 
-.notification-question,
+.question-badge {
+  display: inline-block;
+  background-color: var(--primary-fixed);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .notification-comment {
   font-size: 13px;
   color: var(--on-surface);
   background-color: var(--surface-container);
-  padding: 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-lg);
-  margin: 0;
+  margin: 6px 0 0 0;
   line-height: 1.5;
-  border-left: 3px solid var(--primary);
-}
-
-.notification-comment {
-  border-left-color: var(--secondary);
+  border-left: 3px solid var(--secondary);
   font-style: italic;
 }
 
@@ -274,9 +285,20 @@
   margin-right: 8px;
 }
 
-.notification-item .btn {
-  margin-left: auto;
-  margin-top: -8px;
+.btn-read {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-item.read .btn-read {
+  display: none;
 }
 
 /* ============================================
@@ -318,13 +340,34 @@
   }
 
   .notifications-sidebar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    display: block;
   }
 
   .sidebar-section {
     margin-bottom: 0;
+  }
+
+  .filter-group {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .filter-item {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 12px;
+    background-color: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+  }
+
+  .filter-item:has(input:checked) {
+    background-color: var(--primary-fixed);
+    border-color: var(--primary);
+  }
+
+  .filter-item input {
+    display: none;
   }
 }
 
@@ -338,8 +381,13 @@
     gap: 16px;
   }
 
-  .notifications-sidebar {
-    display: none;
+  .filter-group {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .filter-item {
+    padding: 8px 12px;
   }
 
   .content-header {
