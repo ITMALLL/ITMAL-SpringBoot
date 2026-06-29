@@ -3,6 +3,7 @@ package com.itmal.question.service;
 import com.itmal.question.dto.LanguageDto;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
+import com.itmal.question.util.HtmlSanitizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,9 @@ public class QuestionService {
     @Transactional
     public void writeQuestion(QuestionDto questionDto, List<MultipartFile> files) {
         validateFiles(files); // 저장 전에 먼저 검증
+
+        // CKEditor 본문 HTML sanitize (저장형 XSS 방지)
+        questionDto.setContent(HtmlSanitizer.clean(questionDto.getContent()));
 
         questionMapper.insertQuestion(questionDto);
 
@@ -141,5 +145,38 @@ public class QuestionService {
     // 첨부파일
     public QuestionAttachmentDto findAttachment(Long id) {
         return questionMapper.findAttachmentById(id);
+    }
+
+    // 질문 상세 1건 (작성자 + 언어 포함)
+    public QuestionDto findQuestionDetail(Long id) {
+        QuestionDto question = questionMapper.findQuestionDetailById(id);
+        if (question == null) {
+            throw new IllegalArgumentException("질문을 찾을 수 없습니다. id=" + id);
+        }
+        return question;
+    }
+
+    // 질문 상세 1건의 첨부파일 목록
+    public List<QuestionAttachmentDto> findAttachments(Long questionId) {
+        return questionMapper.findAttachmentsByQuestionId(questionId);
+    }
+
+    // 작성자가 올린 질문 총 개수 (사이드바)
+    public int countUserQuestions(Long userId) {
+        return questionMapper.countQuestionsByUserId(userId);
+    }
+
+    @Transactional
+    public void increaseViewCount(Long id) {
+        questionMapper.increaseViewCount(id);
+    }
+
+    // 관련 질문
+    public List<QuestionDto> findRelatedQuestions(QuestionDto question) {
+        return questionMapper.findRelatedQuestions(
+                question.getQuestionId(),
+                question.getLanguageId(),
+                question.getCategory()
+        );
     }
 }

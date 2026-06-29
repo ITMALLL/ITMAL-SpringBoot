@@ -18,4 +18,10 @@ public class QuestionDto {
     private Long userId;
     private Long languageId;
     private String target;
+    private String nickname;
+    private String languageName;
+    private LocalDateTime authorJoinedAt;
+    private String nativeLanguage;
+    private String role;
+    private String status;         // 답변 상태: PENDING / ANSWERED / ADOPTED
 }

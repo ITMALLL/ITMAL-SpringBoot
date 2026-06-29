@@ -2,6 +2,7 @@ package com.itmal.question.controller;
 
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.service.QuestionService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,7 +26,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Controller
 @RequiredArgsConstructor
@@ -42,6 +45,33 @@ public class QuestionController {
         public String writeForm(Model model) {
             model.addAttribute("languages", questionService.findAllLanguages());
             return "question/write";
+        }
+
+        //질문 상세
+        @GetMapping("/{id}")
+        public String detail(@PathVariable Long id, Model model, HttpSession session) {
+            // 1. 질문 상세 조회 (없으면 예외 → 400)
+            QuestionDto question = questionService.findQuestionDetail(id);
+
+            // 2. 세션 기반 조회수 중복 방지
+            Set<Long> viewed = (Set<Long>) session.getAttribute("viewedQuestions");
+            if (viewed == null) {
+                viewed = new HashSet<>();
+            }
+            if (!viewed.contains(id)) {
+                questionService.increaseViewCount(id);
+                question.setViewCount(question.getViewCount() + 1);
+                viewed.add(id);
+                session.setAttribute("viewedQuestions", viewed);
+            }
+
+            // 3. 화면에 데이터 전달
+            model.addAttribute("question", question);
+            model.addAttribute("attachments", questionService.findAttachments(id));
+            model.addAttribute("questionCount", questionService.countUserQuestions(question.getUserId()));
+            model.addAttribute("relatedQuestions", questionService.findRelatedQuestions(question));
+            
+            return "question/detail";
         }
 
         // 질문 생성 처리
@@ -91,4 +121,6 @@ public class QuestionController {
         public ResponseEntity<String> handleInvalidFile(IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+
+
 }
