@@ -71,7 +71,7 @@
           <article th:each="n : ${notifications}"
                    th:class="${n.isRead} ? 'notification-item read' : 'notification-item unread'"
                    th:data-id="${n.notificationId}"
-                   th:data-question-id="${n.targetType == 'QUESTION'} ? ${n.targetId} : ''">
+                   th:data-question-id="${n.questionId}">
             <div th:class="${n.targetType == 'COMMENT'} ? 'notification-avatar secondary' : 'notification-avatar'">
               <span class="material-symbols-outlined"
                     th:text="${n.targetType == 'COMMENT'} ? 'chat_bubble' : 'check_circle'"></span>
@@ -79,15 +79,14 @@
             <div class="notification-content">
               <div class="notification-header">
                 <h3 class="notification-title">
-                  <span th:if="${n.targetType == 'QUESTION'}">내 질문 <span class="question-badge" th:text="${n.questionTitle}"></span>에 답변이 달렸습니다</span>
-                  <span th:if="${n.targetType == 'COMMENT'}">내 질문 <span class="question-badge" th:text="${n.questionTitle}"></span>에 대한 답변에 댓글이 달렸습니다</span>
+                  <span th:if="${n.targetType == 'QUESTION'}"><strong th:text="${n.questionTitle}"></strong> 글에 답변이 달렸습니다</span>
+                  <span th:if="${n.targetType == 'COMMENT'}"><strong th:text="${n.questionTitle}"></strong> 글에 댓글이 달렸습니다</span>
                 </h3>
                 <time class="notification-time"
                       th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd HH:mm')}"></time>
               </div>
-              <p class="notification-comment"
-                 th:if="${n.comment != null}"
-                 th:text="${n.comment}"></p>
+              <p class="notification-body" th:if="${n.answerContent != null}" th:text="${n.answerContent}"></p>
+              <p class="notification-body" th:if="${n.comment != null}" th:text="${n.comment}"></p>
             </div>
             <button class="btn-read" aria-label="읽음 처리" onclick="markAsRead(this)">
               <span class="material-symbols-outlined">check</span>

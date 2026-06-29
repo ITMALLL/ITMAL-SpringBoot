@@ -49,18 +49,24 @@ public class NotificationService {
     }
 
     //질문알림
-    public void createAnswerNotification(Long questionId) {
+    public void createAnswerNotification(Long questionId, Long answerId) {
         Long userId = notificationMapper.findQuestionId(questionId);
         if (userId != null) {
-            createNotification("ANSWER_CREATED", "QUESTION", questionId, userId);
+            createNotification("ANSWER_CREATED", "ANSWER", answerId, userId);
         }
     }
 
     //댓글알림
     public void createCommentNotification(Long answerId, Long commentId) {
-        Long userId = notificationMapper.findAnswerId(answerId);
-        if (userId != null) {
-            createNotification("COMMENT_CREATED", "COMMENT", commentId, userId);
+        Long answerOwnerId = notificationMapper.findAnswerId(answerId);
+        if (answerOwnerId != null) {
+            createNotification("COMMENT_CREATED", "COMMENT", commentId, answerOwnerId);
+        }
+
+        // 질문 작성자에게도 알림 (답변 작성자와 다를 경우에만)
+        Long questionOwnerId = notificationMapper.findQuestionOwnerByAnswerId(answerId);
+        if (questionOwnerId != null && !questionOwnerId.equals(answerOwnerId)) {
+            createNotification("COMMENT_CREATED", "COMMENT", commentId, questionOwnerId);
         }
     }
 
@@ -73,16 +79,14 @@ public class NotificationService {
             NotificationResponseDto dto = new NotificationResponseDto();
             dto.setNotificationId(notification.getNotificationId());
             dto.setTargetType(notification.getTargetType());
-            dto.setTargetId(notification.getTargetId());
             dto.setIsRead(notification.getIsRead());
             dto.setCreatedAt(notification.getCreatedAt());
+            dto.setQuestionTitle(notification.getQuestionTitle());
+            dto.setQuestionId(notification.getQuestionId());
 
             if ("ANSWER_CREATED".equals(notification.getType())) {
-                dto.setMessage("답변이 달렸습니다");
-                dto.setQuestionTitle(notification.getQuestionTitle());
+                dto.setAnswerContent(notification.getAnswerContent());
             } else if ("COMMENT_CREATED".equals(notification.getType())) {
-                dto.setMessage("댓글이 달렸습니다");
-                dto.setQuestionTitle(notification.getQuestionTitle());
                 dto.setComment(notification.getComment());
             }
 

@@ -19,19 +19,24 @@
             n.is_read,
             n.created_at,
             COALESCE(q1.title, q2.title) AS question_title,
+            COALESCE(q1.question_id, q2.question_id) AS question_id,
+            a1.content AS answer_content,
             c.content AS comment
         FROM notification n
-        LEFT JOIN question q1
+        LEFT JOIN answer a1
             ON n.type = 'ANSWER_CREATED'
-            AND n.target_id = q1.question_id
+            AND n.target_id = a1.answer_id
+        LEFT JOIN question q1
+            ON a1.question_id = q1.question_id
         LEFT JOIN comment c
             ON n.type = 'COMMENT_CREATED'
             AND n.target_id = c.comment_id
-        LEFT JOIN answer a
-            ON c.answer_id = a.answer_id
+        LEFT JOIN answer a2
+            ON c.answer_id = a2.answer_id
         LEFT JOIN question q2
-            ON a.question_id = q2.question_id
+            ON a2.question_id = q2.question_id
         WHERE n.user_id = #{userId}
+        AND n.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         ORDER BY n.is_read ASC, n.created_at DESC
     </select>
 
@@ -58,6 +63,13 @@
         SELECT user_id
         FROM answer
         WHERE answer_id = #{answerId}
+    </select>
+
+    <select id="findQuestionOwnerByAnswerId" resultType="Long">
+        SELECT q.user_id
+        FROM answer a
+        JOIN question q ON a.question_id = q.question_id
+        WHERE a.answer_id = #{answerId}
     </select>
 
     <update id="updateAllRead">

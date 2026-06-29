@@ -17,6 +17,8 @@ public class Notification {
     private LocalDateTime createdAt;
     private Long userId;
     private String questionTitle;
+    private Long questionId;
+    private String answerContent;
     private String comment;
 
 }

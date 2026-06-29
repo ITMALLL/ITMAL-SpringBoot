@@ -16,6 +16,8 @@ public interface NotificationMapper {
 
     Long findQuestionId(Long questionId);
 
+    Long findQuestionOwnerByAnswerId(Long answerId);
+
     int updateRead(Long notificationId);
 
     int updateAllRead(Long userId);

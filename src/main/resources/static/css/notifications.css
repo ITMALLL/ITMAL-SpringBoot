@@ -243,32 +243,14 @@
   line-height: 1.5;
 }
 
-.question-badge {
-  display: inline-block;
-  background-color: var(--primary-fixed);
-  color: var(--primary);
-  border: 1px solid var(--primary);
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-size: 12px;
-  font-weight: 600;
-  max-width: 160px;
+.notification-body {
+  font-size: 13px;
+  color: #aaa;
+  margin: 4px 0 0 0;
+  line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  vertical-align: middle;
-}
-
-.notification-comment {
-  font-size: 13px;
-  color: var(--on-surface);
-  background-color: var(--surface-container);
-  padding: 8px 12px;
-  border-radius: var(--radius-lg);
-  margin: 6px 0 0 0;
-  line-height: 1.5;
-  border-left: 3px solid var(--secondary);
-  font-style: italic;
 }
 
 .question-icon {
