@@ -87,6 +87,15 @@ async function initCurrentUser() {
 
 document.addEventListener('DOMContentLoaded', async function () {
     await initCurrentUser();
+
+    const roomId = new URLSearchParams(location.search).get('roomId');
+    if (roomId) {
+        const room = allRooms.find(r => r.id === Number(roomId));
+        if (room) {
+            const item = document.querySelector(`.chat-item[data-room-id="${roomId}"]`);
+            await enterChatRoom(room.id, room.chatRequestId, item);
+        }
+    }
 });
 
 // ============ 탭 전환 ============
@@ -135,6 +144,7 @@ async function displayChatRooms(rooms) {
         const nickname = await getUserNickname(room.otherUserId);
         const element = document.createElement('div');
         element.className = 'chat-item';
+        element.dataset.roomId = room.id;
         element.style.cursor = 'pointer';
         element.onclick = () => enterChatRoom(room.id, room.chatRequestId, element);
 
