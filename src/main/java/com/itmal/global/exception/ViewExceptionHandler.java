@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.ModelAndView;
 
 
 @ControllerAdvice(annotations = {Controller.class})
@@ -27,12 +28,14 @@ public class ViewExceptionHandler {
                 .body(e.getMessage());
     }
 
-    @ExceptionHandler(ApiException.class)
-    @ResponseBody
-    public ResponseEntity<String> handleApiException(ApiException e) {
+    @ExceptionHandler(ViewException.class)
+    public ModelAndView handleViewException(ViewException e) { // @ResponseBody 없음 → HTML 뷰 렌더링
         ErrorCode errorCode = e.getErrorCode();
-        return ResponseEntity.status(errorCode.getStatus()) //
-                .body(errorCode.getMessage());
+        ModelAndView mav = new ModelAndView("error/error"); // templates/error/error.html
+        mav.setStatus(errorCode.getStatus());               // 예: 404
+        mav.addObject("status", errorCode.getStatus().value());
+        mav.addObject("message", errorCode.getMessage());
+        return mav;
     }
 
 }

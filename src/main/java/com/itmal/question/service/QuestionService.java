@@ -1,7 +1,7 @@
 package com.itmal.question.service;
 
-import com.itmal.global.exception.ApiException;
 import com.itmal.global.exception.ErrorCode;
+import com.itmal.global.exception.ViewException;
 import com.itmal.question.dto.LanguageDto;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
@@ -153,7 +153,7 @@ public class QuestionService {
     public QuestionDto findQuestionDetail(Long id) {
         QuestionDto question = questionMapper.findQuestionDetailById(id);
         if (question == null) {
-            throw new ApiException(ErrorCode.QUESTION_NOT_FOUND); // 미존재 → 404
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND); // 페이지 → 404 HTML
         }
         return question;
     }
