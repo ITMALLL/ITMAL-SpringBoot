@@ -53,16 +53,20 @@ public class QuestionController {
             // 1. 질문 상세 조회 (없으면 예외 → 400)
             QuestionDto question = questionService.findQuestionDetail(id);
 
-            // 2. 세션 기반 조회수 중복 방지
-            Set<Long> viewed = (Set<Long>) session.getAttribute("viewedQuestions");
-            if (viewed == null) {
-                viewed = new HashSet<>();
+            // 2. 세션 기반 조회수 중복 방지 (세션당 1회 보장)
+            boolean firstView;
+            synchronized (session) { // 같은 세션의 동시 요청 직렬화
+                @SuppressWarnings("unchecked")
+                Set<Long> viewed = (Set<Long>) session.getAttribute("viewedQuestions");
+                if (viewed == null) {
+                    viewed = new HashSet<>();
+                    session.setAttribute("viewedQuestions", viewed);
+                }
+                firstView = viewed.add(id); // 새로 추가됐을 때만 true
             }
-            if (!viewed.contains(id)) {
+            if (firstView) {
                 questionService.increaseViewCount(id);
                 question.setViewCount(question.getViewCount() + 1);
-                viewed.add(id);
-                session.setAttribute("viewedQuestions", viewed);
             }
 
             // 3. 화면에 데이터 전달

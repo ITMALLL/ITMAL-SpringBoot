@@ -386,6 +386,14 @@
     </script>
 
     <script th:inline="javascript">
+      // 외부 응답 값은 HTML로 해석하지 않고 텍스트 노드로 렌더링 (XSS 방지)
+      function renderTranslation(box, message) {
+        box.replaceChildren();
+        const p = document.createElement('p');
+        p.textContent = message;
+        box.appendChild(p);
+      }
+
       document.addEventListener('DOMContentLoaded', () => {
         // 한글 언어 이름 → Papago 언어 코드 변환표
         const LANG_CODE = {
@@ -408,7 +416,7 @@
 
         // 원문 언어 == 번역 언어면 번역 불필요
         if (source === target) {
-          box.innerHTML = '<p>원문과 번역 언어가 같아 번역을 생략합니다.</p>';
+          renderTranslation(box, '원문과 번역 언어가 같아 번역을 생략합니다.');
           return;
         }
 
@@ -421,8 +429,8 @@
           body: JSON.stringify({ source, target, text })   // 변수명=키명이라 축약형
         })
                 .then(res => res.json())
-                .then(json => { box.innerHTML = '<p>' + json.data.translatedText + '</p>'; })
-                .catch(() => { box.innerHTML = '<p>번역을 불러오지 못했습니다.</p>'; });
+                .then(json => { renderTranslation(box, json.data.translatedText); })
+                .catch(() => { renderTranslation(box, '번역을 불러오지 못했습니다.'); });
       });
     </script>
 

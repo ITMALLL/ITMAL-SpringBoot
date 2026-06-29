@@ -27,4 +27,12 @@ public class ViewExceptionHandler {
                 .body(e.getMessage());
     }
 
+    @ExceptionHandler(ApiException.class)
+    @ResponseBody
+    public ResponseEntity<String> handleApiException(ApiException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        return ResponseEntity.status(errorCode.getStatus()) //
+                .body(errorCode.getMessage());
+    }
+
 }
