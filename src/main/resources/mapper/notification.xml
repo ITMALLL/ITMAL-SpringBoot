@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itmal.notification.mapper.NotificationMapper">
+
+    <insert id="insert">
+        INSERT INTO notification (type, target_type, target_id, user_id)
+        VALUES (#{type}, #{targetType}, #{targetId}, #{userId})
+    </insert>
+
+    <select id="findById" resultType="Notification">
+        SELECT
+            n.notification_id,
+            n.type,
+            n.target_type,
+            n.target_id,
+            n.is_read,
+            n.created_at,
+            COALESCE(q1.title, q2.title) AS question_title,
+            COALESCE(q1.question_id, q2.question_id) AS question_id,
+            a1.content AS answer_content,
+            c.content AS comment
+        FROM notification n
+        LEFT JOIN answer a1
+            ON n.type = 'ANSWER_CREATED'
+            AND n.target_id = a1.answer_id
+        LEFT JOIN question q1
+            ON a1.question_id = q1.question_id
+        LEFT JOIN comment c
+            ON n.type = 'COMMENT_CREATED'
+            AND n.target_id = c.comment_id
+        LEFT JOIN answer a2
+            ON c.answer_id = a2.answer_id
+        LEFT JOIN question q2
+            ON a2.question_id = q2.question_id
+        WHERE n.user_id = #{userId}
+        AND n.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        ORDER BY n.is_read ASC, n.created_at DESC
+    </select>
+
+    <update id="updateRead">
+        UPDATE notification
+        SET is_read = true
+        WHERE notification_id = #{notificationId}
+        AND user_id = #{userId}
+    </update>
+
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*)
+        FROM notification
+        WHERE is_read = false
+        AND user_id = #{userId}
+        AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    </select>
+
+    <select id="findQuestionId" resultType="Long">
+        SELECT user_id
+        FROM question
+        WHERE question_id = #{questionId}
+    </select>
+
+    <select id="findAnswerId" resultType="Long">
+        SELECT user_id
+        FROM answer
+        WHERE answer_id = #{answerId}
+    </select>
+
+    <select id="findQuestionOwnerByAnswerId" resultType="Long">
+        SELECT q.user_id
+        FROM answer a
+        JOIN question q ON a.question_id = q.question_id
+        WHERE a.answer_id = #{answerId}
+    </select>
+
+    <update id="updateAllRead">
+        UPDATE notification
+        SET is_read = true
+        WHERE user_id = #{userId}
+        AND is_read = false
+    </update>
+
+</mapper>

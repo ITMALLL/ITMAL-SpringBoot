@@ -143,6 +143,10 @@
   padding: 14px;
 }
 
+.ck-editor__editable {
+  min-height: 300px;
+}
+
 /* ============================================
    CHARACTER COUNTER
    ============================================ */
@@ -157,6 +161,122 @@
 #char-count {
   font-weight: 600;
   color: var(--primary);
+}
+
+/* ============================================
+   FILE ATTACHMENT
+   ============================================ */
+
+.attachment-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.attachment-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px dashed var(--outline-variant);
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+  background-color: var(--surface-container-low);
+  cursor: pointer;
+  transition: all var(--transition-short);
+  white-space: nowrap;
+}
+
+.attachment-btn:hover {
+  border-color: var(--primary);
+  background-color: rgba(0, 88, 190, 0.05);
+}
+
+.attachment-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.attachment-limit {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+.attachment-hint {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  margin: 4px 0 0 0;
+  line-height: 1.5;
+}
+
+.attachment-file-list {
+  list-style: none;
+  margin: 8px 0 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachment-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+}
+
+.attachment-file-icon {
+  font-size: 18px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.attachment-file-name {
+  flex: 1;
+  color: var(--on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-file-size {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  flex-shrink: 0;
+}
+
+.attachment-file-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--on-surface-variant);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-short);
+  flex-shrink: 0;
+}
+
+:root {
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+.attachment-file-remove:hover {
+  color: var(--error);
+  background-color: rgba(186, 26, 26, 0.08);
+}
+
+.attachment-file-remove .material-symbols-outlined {
+  font-size: 16px;
 }
 
 /* ============================================

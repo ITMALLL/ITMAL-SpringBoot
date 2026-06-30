@@ -5,8 +5,18 @@
 <mapper namespace="com.itmal.auth.repository.UserMapper">
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO users (email, password, nickname, native_language, role, email_verified)
-        VALUES (#{email}, #{password}, #{nickname}, #{nativeLanguage}, #{role}, #{emailVerified})
+        INSERT INTO users (email, nickname, role, email_verified
+            <if test="password != null">, password</if>
+            <if test="nativeLanguage != null">, native_language</if>
+            <if test="provider != null">, provider</if>
+            <if test="providerId != null">, provider_id</if>
+        )
+        VALUES (#{email}, #{nickname}, #{role}, #{emailVerified}
+            <if test="password != null">, #{password}</if>
+            <if test="nativeLanguage != null">, #{nativeLanguage}</if>
+            <if test="provider != null">, #{provider}</if>
+            <if test="providerId != null">, #{providerId}</if>
+        )
     </insert>
 
     <select id="findByEmail" resultType="com.itmal.auth.domain.User">
@@ -14,5 +24,54 @@
         FROM users
         WHERE email = #{email}
     </select>
+
+    <select id="findById" resultType="com.itmal.auth.domain.User">
+        SELECT *
+        FROM users
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="findByProviderAndProviderId" resultType="com.itmal.auth.domain.User">
+        SELECT *
+        FROM users
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
+    </select>
+
+    <update id="updateProvider">
+        UPDATE users
+        SET provider = #{provider}, provider_id = #{providerId}
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="existsByEmail" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM users
+        WHERE email = #{email}
+    </select>
+
+    <select id="existsByNickname" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM users
+        WHERE nickname = #{nickname}
+    </select>
+
+    <update id="updateProfile">
+        UPDATE users
+        SET nickname = #{nickname}, native_language = #{nativeLanguage}
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE users
+        SET password = #{password}
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="softDelete">
+        UPDATE users
+        SET deleted_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
 
 </mapper>

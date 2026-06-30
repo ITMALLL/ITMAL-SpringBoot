@@ -6,6 +6,13 @@
    레이아웃 구조
    ============================================ */
 
+.chat-body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .chat-container {
   display: flex;
   height: calc(100vh - 64px);
@@ -28,6 +35,25 @@
   flex-direction: column;
   background-color: var(--surface-container-lowest);
 }
+
+/* ============================================
+   초기 상태
+   ============================================ */
+
+#chatMain {
+  display: none;
+}
+
+#noChat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface-variant);
+}
+
+/* ============================================
+   채팅 헤더
+   ============================================ */
 
 .chat-header {
   height: 64px;
@@ -108,6 +134,12 @@
   gap: 8px;
 }
 
+.chat-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--outline-variant);
+}
+
 .chat-action-btn {
   width: 32px;
   height: 32px;
@@ -135,6 +167,7 @@
   font-size: 12px;
   font-weight: 600;
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .btn-leave:hover {
@@ -176,6 +209,7 @@
 }
 
 .chat-list-search input:focus {
+  outline: none;
   box-shadow: 0 0 0 2px rgba(0, 88, 190, 0.1);
 }
 
@@ -196,6 +230,8 @@
   display: flex;
   gap: 8px;
   padding: 0 16px 16px;
+  margin-top: 16px;
+  margin-bottom: 12px;
 }
 
 .chat-tab-btn {
@@ -207,11 +243,30 @@
   font-weight: 600;
   transition: all 0.2s ease;
   color: var(--on-surface-variant);
+  cursor: pointer;
 }
 
 .chat-tab-btn.active {
   background-color: var(--secondary-container);
   color: var(--on-secondary-container);
+}
+
+.chat-request-section {
+  padding: 0;
+  border-bottom: 2px solid var(--primary);
+}
+
+.chat-section-header {
+  padding: 12px 16px;
+  background: var(--surface-dim);
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.chat-request-container {
+  padding: 8px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .chat-list {
@@ -340,6 +395,80 @@
 }
 
 /* ============================================
+   채팅 요청함
+   ============================================ */
+
+.chat-request-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--outline-variant);
+  gap: 8px;
+}
+
+.chat-request-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-request-sender {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.chat-request-message {
+  margin: 0;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-request-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-accept {
+  padding: 4px 10px;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.btn-accept:hover {
+  opacity: 0.85;
+}
+
+.btn-reject {
+  padding: 4px 10px;
+  background-color: transparent;
+  color: var(--error);
+  border: 1px solid rgba(186, 26, 26, 0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-reject:hover {
+  background-color: rgba(186, 26, 26, 0.05);
+}
+
+/* ============================================
    메시지 영역
    ============================================ */
 
@@ -399,6 +528,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
 }
 
 .message-bubble {
@@ -426,6 +556,38 @@
   color: var(--on-surface-variant);
   opacity: 0.6;
   padding: 0 4px;
+}
+
+.translate-btn {
+  font-size: 11px;
+  color: var(--on-surface-variant);
+  background: none;
+  border: 1px solid var(--outline-variant);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+.translate-btn:hover {
+  background: var(--surface-container);
+}
+.translate-error {
+  font-size: 11px;
+  color: #e53e3e;
+  position: absolute;
+  bottom: -18px;
+  left: 0;
+  white-space: nowrap;
+}
+
+.read-indicator {
+  font-size: 10px;
+  color: var(--primary);
+  font-weight: 700;
+  align-self: flex-end;
+  margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .message-status {
@@ -460,6 +622,7 @@
   padding: 16px 24px;
   background-color: var(--surface-container-lowest);
   border-top: 1px solid var(--outline-variant);
+  position: relative;
 }
 
 .message-input-wrapper {
@@ -474,10 +637,16 @@
   border-radius: 16px;
   padding: 8px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
   transition: all 0.2s ease;
   max-height: 200px;
+  align-items: center;
+}
+
+.message-input {
+  flex: 1;
+  width: 100%;
 }
 
 .input-container:focus-within {
@@ -494,17 +663,23 @@ textarea.message-input {
   padding: 8px 16px;
   max-height: 128px;
   overflow-y: auto;
+  font-family: 'Noto Sans KR', sans-serif;
 }
 
 textarea.message-input::placeholder {
   color: var(--on-surface-variant);
 }
 
+textarea.message-input:focus {
+  outline: none;
+}
+
 .input-actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  padding: 0 8px 8px;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .input-tools {
@@ -614,5 +789,20 @@ textarea.message-input::placeholder {
 
   .message-input-area {
     padding: 12px 16px;
+  }
+}
+
+/* ============================================
+   애니메이션
+   ============================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
