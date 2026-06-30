@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 public class ChatRequestDto {
     //기본 채팅 요청 pk 아이디
     private Long chatRequestId;
-    @NotNull(message = "요청자 ID는 필수입니다.")
     private Long requesterId;
 
     @NotNull(message = "응답자 ID는 필수입니다.")
