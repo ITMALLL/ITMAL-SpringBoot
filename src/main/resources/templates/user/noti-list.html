@@ -1,297 +1,194 @@
 <!doctype html>
-<html lang="ko">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ITMAL - Notifications</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-      rel="stylesheet"
-    />
+    <title>ITMAL - 알림</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/header.css" />
     <link rel="stylesheet" href="/css/footer.css" />
-    <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/notifications.css" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
   </head>
   <body>
   <div th:replace="~{fragments/header :: header}"></div>
 
-  <!-- Main Content -->
-    <main class="notifications-main">
-      <div class="notifications-container">
-        <!-- Sidebar -->
-        <aside class="notifications-sidebar">
-          <div class="sidebar-section">
-            <h3 class="sidebar-title">알림 필터</h3>
+  <main class="notifications-main">
+    <div class="notifications-container">
 
-            <div class="filter-group">
-              <label class="filter-item">
-                <input type="checkbox" checked />
-                <span class="filter-label">
-                  <span class="material-symbols-outlined">check_circle</span>
-                  전체 (28)
-                </span>
-              </label>
-              <label class="filter-item">
-                <input type="checkbox" />
-                <span class="filter-label">
-                  <span class="material-symbols-outlined">help</span>
-                  답변 (8)
-                </span>
-              </label>
-              <label class="filter-item">
-                <input type="checkbox" />
-                <span class="filter-label">
-                  <span class="material-symbols-outlined">chat_bubble</span>
-                  댓글 (5)
-                </span>
-              </label>
-              <label class="filter-item">
-                <input type="checkbox" />
-                <span class="filter-label">
-                  <span class="material-symbols-outlined">favorite</span>
-                  추천 (10)
-                </span>
-              </label>
-              <label class="filter-item">
-                <input type="checkbox" />
-                <span class="filter-label">
-                  <span class="material-symbols-outlined">info</span>
-                  시스템 (5)
-                </span>
-              </label>
+      <!-- 왼쪽 사이드바 -->
+      <aside class="notifications-sidebar">
+        <div class="sidebar-section">
+          <span class="sidebar-title">알림 필터</span>
+          <div class="filter-group">
+            <label class="filter-item">
+              <input type="radio" name="filter" value="all" checked />
+              <span class="filter-label">
+                <span class="material-symbols-outlined">notifications</span>
+                전체 알림
+              </span>
+            </label>
+            <label class="filter-item">
+              <input type="radio" name="filter" value="unread" />
+              <span class="filter-label">
+                <span class="material-symbols-outlined">mark_email_unread</span>
+                미확인 알림
+              </span>
+            </label>
+            <label class="filter-item">
+              <input type="radio" name="filter" value="read" />
+              <span class="filter-label">
+                <span class="material-symbols-outlined">mark_email_read</span>
+                확인한 알림
+              </span>
+            </label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 오른쪽 본문 -->
+      <section class="notifications-content">
+        <div class="content-header">
+          <h1 class="content-title">알림</h1>
+          <button class="btn btn-outline btn-sm" onclick="markAllAsRead()">
+            <span class="material-symbols-outlined">done_all</span>
+            모두 읽음 표시
+          </button>
+        </div>
+
+        <div class="notifications-list">
+          <p id="empty-msg" style="display:none; text-align:center; padding: 2rem; color: #888;">
+            알림이 없습니다.
+          </p>
+
+          <th:block th:if="${notifications == null or #lists.isEmpty(notifications)}">
+            <p style="text-align:center; padding: 2rem; color: #888;">알림이 없습니다.</p>
+          </th:block>
+
+          <article th:each="n : ${notifications}"
+                   th:class="${n.isRead} ? 'notification-item read' : 'notification-item unread'"
+                   th:data-id="${n.notificationId}"
+                   th:data-question-id="${n.questionId}">
+            <div th:class="${n.targetType == 'COMMENT'} ? 'notification-avatar secondary' : 'notification-avatar'">
+              <span class="material-symbols-outlined"
+                    th:text="${n.targetType == 'COMMENT'} ? 'chat_bubble' : 'check_circle'"></span>
             </div>
-          </div>
-
-          <div class="sidebar-section">
-            <h3 class="sidebar-title">알림 상태</h3>
-
-            <div class="filter-group">
-              <label class="filter-item">
-                <input type="radio" name="read-status" checked />
-                <span class="filter-label">모두</span>
-              </label>
-              <label class="filter-item">
-                <input type="radio" name="read-status" />
-                <span class="filter-label">
-                  <span class="unread-dot"></span>
-                  읽지 않음 (3)
-                </span>
-              </label>
-              <label class="filter-item">
-                <input type="radio" name="read-status" />
-                <span class="filter-label">읽음</span>
-              </label>
+            <div class="notification-content">
+              <div class="notification-header">
+                <h3 class="notification-title">
+                  <span th:if="${n.targetType == 'ANSWER'}"><strong th:text="${n.questionTitle}"></strong> 글에 답변이 달렸습니다</span>
+                  <span th:if="${n.targetType == 'COMMENT'}"><strong th:text="${n.questionTitle}"></strong> 글에 댓글이 달렸습니다</span>
+                </h3>
+                <time class="notification-time"
+                      th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd HH:mm')}"></time>
+              </div>
+              <p class="notification-body" th:if="${n.answerContent != null}" th:text="${n.answerContent}"></p>
+              <p class="notification-body" th:if="${n.comment != null}" th:text="${n.comment}"></p>
             </div>
-          </div>
-
-          <div class="sidebar-section">
-            <button class="btn btn-outline btn-sm" onclick="markAllAsRead()">
-              <span class="material-symbols-outlined">done_all</span>
-              모두 읽음 표시
+            <button class="btn-read" aria-label="읽음 처리" onclick="markAsRead(this)">
+              <span class="material-symbols-outlined">check</span>
             </button>
-          </div>
-        </aside>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
 
-        <!-- Notifications Content -->
-        <section class="notifications-content">
-          <div class="content-header">
-            <h1 class="content-title">알림</h1>
-            <button class="btn btn-outline btn-sm">
-              <span class="material-symbols-outlined">delete</span>
-              전체 삭제
-            </button>
-          </div>
-
-          <div class="notifications-list">
-            <!-- Notification Item 1 - Answer -->
-            <article class="notification-item unread">
-              <div class="notification-avatar">
-                <span class="material-symbols-outlined">check_circle</span>
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3 class="notification-title">Tom이 답변을 달았습니다</h3>
-                  <time class="notification-time">방금 전</time>
-                </div>
-                <p class="notification-text">
-                  "I'm looking forward to seeing you" 질문에 대한 답변입니다.
-                </p>
-                <p class="notification-question">
-                  <span class="question-icon">Q.</span>
-                  "I'm looking forward to seeing you"와 "I look forward to see
-                  you"의 차이가 무엇인가요?
-                </p>
-              </div>
-              <button class="btn btn-text btn-sm" aria-label="알림 삭제">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </article>
-
-            <!-- Notification Item 2 - Comment -->
-            <article class="notification-item unread">
-              <div class="notification-avatar secondary">
-                <span class="material-symbols-outlined">chat_bubble</span>
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3 class="notification-title">이수연이 댓글을 달았습니다</h3>
-                  <time class="notification-time">2시간 전</time>
-                </div>
-                <p class="notification-text">
-                  당신의 답변에 댓글이 달렸습니다.
-                </p>
-                <p class="notification-comment">
-                  좋은 설명입니다! 더 자세히 알려주실 수 있나요?
-                </p>
-              </div>
-              <button class="btn btn-text btn-sm">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </article>
-
-            <!-- Notification Item 3 - Like -->
-            <article class="notification-item unread">
-              <div class="notification-avatar tertiary">
-                <span class="material-symbols-outlined">favorite</span>
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3 class="notification-title">
-                    3명이 당신의 답변을 추천했습니다
-                  </h3>
-                  <time class="notification-time">5시간 전</time>
-                </div>
-                <p class="notification-text">
-                  "However" vs "But" 답변이 3명에게 추천받았습니다.
-                </p>
-              </div>
-              <button class="btn btn-text btn-sm">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </article>
-
-            <!-- Notification Item 4 - Answer -->
-            <article class="notification-item">
-              <div class="notification-avatar">
-                <span class="material-symbols-outlined">check_circle</span>
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3 class="notification-title">
-                    Michael이 답변을 달았습니다
-                  </h3>
-                  <time class="notification-time">어제</time>
-                </div>
-                <p class="notification-text">
-                  "Have been to" vs "Have gone to" 질문에 대한 답변입니다.
-                </p>
-                <p class="notification-question">
-                  <span class="question-icon">Q.</span>
-                  "Have been to"와 "Have gone to"의 정확한 차이를 알려주세요
-                </p>
-              </div>
-              <button class="btn btn-text btn-sm">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </article>
-
-            <!-- Notification Item 5 - System -->
-            <article class="notification-item">
-              <div class="notification-avatar system">
-                <span class="material-symbols-outlined">info</span>
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3 class="notification-title">잇말 알림</h3>
-                  <time class="notification-time">2024년 6월 1일</time>
-                </div>
-                <p class="notification-text">
-                  새로운 기능이 추가되었습니다. 이제 실시간으로 답변 알림을 받을
-                  수 있습니다.
-                </p>
-              </div>
-              <button class="btn btn-text btn-sm">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </article>
-
-            <!-- Notification Item 6 - Comment -->
-            <article class="notification-item">
-              <div class="notification-avatar secondary">
-                <span class="material-symbols-outlined">chat_bubble</span>
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3 class="notification-title">Mark가 댓글을 달았습니다</h3>
-                  <time class="notification-time">2024년 5월 30일</time>
-                </div>
-                <p class="notification-text">
-                  당신의 질문에 댓글이 달렸습니다.
-                </p>
-                <p class="notification-comment">
-                  혹시 원어민들이 실제로 이런 표현을 쓰나요?
-                </p>
-              </div>
-              <button class="btn btn-text btn-sm">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </article>
-
-            <!-- Notification Item 7 - Like -->
-            <article class="notification-item">
-              <div class="notification-avatar tertiary">
-                <span class="material-symbols-outlined">favorite</span>
-              </div>
-              <div class="notification-content">
-                <div class="notification-header">
-                  <h3 class="notification-title">
-                    5명이 당신의 댓글을 추천했습니다
-                  </h3>
-                  <time class="notification-time">2024년 5월 28일</time>
-                </div>
-                <p class="notification-text">댓글이 5명에게 추천받았습니다.</p>
-              </div>
-              <button class="btn btn-text btn-sm">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </article>
-          </div>
-        </section>
-      </div>
-    </main>
   <div th:replace="~{fragments/footer :: footer}"></div>
 
-    <script>
-      function markAllAsRead() {
-        document
-          .querySelectorAll(".notification-item.unread")
-          .forEach((item) => {
-            item.classList.remove("unread");
-          });
-      }
+  <script>
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-      // Click on notification to mark as read
-      document.querySelectorAll(".notification-item").forEach((item) => {
-        item.addEventListener("click", (e) => {
-          if (!e.target.closest(".btn")) {
-            item.classList.remove("unread");
+    async function putRequest(url) {
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: { [csrfHeader]: csrfToken }
+      });
+      if (!res.ok) throw new Error('요청 실패: ' + res.status);
+      return res;
+    }
+
+    function applyCurrentFilter() {
+      const value = document.querySelector('input[name="filter"]:checked')?.value ?? 'all';
+      document.querySelectorAll('.notification-item').forEach(item => {
+        if (value === 'all') {
+          item.style.display = 'flex';
+        } else if (value === 'unread') {
+          item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+        } else {
+          item.style.display = item.classList.contains('read') ? 'flex' : 'none';
+        }
+      });
+      updateEmptyState();
+    }
+
+    document.querySelectorAll('input[name="filter"]').forEach(radio => {
+      radio.addEventListener('change', e => {
+        const value = e.target.value;
+        document.querySelectorAll('.notification-item').forEach(item => {
+          if (value === 'all') {
+            item.style.display = 'flex';
+          } else if (value === 'unread') {
+            item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+          } else {
+            item.style.display = item.classList.contains('read') ? 'flex' : 'none';
           }
         });
+        updateEmptyState();
       });
+    });
 
-      // Remove notification
-      document
-        .querySelectorAll(".notification-item .btn")
-        .forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            e.currentTarget.closest(".notification-item").remove();
-          });
+    function updateEmptyState() {
+      const visible = [...document.querySelectorAll('.notification-item')]
+        .filter(item => item.style.display !== 'none');
+      document.getElementById('empty-msg').style.display = visible.length === 0 ? 'block' : 'none';
+    }
+
+    function refreshBadge() {
+      fetch('/api/notifications/unread-count')
+        .then(res => res.json())
+        .then(count => { if (typeof updateBadge === 'function') updateBadge(count); })
+        .catch(() => {});
+    }
+
+    async function markAllAsRead() {
+      try {
+        await putRequest('/api/notifications/read-all');
+        document.querySelectorAll('.notification-item.unread').forEach(item => {
+          item.classList.remove('unread');
+          item.classList.add('read');
         });
-    </script>
+        refreshBadge();
+        applyCurrentFilter();
+      } catch (e) {}
+    }
+
+    async function markAsRead(btn) {
+      const item = btn.closest('.notification-item');
+      if (!item.classList.contains('unread')) return;
+      const id = item.dataset.id;
+      try {
+        await putRequest(`/api/notifications/${id}/read`);
+        item.classList.remove('unread');
+        item.classList.add('read');
+        refreshBadge();
+        applyCurrentFilter();
+      } catch (e) {}
+    }
+
+    document.querySelectorAll('.notification-item').forEach(item => {
+      item.addEventListener('click', e => {
+        if (e.target.closest('.btn-read')) return;
+        const questionId = item.dataset.questionId;
+        if (questionId) {
+          window.location.href = `/questions/${questionId}`;
+        }
+      });
+    });
+  </script>
   </body>
 </html>

@@ -115,14 +115,14 @@
 
 .hero-buttons {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  flex-direction: row;
+  gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .hero-buttons > button {
-  padding: 16px 32px;
+  padding: 16px 20px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 700;
@@ -130,8 +130,6 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  max-width: 200px;
-  margin: 0 auto;
 }
 
 .btn-hero-primary {
