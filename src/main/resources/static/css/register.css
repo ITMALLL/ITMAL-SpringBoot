@@ -1,0 +1,464 @@
+/* ============================================
+   REGISTER - 회원가입 페이지 스타일
+   ============================================ */
+
+.register-body {
+  background: linear-gradient(
+    135deg,
+    var(--primary-fixed) 0%,
+    rgba(173, 198, 255, 0.4) 100%
+  );
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.register-container {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+/* ============================================
+   LOGO SECTION
+   ============================================ */
+
+.register-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.register-logo {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0 0 4px 0;
+  letter-spacing: -1px;
+}
+
+.register-tagline {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   REGISTER CARD
+   ============================================ */
+
+.register-card {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  padding: 32px 24px;
+  width: 100%;
+  box-shadow: 0 8px 24px rgba(0, 88, 190, 0.1);
+}
+
+/* ============================================
+   WELCOME SECTION
+   ============================================ */
+
+.register-welcome {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.register-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--on-surface);
+  margin: 0 0 8px 0;
+}
+
+.register-subtitle {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   REGISTER FORM
+   ============================================ */
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--on-surface);
+  display: block;
+}
+
+.required {
+  color: var(--error);
+  margin-left: 2px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  padding-right: 40px;
+  font-size: 14px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-container-low);
+  color: var(--on-surface);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  transition: all var(--transition-short);
+}
+
+.form-input::placeholder {
+  color: var(--on-surface-variant);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: var(--surface-container-lowest);
+  box-shadow: 0 0 0 3px rgba(0, 88, 190, 0.1);
+}
+
+.form-input:read-only {
+  background-color: var(--surface-container);
+  color: var(--on-surface-variant);
+  cursor: not-allowed;
+}
+
+.form-select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-container-low);
+  color: var(--on-surface);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23727785' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+  transition: all var(--transition-short);
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: var(--surface-container-lowest);
+  box-shadow: 0 0 0 3px rgba(0, 88, 190, 0.1);
+}
+
+.input-icon-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-short);
+  padding: 8px;
+}
+
+.input-icon-btn:hover {
+  color: var(--on-surface);
+}
+
+.input-icon-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* ============================================
+   EMAIL ROW
+   ============================================ */
+
+.email-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.email-row .form-input {
+  flex: 1;
+  padding: 10px 14px;
+}
+
+.btn-send {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   VERIFY SECTION
+   ============================================ */
+
+.verify-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.verify-row .form-input {
+  flex: 1;
+  padding: 10px 14px;
+}
+
+.timer {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--error);
+  white-space: nowrap;
+  padding: 10px 0;
+  min-width: 36px;
+  text-align: center;
+}
+
+.verified-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #16a34a;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.verified-badge .material-symbols-outlined {
+  font-size: 18px;
+  color: #16a34a;
+}
+
+/* ============================================
+   LANGUAGE CHIPS
+   ============================================ */
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.lang-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 1.5px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-container-low);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+  transition: all var(--transition-short);
+  user-select: none;
+}
+
+.lang-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.lang-chip-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lang-chip:has(input:checked),
+.lang-chip.selected {
+  border-color: var(--primary);
+  background-color: var(--primary-fixed);
+  color: var(--on-primary-fixed-variant);
+  font-weight: 600;
+}
+
+.lang-chip:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.lang-chip span:first-child {
+  font-size: 20px;
+}
+
+/* ============================================
+   REGISTER BUTTON
+   ============================================ */
+
+.btn-register {
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 12px;
+  width: 100%;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.register-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.register-footer p {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+
+.login-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--transition-short);
+}
+
+.login-link:hover {
+  color: var(--primary-container);
+  text-decoration: underline;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 480px) {
+  .register-body {
+    padding: 12px;
+  }
+
+  .register-container {
+    gap: 12px;
+  }
+
+  .register-logo {
+    font-size: 28px;
+  }
+
+  .register-card {
+    padding: 24px 16px;
+    border-radius: var(--radius-lg);
+  }
+
+  .register-title {
+    font-size: 20px;
+  }
+
+  .register-subtitle {
+    font-size: 12px;
+  }
+
+  .register-form {
+    gap: 16px;
+  }
+
+  .form-input {
+    padding: 10px 12px;
+    padding-right: 36px;
+    font-size: 13px;
+  }
+
+  .input-icon-btn {
+    right: 10px;
+    padding: 6px;
+  }
+
+  .input-icon-btn .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  .email-row,
+  .verify-row {
+    gap: 6px;
+  }
+
+  .btn-send {
+    padding: 9px 12px;
+    font-size: 11px;
+  }
+
+  .lang-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .lang-chip {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+
+  .lang-chip span:first-child {
+    font-size: 18px;
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-card {
+  animation: slideUp var(--transition-standard);
+}
+
+.error-message {
+  background-color: var(--error-container);
+  color: var(--on-error-container);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}

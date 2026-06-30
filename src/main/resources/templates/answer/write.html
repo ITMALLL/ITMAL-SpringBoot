@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>잇말 - 답변 등록</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/answer-write.css" />
+  </head>
+  <body>
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <!-- Main Content -->
+    <main class="answer-write-main">
+      <div class="answer-write-container">
+        <!-- Back Link -->
+        <a href="#" class="back-link">
+          <span class="material-symbols-outlined">arrow_back</span>
+          질문으로 돌아가기
+        </a>
+
+        <!-- Question Preview Card -->
+        <div class="question-preview">
+          <div class="preview-header">
+            <span class="preview-icon">
+              <span class="material-symbols-outlined">help</span>
+            </span>
+            <span class="preview-label">답변 중인 질문</span>
+          </div>
+          <h2 class="preview-title">
+            "I'm good" vs "I'm well" — 실제로 어떻게 달라요?
+          </h2>
+        </div>
+
+        <!-- Best Answer Tips -->
+        <div class="best-answer-tips">
+          <span class="tips-icon">
+            <span class="material-symbols-outlined">lightbulb</span>
+          </span>
+          <p class="tips-text">
+            모국어 화자라면 더욱 정확한 답변을 드릴 수 있어요! 경험이나 예시를
+            함께 적어주시면 질문자에게 큰 도움이 됩니다.
+          </p>
+        </div>
+
+        <!-- Answer Form -->
+        <div class="answer-form-card">
+          <div class="form-header">
+            <span class="form-icon">
+              <span class="material-symbols-outlined">edit</span>
+            </span>
+            <h3 class="form-title">답변 등록</h3>
+          </div>
+
+          <form class="answer-form" onsubmit="handleSubmit(event)">
+            <!-- Answer Content -->
+            <div class="form-group">
+              <label for="answer-content" class="form-label"
+                >답변 내용 <span class="required">*</span></label
+              >
+              <textarea
+                id="answer-content"
+                class="answer-textarea"
+                placeholder="답변을 입력해주세요."
+                maxlength="3000"
+                required
+              ></textarea>
+              <div class="char-counter">
+                <span id="char-count">0</span> / 3,000자
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline">취소</button>
+              <button type="submit" class="btn btn-primary">답변 등록</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+      // 글자 수 카운터
+      const textarea = document.getElementById("answer-content");
+      const charCount = document.getElementById("char-count");
+
+      textarea.addEventListener("input", () => {
+        charCount.textContent = textarea.value.length;
+      });
+
+      // 취소 버튼
+      document.querySelector(".btn-outline").addEventListener("click", () => {
+        if (textarea.value.trim()) {
+          if (confirm("작성 중인 내용이 있습니다. 정말 취소하시겠어요?")) {
+            history.back();
+          }
+        } else {
+          history.back();
+        }
+      });
+
+      // 폼 제출
+      function handleSubmit(event) {
+        event.preventDefault();
+        const content = textarea.value.trim();
+
+        if (!content) {
+          alert("답변 내용을 입력해주세요.");
+          return;
+        }
+
+        console.log("Answer submitted:", { content });
+        // 실제 제출 로직은 여기에 추가
+        alert("답변이 등록되었습니다!");
+        history.back();
+      }
+    </script>
+  </body>
+</html>

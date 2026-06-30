@@ -71,6 +71,9 @@ local.properties
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
+# IntelliJ IDEA
+.idea/
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
@@ -88,6 +91,7 @@ local.properties
 .idea/**/dataSources/
 .idea/**/dataSources.ids
 .idea/**/dataSources.local.xml
+.idea/**/dataSources.xml
 .idea/**/sqlDataSources.xml
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
@@ -206,6 +210,9 @@ fabric.properties
 hs_err_pid*
 replay_pid*
 
+# 업로드된 첨부파일
+questionUploads/
+
 ### Maven ###
 target/
 pom.xml.tag
@@ -228,5 +235,7 @@ buildNumber.properties
 # Project Custom
 src/main/resources/application-local.properties
 src/main/resources/application-prod.properties
+src/test/resources/application.properties
 .env
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,intellij,maven
+/.idea/inspectionProfiles/Project_Default.xml

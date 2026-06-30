@@ -1,0 +1,194 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ITMAL - 알림</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link rel="stylesheet" href="/css/notifications.css" />
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  </head>
+  <body>
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <main class="notifications-main">
+    <div class="notifications-container">
+
+      <!-- 왼쪽 사이드바 -->
+      <aside class="notifications-sidebar">
+        <div class="sidebar-section">
+          <span class="sidebar-title">알림 필터</span>
+          <div class="filter-group">
+            <label class="filter-item">
+              <input type="radio" name="filter" value="all" checked />
+              <span class="filter-label">
+                <span class="material-symbols-outlined">notifications</span>
+                전체 알림
+              </span>
+            </label>
+            <label class="filter-item">
+              <input type="radio" name="filter" value="unread" />
+              <span class="filter-label">
+                <span class="material-symbols-outlined">mark_email_unread</span>
+                미확인 알림
+              </span>
+            </label>
+            <label class="filter-item">
+              <input type="radio" name="filter" value="read" />
+              <span class="filter-label">
+                <span class="material-symbols-outlined">mark_email_read</span>
+                확인한 알림
+              </span>
+            </label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 오른쪽 본문 -->
+      <section class="notifications-content">
+        <div class="content-header">
+          <h1 class="content-title">알림</h1>
+          <button class="btn btn-outline btn-sm" onclick="markAllAsRead()">
+            <span class="material-symbols-outlined">done_all</span>
+            모두 읽음 표시
+          </button>
+        </div>
+
+        <div class="notifications-list">
+          <p id="empty-msg" style="display:none; text-align:center; padding: 2rem; color: #888;">
+            알림이 없습니다.
+          </p>
+
+          <th:block th:if="${notifications == null or #lists.isEmpty(notifications)}">
+            <p style="text-align:center; padding: 2rem; color: #888;">알림이 없습니다.</p>
+          </th:block>
+
+          <article th:each="n : ${notifications}"
+                   th:class="${n.isRead} ? 'notification-item read' : 'notification-item unread'"
+                   th:data-id="${n.notificationId}"
+                   th:data-question-id="${n.questionId}">
+            <div th:class="${n.targetType == 'COMMENT'} ? 'notification-avatar secondary' : 'notification-avatar'">
+              <span class="material-symbols-outlined"
+                    th:text="${n.targetType == 'COMMENT'} ? 'chat_bubble' : 'check_circle'"></span>
+            </div>
+            <div class="notification-content">
+              <div class="notification-header">
+                <h3 class="notification-title">
+                  <span th:if="${n.targetType == 'ANSWER'}"><strong th:text="${n.questionTitle}"></strong> 글에 답변이 달렸습니다</span>
+                  <span th:if="${n.targetType == 'COMMENT'}"><strong th:text="${n.questionTitle}"></strong> 글에 댓글이 달렸습니다</span>
+                </h3>
+                <time class="notification-time"
+                      th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd HH:mm')}"></time>
+              </div>
+              <p class="notification-body" th:if="${n.answerContent != null}" th:text="${n.answerContent}"></p>
+              <p class="notification-body" th:if="${n.comment != null}" th:text="${n.comment}"></p>
+            </div>
+            <button class="btn-read" aria-label="읽음 처리" onclick="markAsRead(this)">
+              <span class="material-symbols-outlined">check</span>
+            </button>
+          </article>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script>
+    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+    async function putRequest(url) {
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: { [csrfHeader]: csrfToken }
+      });
+      if (!res.ok) throw new Error('요청 실패: ' + res.status);
+      return res;
+    }
+
+    function applyCurrentFilter() {
+      const value = document.querySelector('input[name="filter"]:checked')?.value ?? 'all';
+      document.querySelectorAll('.notification-item').forEach(item => {
+        if (value === 'all') {
+          item.style.display = 'flex';
+        } else if (value === 'unread') {
+          item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+        } else {
+          item.style.display = item.classList.contains('read') ? 'flex' : 'none';
+        }
+      });
+      updateEmptyState();
+    }
+
+    document.querySelectorAll('input[name="filter"]').forEach(radio => {
+      radio.addEventListener('change', e => {
+        const value = e.target.value;
+        document.querySelectorAll('.notification-item').forEach(item => {
+          if (value === 'all') {
+            item.style.display = 'flex';
+          } else if (value === 'unread') {
+            item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+          } else {
+            item.style.display = item.classList.contains('read') ? 'flex' : 'none';
+          }
+        });
+        updateEmptyState();
+      });
+    });
+
+    function updateEmptyState() {
+      const visible = [...document.querySelectorAll('.notification-item')]
+        .filter(item => item.style.display !== 'none');
+      document.getElementById('empty-msg').style.display = visible.length === 0 ? 'block' : 'none';
+    }
+
+    function refreshBadge() {
+      fetch('/api/notifications/unread-count')
+        .then(res => res.json())
+        .then(count => { if (typeof updateBadge === 'function') updateBadge(count); })
+        .catch(() => {});
+    }
+
+    async function markAllAsRead() {
+      try {
+        await putRequest('/api/notifications/read-all');
+        document.querySelectorAll('.notification-item.unread').forEach(item => {
+          item.classList.remove('unread');
+          item.classList.add('read');
+        });
+        refreshBadge();
+        applyCurrentFilter();
+      } catch (e) {}
+    }
+
+    async function markAsRead(btn) {
+      const item = btn.closest('.notification-item');
+      if (!item.classList.contains('unread')) return;
+      const id = item.dataset.id;
+      try {
+        await putRequest(`/api/notifications/${id}/read`);
+        item.classList.remove('unread');
+        item.classList.add('read');
+        refreshBadge();
+        applyCurrentFilter();
+      } catch (e) {}
+    }
+
+    document.querySelectorAll('.notification-item').forEach(item => {
+      item.addEventListener('click', e => {
+        if (e.target.closest('.btn-read')) return;
+        const questionId = item.dataset.questionId;
+        if (questionId) {
+          window.location.href = `/questions/${questionId}`;
+        }
+      });
+    });
+  </script>
+  </body>
+</html>

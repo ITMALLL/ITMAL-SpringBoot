@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>잇말 - 개인정보처리방침</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/header.css"/>
+  <link rel="stylesheet" href="/css/footer.css"/>
+  <link rel="stylesheet" href="/css/common.css"/>
+  <style>
+    .policy-container { max-width: 800px; margin: 60px auto; padding: 0 24px 80px; }
+    .policy-title { font-size: 28px; font-weight: 700; color: var(--on-surface); margin-bottom: 8px; }
+    .policy-date { font-size: 13px; color: var(--on-surface-variant); margin-bottom: 40px; }
+    .policy-section { margin-bottom: 36px; }
+    .policy-section h2 { font-size: 18px; font-weight: 600; color: var(--on-surface); margin-bottom: 12px; }
+    .policy-section p, .policy-section li { font-size: 14px; line-height: 1.8; color: var(--on-surface-variant); }
+    .policy-section ul { padding-left: 20px; }
+    .policy-table { width: 100%; border-collapse: collapse; font-size: 14px; color: var(--on-surface-variant); }
+    .policy-table th, .policy-table td { border: 1px solid var(--outline-variant); padding: 10px 14px; text-align: left; }
+    .policy-table th { background: var(--surface-container); font-weight: 600; }
+  </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="policy-container">
+  <h1 class="policy-title">개인정보처리방침</h1>
+  <p class="policy-date">시행일: 2026년 1월 1일</p>
+
+  <div class="policy-section">
+    <h2>1. 수집하는 개인정보 항목</h2>
+    <table class="policy-table">
+      <thead>
+        <tr><th>구분</th><th>수집 항목</th><th>수집 목적</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>회원가입</td><td>이메일, 닉네임, 비밀번호</td><td>서비스 이용 및 본인 확인</td></tr>
+        <tr><td>소셜 로그인</td><td>이메일, 닉네임, 프로필 사진</td><td>간편 로그인 및 회원 식별</td></tr>
+        <tr><td>서비스 이용</td><td>접속 로그, 채팅 내역, 질문/답변 내용</td><td>서비스 제공 및 개선</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="policy-section">
+    <h2>2. 개인정보 수집 및 이용 목적</h2>
+    <ul>
+      <li>회원 가입 및 본인 확인</li>
+      <li>서비스 제공 및 운영</li>
+      <li>서비스 개선 및 통계 분석</li>
+      <li>불법·부정 이용 방지</li>
+    </ul>
+  </div>
+
+  <div class="policy-section">
+    <h2>3. 개인정보 보유 및 이용 기간</h2>
+    <p>회원 탈퇴 시 즉시 삭제합니다. 단, 관련 법령에 따라 일정 기간 보관이 필요한 경우 해당 기간 동안 보관합니다.</p>
+    <ul>
+      <li>전자상거래 기록: 5년 (전자상거래법)</li>
+      <li>접속 로그: 3개월 (통신비밀보호법)</li>
+    </ul>
+  </div>
+
+  <div class="policy-section">
+    <h2>4. 개인정보의 제3자 제공</h2>
+    <p>서비스는 원칙적으로 회원의 개인정보를 제3자에게 제공하지 않습니다. 다만, 법령에 의한 경우 또는 회원의 동의가 있는 경우에는 예외로 합니다.</p>
+  </div>
+
+  <div class="policy-section">
+    <h2>5. 개인정보 보호책임자</h2>
+    <p>개인정보 처리에 관한 문의는 아래로 연락해 주세요.</p>
+    <ul>
+      <li>이메일: privacy@itmal.com</li>
+    </ul>
+  </div>
+
+  <div class="policy-section">
+    <h2>6. 권리 행사</h2>
+    <p>회원은 언제든지 자신의 개인정보를 조회, 수정, 삭제 요청할 수 있습니다. 마이페이지 또는 고객센터를 통해 요청하실 수 있습니다.</p>
+  </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

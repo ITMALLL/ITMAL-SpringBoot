@@ -1,0 +1,527 @@
+/* ============================================
+   질문 페이지 스타일 (Questions Page CSS)
+   ============================================ */
+
+/* ============================================
+   페이지 헤더
+   ============================================ */
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--on-surface);
+}
+
+.page-subtitle {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--on-surface-variant);
+  max-width: 56rem;
+}
+
+/* ============================================
+   검색 및 필터 영역
+   ============================================ */
+
+.search-filter-section {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.search-container {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.search-input-group {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 8px;
+  background-color: var(--surface-container-low);
+  font-size: 14px;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 88, 190, 0.1);
+}
+
+.search-input::placeholder {
+  color: var(--on-surface-variant);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  opacity: 0.6;
+}
+
+.sort-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  shrink: 0;
+}
+
+.sort-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  padding: 0 8px;
+}
+
+.sort-select {
+  padding: 8px 12px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 8px;
+  background-color: var(--surface-container-low);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ============================================
+   필터 버튼 그룹
+   ============================================ */
+
+.filter-groups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background-color: var(--surface-container-high);
+}
+
+.filter-btn.active {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+}
+
+.divider {
+  width: 1px;
+  height: 40px;
+  background-color: var(--outline-variant);
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .divider {
+    display: block;
+  }
+}
+
+/* ============================================
+   질문 목록
+   ============================================ */
+
+.questions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+/* ============================================
+   질문 카드
+   ============================================ */
+
+.question-list-card {
+  background-color: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.question-list-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background-color: var(--primary);
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    width 0.2s ease;
+}
+
+.question-list-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 88, 190, 0.3);
+}
+
+.question-list-card:hover::before {
+  width: 8px;
+  opacity: 1;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-tag {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tag-tutor-only {
+  background-color: var(--error-container);
+  color: var(--on-error-container);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag-language {
+  background-color: var(--primary-fixed);
+  color: var(--on-primary-fixed-variant);
+}
+
+.tag-category {
+  background-color: var(--surface-container-high);
+  color: var(--on-surface-variant);
+}
+
+.tag-status {
+  margin-left: auto;
+  background-color: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--on-surface);
+  transition: color 0.2s ease;
+}
+
+.question-list-card:hover .card-title {
+  color: var(--primary);
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+  flex-wrap: wrap;
+}
+
+.meta-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meta-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--surface-variant);
+  overflow: hidden;
+}
+
+.meta-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.meta-separator {
+  width: 1px;
+  height: 16px;
+  background-color: var(--outline-variant);
+}
+
+.meta-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-chevron {
+  display: none;
+  color: var(--on-surface-variant);
+  align-self: center;
+}
+
+@media (min-width: 768px) {
+  .card-chevron {
+    display: flex;
+  }
+}
+
+/* ============================================
+   페이지 상태 (Opacity 효과)
+   ============================================ */
+
+.question-list-card.resolved {
+  opacity: 0.8;
+}
+
+.question-list-card.resolved:hover {
+  opacity: 1;
+}
+
+/* ============================================
+   페이지네이션
+   ============================================ */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 48px;
+}
+
+.pagination-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--outline-variant);
+  background: none;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pagination-btn:hover {
+  background-color: var(--surface-container-low);
+}
+
+.pagination-btn.active {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   질문 작성 섹션
+   ============================================ */
+
+.write-question-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.write-question-info {
+  flex: 1;
+}
+
+.btn-write-question {
+  padding: 16px 24px;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 88, 190, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-write-question:hover {
+  box-shadow: 0 4px 12px rgba(0, 88, 190, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-write-question:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   반응형 디자인
+   ============================================ */
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 16px;
+  }
+
+  .search-filter-section {
+    padding: 16px;
+  }
+
+  .search-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .search-input-group {
+    min-width: 100%;
+  }
+
+  .sort-container {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-groups {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .divider {
+    display: none !important;
+  }
+
+  .question-list-card {
+    padding: 16px;
+    grid-template-columns: 1fr;
+  }
+
+  .card-tags {
+    flex-wrap: wrap;
+  }
+
+  .tag-status {
+    margin-left: 0;
+  }
+
+  .write-question-section {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .btn-write-question {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .card-meta {
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .meta-separator {
+    height: 12px;
+  }
+
+  .card-tags {
+    gap: 6px;
+  }
+
+  .card-tag {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+}
