@@ -19,6 +19,7 @@ public class NotificationController {
 
     @GetMapping("/sse")
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails){
+        if (userDetails == null) return null;
         return notificationService.subscribe(userDetails.getUserId());
     }
 

@@ -3,10 +3,9 @@ package com.itmal.mypage.controller;
 import com.itmal.answer.domain.Answer;
 import com.itmal.answer.service.AnswerService;
 import com.itmal.auth.domain.CustomUserDetails;
-import com.itmal.auth.domain.User;
-import com.itmal.auth.service.UserService;
 import com.itmal.comment.dto.CommentResponseDto;
 import com.itmal.comment.service.CommentService;
+import com.itmal.mypage.mapper.MypageMapper;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.service.QuestionService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,7 @@ public class MypageApiController {
     private final QuestionService questionService;
     private final AnswerService answerService;
     private final CommentService commentService;
-    private final UserService userService;
+    private final MypageMapper mypageMapper;
 
     @GetMapping("/questions")
     public List<QuestionDto> getQuestion(@AuthenticationPrincipal CustomUserDetails userDetails,
@@ -39,15 +38,38 @@ public class MypageApiController {
     public List<Answer> getAnswer(@AuthenticationPrincipal CustomUserDetails userDetails,
                                   @RequestParam(required = false) Long userId){
         Long targetId = (userId != null) ? userId : userDetails.getUserId();
-        return answerService.getAnswerByQuestionId(userDetails.getUserId());
+        return answerService.getAnswerByUserId(targetId);
     }
 
     @GetMapping("/comment")
     public List<CommentResponseDto> getMypageComment(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                      @RequestParam(required = false) Long userId){
         Long targetId = (userId != null) ? userId : userDetails.getUserId();
-        return commentService.getMypageComment(userDetails.getUserId());
+        return commentService.getMypageComment(targetId);
     }
+
+    @GetMapping("/countQuestions")
+    public int countQuestions(@AuthenticationPrincipal CustomUserDetails userDetails,
+                              @RequestParam(required = false) Long userId) {
+        Long targetId = (userId != null) ? userId : userDetails.getUserId();
+        return mypageMapper.countQuestionByUserId(targetId);
+    }
+
+    @GetMapping("/countAnswers")
+    public int countAnswers(@AuthenticationPrincipal CustomUserDetails userDetails,
+                            @RequestParam(required = false) Long userId) {
+        Long targetId = (userId != null) ? userId : userDetails.getUserId();
+        return mypageMapper.countAnswerByUserId(targetId);
+    }
+
+    @GetMapping("/countComments")
+    public int countComments(@AuthenticationPrincipal CustomUserDetails userDetails,
+                             @RequestParam(required = false) Long userId) {
+        Long targetId = (userId != null) ? userId : userDetails.getUserId();
+        return mypageMapper.countCommentByUserId(targetId);
+    }
+
+
 
 
 

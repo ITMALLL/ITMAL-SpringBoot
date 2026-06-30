@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="/css/footer.css" />
     <link rel="stylesheet" href="/css/mypage.css" />
     <link rel="stylesheet" href="/css/mypage-edit.css" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
   </head>
   <body>
   <div th:replace="~{fragments/header :: header}"></div>
@@ -34,11 +35,14 @@
             </div>
             <div class="profile-info">
               <h1 class="profile-name" th:text="${user.nickname}">닉네임</h1>
-              <p class="profile-email" th:text="${user.username}">이메일</p>
+              <p class="profile-email" th:text="${user.email != null ? user.email : user.username}">이메일</p>
             </div>
             <div class="profile-actions" th:if="${isMyPage}">
               <button type="button" class="btn btn-outline" onclick="openEditModal()">프로필 수정</button>
               <a href="/mypage/password" class="btn btn-outline" th:if="${!user.isSocialUser()}">비밀번호 변경</a>
+            </div>
+            <div class="profile-actions" th:if="${!isMyPage}">
+              <button type="button" class="btn btn-primary" onclick="requestChat()">1:1 채팅 신청</button>
             </div>
           </div>
 
@@ -68,15 +72,15 @@
           <div class="tabs-nav">
             <button class="tab-btn active" data-tab="questions">
               <span class="material-symbols-outlined">help</span>
-              내 질문
+              <span th:text="${isMyPage} ? '내 질문' : '질문'">내 질문</span>
             </button>
             <button class="tab-btn" data-tab="answers">
               <span class="material-symbols-outlined">check_circle</span>
-              내 답변
+              <span th:text="${isMyPage} ? '내 답변' : '답변'">내 답변</span>
             </button>
             <button class="tab-btn" data-tab="comments">
               <span class="material-symbols-outlined">chat_bubble</span>
-              내 댓글
+              <span th:text="${isMyPage} ? '내 댓글' : '댓글'">내 댓글</span>
             </button>
           </div>
 
@@ -86,9 +90,7 @@
               <div class="activity-list" id="questions-list"></div>
             </div>
             <div class="tab-pane" id="answers">
-              <div class="activity-list" id="answers-list">
-                <p style="text-align:center; padding:2rem; color:#888;">준비 중입니다.</p>
-              </div>
+              <div class="activity-list" id="answers-list"></div>
             </div>
             <div class="tab-pane" id="comments">
               <div class="activity-list" id="comments-list"></div>
@@ -182,13 +184,18 @@
     if (openModal) openEditModal();
   </script>
 
-  <script>
+  <script th:inline="javascript">
     // 닉네임 기반 아바타 색상
     const colors = ['#5C6BC0','#26A69A','#EF5350','#AB47BC','#FF7043','#29B6F6','#66BB6A','#FFA726'];
     const nickname = /*[[${user.nickname}]]*/ '';
     const color = colors[nickname.charCodeAt(0) % colors.length];
     document.getElementById('profile-avatar').style.backgroundColor = color;
 
+    const profileUserId = /*[[${user.userId}]]*/ null;
+    const isMyPage = /*[[${isMyPage}]]*/ true;
+  </script>
+
+  <script>
     function formatDate(dateStr) {
       if (!dateStr) return '';
       return new Date(dateStr).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -220,6 +227,27 @@
       `).join('');
     }
 
+    function renderAnswers(list) {
+      const el = document.getElementById('answers-list');
+      if (!list.length) { el.innerHTML = emptyState('작성한 답변이 없습니다.'); return; }
+      el.innerHTML = list.map(a => `
+        <article class="activity-item" onclick="location.href='/questions/${a.questionId}'" style="cursor:pointer;">
+          <div class="activity-header">
+            <div class="activity-status">
+              ${a.accepted ? '<span class="badge badge-success">채택됨</span>' : ''}
+            </div>
+          </div>
+          <p class="activity-preview">${a.content ? a.content.slice(0, 80) + (a.content.length > 80 ? '...' : '') : ''}</p>
+          <div class="activity-meta">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <span>${formatDate(a.createdAt)}</span>
+            <span class="material-symbols-outlined">thumb_up</span>
+            <span>${a.likeCount ?? 0}</span>
+          </div>
+        </article>
+      `).join('');
+    }
+
     function renderComments(list) {
       const el = document.getElementById('comments-list');
       if (!list.length) { el.innerHTML = emptyState('작성한 댓글이 없습니다.'); return; }
@@ -235,18 +263,26 @@
       `).join('');
     }
 
-    const profileUserId = /*[[${user.userId}]]*/ null;
-    const isMyPage = /*[[${isMyPage}]]*/ true;
-
     async function loadTab(tabName) {
-      if (tabName === 'questions') {
-        const url = isMyPage ? '/api/mypage/questions' : `/api/mypage/questions?userId=${profileUserId}`;
-        const res = await fetch(url);
-        renderQuestions(await res.json());
-      } else if (tabName === 'comments') {
-        const url = isMyPage ? '/api/mypage/comment' : `/api/mypage/comment?userId=${profileUserId}`;
-        const res = await fetch(url);
-        renderComments(await res.json());
+      try {
+        if (tabName === 'questions') {
+          const url = isMyPage ? '/api/mypage/questions' : `/api/mypage/questions?userId=${profileUserId}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`questions API 오류: ${res.status}`);
+          renderQuestions(await res.json());
+        } else if (tabName === 'answers') {
+          const url = isMyPage ? '/api/mypage/answers' : `/api/mypage/answers?userId=${profileUserId}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`answers API 오류: ${res.status}`);
+          renderAnswers(await res.json());
+        } else if (tabName === 'comments') {
+          const url = isMyPage ? '/api/mypage/comment' : `/api/mypage/comment?userId=${profileUserId}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`comments API 오류: ${res.status}`);
+          renderComments(await res.json());
+        }
+      } catch (e) {
+        console.error(e);
       }
     }
 
@@ -261,8 +297,49 @@
       });
     });
 
-    // 페이지 로드 시 질문 탭 자동 로드
+    async function loadStats() {
+      const suffix = isMyPage ? '' : `?userId=${profileUserId}`;
+      async function fetchCount(endpoint) {
+        try {
+          const r = await fetch(`/api/mypage/${endpoint}${suffix}`);
+          if (!r.ok) return '-';
+          return await r.text();
+        } catch (e) {
+          return '-';
+        }
+      }
+      const [q, a, c] = await Promise.all([
+        fetchCount('countQuestions'),
+        fetchCount('countAnswers'),
+        fetchCount('countComments')
+      ]);
+      document.getElementById('stat-questions').textContent = q;
+      document.getElementById('stat-answers').textContent = a;
+      document.getElementById('stat-comments').textContent = c;
+    }
+
+    // 페이지 로드 시 질문 탭 + 갯수 자동 로드
     loadTab('questions');
+    loadStats();
+
+    async function requestChat() {
+      const res = await fetch('/api/chat-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content
+        },
+        body: JSON.stringify({
+          responderId: profileUserId,
+          introMessage: '안녕하세요!'
+        })
+      });
+      if (res.ok) {
+        alert('채팅 신청을 보냈습니다.');
+      } else {
+        alert('채팅 신청 실패: ' + await res.text());
+      }
+    }
   </script>
   </body>
 </html>
