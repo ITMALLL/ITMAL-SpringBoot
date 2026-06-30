@@ -7,7 +7,9 @@ import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.mapper.AnswerMapper;
 import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
+import com.itmal.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
 public class AnswerServiceImpl implements AnswerService {
 
     private final AnswerMapper answerMapper;
+    private final NotificationService notificationService;
 
     // 답변 등록
     @Override
@@ -24,6 +27,7 @@ public class AnswerServiceImpl implements AnswerService {
         // userId는 폼이 아닌 로그인 세션에서 가져와서 세팅
         request.setUserId(userId);
         answerMapper.insertAnswer(request);
+        notificationService.createAnswerNotification(request.getQuestionId(), request.getAnswerId());
     }
 
     // 답변 목록 조회
@@ -74,7 +78,11 @@ public class AnswerServiceImpl implements AnswerService {
         if (existing != null) {
             answerMapper.deleteAnswerLike(answerLike);
         } else {
-            answerMapper.insertAnswerLike(answerLike);
+            try {
+                answerMapper.insertAnswerLike(answerLike);
+            } catch (DataIntegrityViolationException e) {
+                // 동시 요청으로 중복 insert 시 무시
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package com.itmal.answer.controller;
 import com.itmal.answer.dto.AnswerCreateRequest;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.service.AnswerService;
+import com.itmal.auth.repository.UserMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,9 @@ public class AnswerController {
 
     private final AnswerService answerService;
 
+    //필드 변수 추가. UserMApper 사용하도록 의존성 주입
+    private final UserMapper userMapper;
+
     // 답변 목록 조회
     @GetMapping
     public String getAnswers(@RequestParam Long questionId, Model model) {
@@ -34,8 +38,8 @@ public class AnswerController {
         if (bindingResult.hasErrors()) {
             return "answers/write";
         }
-        // 로그인한 사용자 ID를 서비스에 전달 (임시로 1L — 추후 실제 userId로 교체)
-        answerService.createAnswer(request, 1L);
+        // 로그인한 사용자 ID를 서비스에 전달 (임시로 1L — 추후 실제 userId로 교체 -> 교체했음)
+        answerService.createAnswer(request,getCurrentUserId(userDetails));
         return "redirect:/answers?questionId=" + request.getQuestionId();
     }
 
@@ -51,36 +55,40 @@ public class AnswerController {
     public String editAnswer(@PathVariable Long id,
                              @RequestParam Long questionId,
                              @Valid @ModelAttribute AnswerUpdateRequest request,
-                             BindingResult bindingResult) {
+                             BindingResult bindingResult,
+                             @AuthenticationPrincipal UserDetails userDetails
+                             ) {
         if (bindingResult.hasErrors()) {
             return "answers/edit";
         }
-        // 임시로 1L — 추후 실제 userId로 교체
-        answerService.updateAnswer(id, request, 1L);
+        // 임시로 1L — 추후 실제 userId로 교체 ->교체했음
+        answerService.updateAnswer(id, request, getCurrentUserId(userDetails));
         return "redirect:/answers?questionId=" + questionId;
     }
 
     // 삭제
     @PostMapping("/{id}/delete")
-    public String deleteAnswer(@PathVariable Long id, @RequestParam Long questionId) {
+    public String deleteAnswer(
+            @PathVariable Long id, @RequestParam Long questionId,@AuthenticationPrincipal UserDetails userDetails
+            ) {
         // 임시로 1L — 추후 실제 userId로 교체
-        answerService.deleteAnswer(id, 1L);
+        answerService.deleteAnswer(id, getCurrentUserId(userDetails));
         return "redirect:/answers?questionId=" + questionId;
     }
 
     // 좋아요
     @PostMapping("/{id}/like")
-    public String likeAnswer(@PathVariable Long id, @RequestParam Long questionId) {
-        // 임시로 1L — 추후 실제 userId로 교체
-        answerService.toggleLike(id, 1L);
+    public String likeAnswer(@PathVariable Long id, @RequestParam Long questionId, @AuthenticationPrincipal UserDetails userDetails) {
+        // 임시로 1L — 추후 실제 userId로 교체 -> 교체했음
+        answerService.toggleLike(id, getCurrentUserId(userDetails));
         return "redirect:/answers?questionId=" + questionId;
     }
 
     // 채택
     @PostMapping("/{id}/adopt")
-    public String adoptAnswer(@PathVariable Long id, @RequestParam Long questionId) {
+    public String adoptAnswer(@PathVariable Long id, @RequestParam Long questionId, @AuthenticationPrincipal UserDetails userDetails) {
         // 임시로 1L — 추후 실제 userId로 교체
-        answerService.adoptAnswer(id, 1L);
+        answerService.adoptAnswer(id, getCurrentUserId(userDetails));
         return "redirect:/answers?questionId=" + questionId;
     }
 
@@ -88,5 +96,10 @@ public class AnswerController {
     @PostMapping("/{id}/report")
     public String reportAnswer(@PathVariable Long id, @RequestParam Long questionId) {
         return "redirect:/answers?questionId=" + questionId;
+    }
+
+    //UserId 꺼내기
+    private  Long getCurrentUserId(UserDetails userDetails) {
+        return userMapper.findByEmail(userDetails.getUsername()).orElseThrow().getUserId();
     }
 }
