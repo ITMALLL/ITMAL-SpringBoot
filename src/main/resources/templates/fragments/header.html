@@ -50,9 +50,11 @@
       <!-- Notification + Auth -->
       <div class="flex items-center gap-4">
         <!-- Notification -->
-        <button class="p-2 hover:bg-primary-fixed rounded-lg text-on-surface-variant">
+        <a th:href="@{/notifications}" class="relative p-2 hover:bg-primary-fixed rounded-lg text-on-surface-variant inline-flex" style="position:relative;">
           <span class="material-symbols-outlined">notifications</span>
-        </button>
+          <span id="notification-badge"
+                style="display:none; position:absolute; top:-6px; right:-6px; background:#ef4444; color:white; font-size:10px; font-weight:700; border-radius:9999px; min-width:16px; height:16px; padding:0 4px; align-items:center; justify-content:center;"></span>
+        </a>
 
         <!-- Auth Buttons -->
         <div sec:authorize="isAnonymous()">
@@ -71,6 +73,61 @@
       </div>
     </div>
   </div>
+
+  <script th:inline="javascript" sec:authorize="isAuthenticated()">
+    fetch('/api/notifications/unread-count')
+      .then(res => res.json())
+      .then(count => updateBadge(count))
+      .catch(() => {});
+
+    const eventSource = new EventSource('/api/notifications/sse');
+    eventSource.addEventListener('notification', (e) => {
+      const newCount = parseInt(e.data);
+      updateBadge(newCount);
+      if (newCount > 0) {
+        playNotificationSound();
+        pulseBadge();
+      }
+    });
+    // onerror 시 close() 호출하지 않음 - 브라우저가 자동 재연결 처리
+
+    function updateBadge(count) {
+      const badge = document.getElementById('notification-badge');
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function pulseBadge() {
+      const badge = document.getElementById('notification-badge');
+      badge.style.transition = 'transform 0.15s ease, box-shadow 0.15s ease';
+      badge.style.transform = 'scale(1.6)';
+      badge.style.boxShadow = '0 0 6px 2px rgba(239,68,68,0.7)';
+      setTimeout(() => {
+        badge.style.transform = 'scale(1)';
+        badge.style.boxShadow = 'none';
+      }, 300);
+    }
+
+    function playNotificationSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.25);
+      } catch (e) {}
+    }
+  </script>
 </header>
 
 <script th:inline="javascript">
