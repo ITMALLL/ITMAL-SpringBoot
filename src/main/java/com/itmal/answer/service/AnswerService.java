@@ -14,4 +14,5 @@ public interface AnswerService {
     void deleteAnswer(Long answerId, Long userId);
     void toggleLike(Long answerId, Long userId);
     void adoptAnswer(Long answerId, Long userId);
+    List<Answer> getAnswerByUserId(Long userId);
 }

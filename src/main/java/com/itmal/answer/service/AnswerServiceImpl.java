@@ -90,6 +90,12 @@ public class AnswerServiceImpl implements AnswerService {
         }
     }
 
+    // 마이페이지 내 답변 목록 조회
+    @Override
+    public List<Answer> getAnswerByUserId(Long userId) {
+        return answerMapper.findByUserId(userId);
+    }
+
     // 채택
     @Override
     public void adoptAnswer(Long answerId, Long userId) {
