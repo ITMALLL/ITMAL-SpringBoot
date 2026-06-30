@@ -110,7 +110,7 @@ function applyFilters() {
     const query = document.getElementById('chatSearch')?.value.trim().toLowerCase() || '';
     let rooms = [...allRooms];
     if (currentTab === 'unread') rooms = rooms.filter(r => r.unreadCount > 0);
-    if (query) rooms = rooms.filter(r => (userCache[r.otherUserId] || '').toLowerCase().includes(query));
+    if (query) rooms = rooms.filter(r => (userCache[r.otherUserId]?.nickname || '').toLowerCase().includes(query));
     displayChatRooms(rooms);
 }
 
