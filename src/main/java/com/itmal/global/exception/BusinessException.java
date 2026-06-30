@@ -5,7 +5,7 @@ public class BusinessException extends RuntimeException {
     private final ErrorCode errorCode;
 
     public BusinessException() {
-        super("질문을 찾을 수 없습니다.");
+        super(ErrorCode.INVALID_REQUEST.getMessage());
         this.errorCode = ErrorCode.INVALID_REQUEST;
     }
 

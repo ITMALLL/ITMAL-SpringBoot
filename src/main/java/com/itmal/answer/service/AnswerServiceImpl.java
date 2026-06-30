@@ -8,6 +8,8 @@ import com.itmal.answer.mapper.AnswerMapper;
 import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
 import com.itmal.notification.service.NotificationService;
+import com.itmal.question.dto.QuestionDto;
+import com.itmal.question.mapper.QuestionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class AnswerServiceImpl implements AnswerService {
 
     private final AnswerMapper answerMapper;
     private final NotificationService notificationService;
+    private final QuestionMapper questionMapper;
 
     // 답변 등록
     @Override
@@ -70,6 +73,7 @@ public class AnswerServiceImpl implements AnswerService {
     // 좋아요 토글 (있으면 취소, 없으면 추가)
     @Override
     public void toggleLike(Long answerId, Long userId) {
+        getAnswer(answerId); // 삭제된 답변 체크
         AnswerLike answerLike = new AnswerLike();
         answerLike.setAnswerId(answerId);
         answerLike.setUserId(userId);
@@ -89,7 +93,11 @@ public class AnswerServiceImpl implements AnswerService {
     // 채택
     @Override
     public void adoptAnswer(Long answerId, Long userId) {
-        getAnswer(answerId); // 존재 여부 확인
+        Answer answer = getAnswer(answerId);
+        QuestionDto question = questionMapper.findQuestionDetailById(answer.getQuestionId());
+        if (question == null || !question.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
         answerMapper.acceptAnswer(answerId);
     }
 }
