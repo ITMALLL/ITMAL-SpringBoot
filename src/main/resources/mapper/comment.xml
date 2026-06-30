@@ -46,4 +46,13 @@
           AND deleted_at IS NULL
     </update>
 
+    <select id="findByUserId" resultType="Comment">
+        SELECT c.comment_id, c.answer_id, c.user_id, c.content,
+               c.created_at, c.updated_at, c.deleted_at
+        FROM comment c
+        WHERE c.user_id = #{userId}
+          AND c.deleted_at IS NULL
+        ORDER BY c.created_at DESC
+    </select>
+
 </mapper>

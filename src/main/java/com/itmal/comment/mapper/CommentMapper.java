@@ -18,5 +18,5 @@ public interface CommentMapper {
 
     int delete(Long commentId);
 
-    //List<CommentResponseDto> findByUserId(Long userId);  //마이페이지 내 댓글 조회
+    List<Comment> findByUserId(Long userId);  //마이페이지 내 댓글 조회
 }
