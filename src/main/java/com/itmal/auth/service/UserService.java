@@ -112,7 +112,7 @@ public class UserService {
         String tempPassword = generateTempPassword();
         userMapper.updatePassword(user.getUserId(), passwordEncoder.encode(tempPassword));
         emailVerificationService.sendTempPasswordEmail(email, tempPassword);
-        log.info("[비밀번호 찾기] 임시 비밀번호 발급 - email={}", email);
+        log.info("[비밀번호 찾기] 임시 비밀번호 발급 - userId={}", user.getUserId());
     }
 
     private String generateTempPassword() {

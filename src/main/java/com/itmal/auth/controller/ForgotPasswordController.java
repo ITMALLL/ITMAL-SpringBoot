@@ -1,5 +1,6 @@
 package com.itmal.auth.controller;
 
+import com.itmal.auth.exception.EmailSendException;
 import com.itmal.auth.service.UserService;
 import com.itmal.global.exception.ApiException;
 import lombok.RequiredArgsConstructor;
@@ -26,11 +27,10 @@ public class ForgotPasswordController {
     public String submit(@RequestParam String email, RedirectAttributes redirectAttributes) {
         try {
             userService.resetPassword(email);
-            redirectAttributes.addFlashAttribute("successMessage", "임시 비밀번호가 이메일로 발송되었습니다.");
-            return "redirect:/login";
-        } catch (ApiException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getErrorCode().getMessage());
-            return "redirect:/forgot-password";
+        } catch (ApiException | EmailSendException e) {
+            log.info("[forgot-password] 처리 중 오류 발생 - {}", e.getMessage());
         }
+        redirectAttributes.addFlashAttribute("successMessage", "입력하신 이메일로 안내를 보냈습니다. 가입 방식에 따라 메일이 발송되지 않을 수 있습니다.");
+        return "redirect:/login";
     }
 }
