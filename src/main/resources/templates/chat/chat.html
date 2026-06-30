@@ -1,359 +1,129 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>잇말 - 채팅 센터</title>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>잇말 - 1:1 채팅</title>
 
     <!-- Google Fonts -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
-      rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+            rel="stylesheet"
     />
-
     <!-- Material Symbols -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-      rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            rel="stylesheet"
     />
 
     <!-- CSS Files -->
-    <link rel="stylesheet" href="/css/header.css" />
-    <link rel="stylesheet" href="/css/footer.css" />
-    <link rel="stylesheet" href="/css/common.css" />
-    <link rel="stylesheet" href="/css/chat.css" />
-  </head>
-  <body style="margin: 0; height: 100vh; display: flex; flex-direction: column">
-  <div th:replace="~{fragments/header :: header}"></div>
+    <link rel="stylesheet" href="/css/common.css"/>
+    <link rel="stylesheet" href="/css/header.css"/>
+    <link rel="stylesheet" href="/css/footer.css"/>
+    <link rel="stylesheet" href="/css/chat.css"/>
 
-  <!-- Main Chat Container -->
-    <main class="chat-container">
-      <!-- Sidebar - Chat List -->
-      <aside class="chat-sidebar">
+    <!-- CSRF -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <!-- SockJS + STOMP -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+
+<body class="chat-body">
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Main Chat Container -->
+<main class="chat-container">
+    <!-- Sidebar - Chat List -->
+    <aside class="chat-sidebar">
         <div class="chat-list-header">
-          <h1 class="chat-list-title">메시지</h1>
-          <div style="display: flex; gap: 8px; margin-bottom: 16px">
-            <button
-              style="
-                padding: 8px 16px;
-                background-color: var(--primary);
-                color: var(--on-primary);
-                border: none;
-                border-radius: 6px;
-                font-weight: 700;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-              "
-            >
-              <span class="material-symbols-outlined" style="font-size: 18px"
-                >add</span
-              >
-              New Chat
-            </button>
-          </div>
-          <div class="chat-list-search">
-            <input type="text" placeholder="대화방 검색..." />
-          </div>
+            <div class="chat-list-search">
+                <label>
+                    <input type="text" id="chatSearch" placeholder="대화방 검색..."/>
+                </label>
+            </div>
         </div>
 
         <div class="chat-list-tabs">
-          <button class="chat-tab-btn active">All Chats</button>
-          <button class="chat-tab-btn">Unread</button>
+            <button class="chat-tab-btn active" id="tabAll" onclick="switchTab('all')">모든 채팅</button>
+            <button class="chat-tab-btn" id="tabUnread" onclick="switchTab('unread')">안 읽은 채팅</button>
         </div>
 
-        <div class="chat-list custom-scrollbar">
-          <!-- Waiting Request -->
-          <div class="chat-item waiting">
-            <div class="chat-item-avatar">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuArqxqQfBX1yl4ll_k8if6FtCaSsSfBwXXK3e-OgkfDw3mDaOOBB84QULRw3R0Kw8ai3Cwzbe3QQyX4coLGJBqvnNfwmpuR1M-UQcvQc0QnQBSMmTZHcY0mSwxyvujO180WjiyUlZ1cYYRXHlw8NcaFgNLqAAecCymHZaDyJ757l6wbL5V6aYZEyMgkiFZwzULfFqtoB1jd5EHcu5LhU1UnPBXyMNow6VTGWpZrC2pZbfTG4EG0HBPM_tdgIvDucBkd7RrQCjZFlVQ"
-                alt="Sarah"
-              />
-            </div>
-            <div class="chat-item-content">
-              <div class="chat-item-header">
-                <span class="chat-item-name">Sarah - Japanese</span>
-                <span class="waiting-badge">수락 대기 중</span>
-              </div>
-              <p
-                class="chat-item-message"
-                style="margin: 0; font-size: 12px; opacity: 0.8"
-              >
-                새로운 튜터링 요청이 도착했습니다.
-              </p>
-            </div>
-          </div>
-
-          <!-- Active Chat -->
-          <div class="chat-item active">
-            <div class="chat-item-avatar">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbBTtPr8w_XQs5IF4zyltsOLaXHSVDJTzwuaPGwO13kfyjygXirii7eYfB3NCz_RYUQiG6UJA5r-xndGb8N_jahmi2YkVC5oryS9cQgLF3WuHihrDQ3wJLTytOdYjxh7k9TlMwChRAQWNYhFCvobQtcOaTd06Tfd5-8hC-mvvyXqFMpSQFUfuyQ359rJ0y4c3f58YgoRbz0ua13V9ONnGWk9cwpwRUP46_75kpAwnh6nJQY3e90P6vzUG-oufRFNPluPhSQ5PGtdg"
-                alt="Tom"
-              />
-              <div class="chat-item-status-dot"></div>
-            </div>
-            <div class="chat-item-content">
-              <div class="chat-item-header">
-                <span class="chat-item-name">Tom - English Native</span>
-                <span class="chat-item-time">14:20</span>
-              </div>
-              <p class="chat-item-text">
-                Sure, let's practice more on phrasal verbs.
-              </p>
-            </div>
-          </div>
-
-          <!-- Other Chats -->
-          <div class="chat-item">
-            <div class="chat-item-avatar">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKSoSJ9qInwuSTGpHp7nQ9TIQfsxYcN-i3vPo0XB0PnRyULUX7fmA76Zi_Qz3kpnaY2uII2cyjseUFLKu6SE_62adydAkh7afcNQBijnH0qiqF-KQnGMTCnU0yHsKnWF6HCJWtBJLrEx6a0e_G5geBAwJP6TFEPPCJsRo6pxmPP_S0gyR5m52eSMASZkPbe3nODpW7xxM3BYRNd-Ax4xQrKACfnuiLBVU_ucHfYyNxgUACHOP0--1AbYWA1zTrxp0JpebKsrxXs0s"
-                alt="Elena"
-              />
-            </div>
-            <div class="chat-item-content">
-              <div class="chat-item-header">
-                <span class="chat-item-name">Elena - Spanish</span>
-                <span class="chat-item-time">어제</span>
-              </div>
-              <div class="chat-item-message">
-                <span class="chat-item-text"
-                  >¡Excelente trabajo hoy! Hasta luego.</span
-                >
-                <div class="chat-badge">2</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="chat-item">
-            <div class="chat-item-avatar">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO0bwIjPdhEWJipBNrQh20p5cys5YovdjeOHoTyUJEAuewql4rt7mw98qt3a9fRPwW8Emr6T4jNEauzWiqgYUbrLP8A6ilj4HadGOU85Wnw8i9uaTVapaFGrDpnOFidzXRx9hle2nta25DYC6zMP1EE3fIsdeJHQWOq2siC2KRCJ83Lf4fM6qiRuW84ry45GuVQZ6rKuLXKlGJDVVysr4CQWqbjUUSOmAAGYWNR0NMx9sstifa2sDcXCL_L6LKqQ2RfGO2F8Rxi4c"
-                alt="Min-ho"
-              />
-            </div>
-            <div class="chat-item-content">
-              <div class="chat-item-header">
-                <span class="chat-item-name">Min-ho - Korean</span>
-                <span class="chat-item-time">수요일</span>
-              </div>
-              <p class="chat-item-text">다음 수업 시간 변경 가능할까요?</p>
-            </div>
-          </div>
+        <!-- 채팅 목록 -->
+        <div class="chat-section-header">
+            채팅 목록
         </div>
-      </aside>
+        <div class="chat-list custom-scrollbar" id="chatList">
+            <!-- 동적으로 생성됨 -->
+        </div>
+        <!-- 채팅 요청 함 -->
+        <div class="chat-request-section">
+            <div class="chat-section-header">
+                요청함
+            </div>
+            <div id="chatRequestContainer" class="chat-request-container">
+                <!-- 동적으로 생성됨 -->
+            </div>
+        </div>
+    </aside>
 
-      <!-- Main Chat Area -->
-      <section class="chat-main">
+    <!-- Main Chat Area -->
+    <section class="chat-main" id="chatMain">
         <!-- Chat Header -->
         <header class="chat-header">
-          <div class="chat-user-info">
-            <div class="chat-user-avatar">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIvL-m6hdFgaocacOaDU93VBIH3plitBNrZqPK4o_Elce17BeVmSWorLlppb3D-SfhziQ6YjKvUY3Cs83t16rXh4O8bSiBynAhTIip5cYBCWxG90Oz9Vrg-BUQIAG39bKGvlxxnfS3Fyb0zvOpWdKQNd50szY2e7Grvsizg_MKCC3tKwFOlElgWXQcJwu4BhOF14PfQ1Gu0fkr5qnYkszd-iJFRvKnP0VmBEU4_O8hfeXsP_zPKkj8F8AhWWaXkxC2Q-F2jCRHvtY"
-                alt="Tom"
-              />
-              <div class="chat-status-dot"></div>
+            <div class="chat-user-info">
+                <div class="chat-user-avatar">
+                    <img id="chatUserAvatar" src="" alt="user"/>
+                </div>
+                <div class="chat-user-details">
+                    <h2 class="chat-user-name" id="chatUserName"></h2>
+                </div>
             </div>
-            <div class="chat-user-details">
-              <h2 class="chat-user-name">Tom - English Native</h2>
-              <span class="chat-user-status">Online</span>
+            <div class="chat-actions">
+                <div class="chat-divider"></div>
+                <button class="btn-leave" id="leaveBtn" onclick="leaveRoom()">나가기</button>
             </div>
-          </div>
-
-          <div class="chat-actions">
-            <div
-              style="
-                width: 1px;
-                height: 24px;
-                background-color: var(--outline-variant);
-              "
-            ></div>
-            <button class="btn-leave">나가기</button>
-          </div>
         </header>
 
         <!-- Messages Area -->
         <div class="messages-area custom-scrollbar" id="messageContainer">
-          <!-- Date Separator -->
-          <div class="date-separator">
-            <span class="date-label">2024년 5월 22일 수요일</span>
-          </div>
-
-          <!-- Tutor Message -->
-          <div class="message">
-            <div class="message-avatar">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD3EIE6d_LHkqaRiUqMwB19JGifIXSUGl-wrNFodkf2nPCmdRLawHjdqe0e8Bj2Y9_9CMwwYtFpUeZyCHBpN2SXyIZ3cGluzLfQtTi9scYFbGjmsJDA85mbENpAuSBHafWugbU9uRrRGcaqDOO7BgwsBTqSiR6tv9XGaCMSkwOOLJGYkc7QAGJVNFHreyGfxwFlNKVtkdQ0NLJjG96RlbqqiSQjZmQoaaoV4p1rc6GeWkAyiC1AzpXy89cPHymvDeNAuWPsVswweo"
-                alt="Tom"
-              />
-            </div>
-            <div class="message-content">
-              <div class="message-bubble other">
-                <p style="margin: 0">
-                  Hello! I've reviewed your homework from last week. Great
-                  progress with the conditional sentences!
-                </p>
-                <button class="message-translate">
-                  <span
-                    class="material-symbols-outlined"
-                    style="font-size: 14px"
-                    >translate</span
-                  >
-                  번역하기
-                </button>
-              </div>
-              <span class="message-timestamp">14:05</span>
-            </div>
-          </div>
-
-          <!-- My Message -->
-          <div class="message own">
-            <div class="message-content" style="align-items: flex-end">
-              <div style="display: flex; align-items: flex-end; gap: 8px">
-                <span class="message-status">읽음</span>
-                <div class="message-bubble own">
-                  <p style="margin: 0">
-                    Thank you, Tom! I still find 'would have' a bit tricky
-                    though. Can we practice it today?
-                  </p>
-                  <button
-                    class="message-translate"
-                    style="color: rgba(255, 255, 255, 0.8)"
-                  >
-                    <span
-                      class="material-symbols-outlined"
-                      style="font-size: 14px"
-                      >translate</span
-                    >
-                    번역하기
-                  </button>
-                </div>
-              </div>
-              <span class="message-timestamp">14:12</span>
-            </div>
-          </div>
-
-          <!-- Tutor Message -->
-          <div class="message">
-            <div class="message-avatar">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZsgedBrRWwx40w8CCpG9bhFBvu__ipx2CX-XPGu1G9iwzm_VJj2VtywAZNaeg4VIzJBarzb-_FEKqrGvJJ77eYlN9JCidXMcGYKthyKRsoh_6KPRhTm6qko336evxxlNy9NZN-_ulgnuzGeqvm-wFy1by6ICkZZ6EgXev_NBZClRBWxRgKH_wlfky6eLFiI5OvhjFvlO9kgPFglyS79rwc6aEHlOxEVWgmMDGCwrzoGdHLBWqrfcqo8HBME0PCPFf2DWdpomuLxk"
-                alt="Tom"
-              />
-            </div>
-            <div class="message-content">
-              <div class="message-bubble other">
-                <p style="margin: 0">
-                  Absolutely. I have prepared some situational examples for us.
-                  Should we start with the third conditional?
-                </p>
-                <button class="message-translate">
-                  <span
-                    class="material-symbols-outlined"
-                    style="font-size: 14px"
-                    >translate</span
-                  >
-                  번역하기
-                </button>
-              </div>
-              <span class="message-timestamp">14:15</span>
-            </div>
-          </div>
-
-          <!-- My Message -->
-          <div class="message own">
-            <div class="message-content" style="align-items: flex-end">
-              <div style="display: flex; align-items: flex-end; gap: 8px">
-                <span class="message-status">1</span>
-                <div class="message-bubble own">
-                  <p style="margin: 0">
-                    Yes, that would be great. I'm ready whenever you are!
-                  </p>
-                  <button
-                    class="message-translate"
-                    style="color: rgba(255, 255, 255, 0.8)"
-                  >
-                    <span
-                      class="material-symbols-outlined"
-                      style="font-size: 14px"
-                      >translate</span
-                    >
-                    번역하기
-                  </button>
-                </div>
-              </div>
-              <span class="message-timestamp">14:20</span>
-            </div>
-          </div>
+            <!-- 동적으로 생성됨 -->
         </div>
 
         <!-- Message Input Area -->
         <div class="message-input-area">
-          <div class="message-input-wrapper">
-            <div class="input-container">
-              <textarea
-                class="message-input"
-                placeholder="메시지를 입력하세요..."
-                rows="1"
-              ></textarea>
-              <div class="input-actions">
-                <div class="input-tools">
-                  <button class="tool-btn" title="이모지">
-                    <span class="material-symbols-outlined"
-                      >sentiment_satisfied</span
-                    >
-                  </button>
+            <div class="message-input-wrapper">
+                <div class="input-container">
+                    <textarea
+                            class="message-input"
+                            id="messageInput"
+                            placeholder="메시지를 입력하세요..."
+                            rows="1"
+                    ></textarea>
+                    <div class="input-actions">
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </div>
                 </div>
-                <button class="send-btn">
-                  <span class="material-symbols-outlined">send</span>
-                </button>
-              </div>
             </div>
-            <div class="input-hint">
-              <span
-                ><span class="material-symbols-outlined" style="font-size: 14px"
-                  >info</span
-                >
-                Shift + Enter for new line</span
-              >
-              <span>Press Enter to send</span>
-            </div>
-          </div>
         </div>
-      </section>
-    </main>
-  <div th:replace="~{fragments/footer :: footer}"></div>
+    </section>
 
-    <script>
-      // Auto scroll to bottom
-      const container = document.getElementById("messageContainer");
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
+    <!-- 채팅방 선택 전 화면 -->
+    <section class="chat-main chat-main-empty" id="noChat">
+        <p>채팅방을 선택하세요</p>
+    </section>
+</main>
 
-      // Textarea auto-resize
-      const textarea = document.querySelector(".message-input");
-      if (textarea) {
-        textarea.addEventListener("input", function () {
-          this.style.height = "auto";
-          this.style.height = this.scrollHeight + "px";
-        });
-      }
+<div th:replace="~{fragments/footer :: footer}"></div>
 
-      // Chat item selection
-      const chatItems = document.querySelectorAll(".chat-item");
-      chatItems.forEach((item) => {
-        item.addEventListener("click", () => {
-          chatItems.forEach((i) => {
-            i.classList.remove("active");
-          });
-          item.classList.add("active");
-        });
-      });
-    </script>
-  </body>
+<!-- JavaScript -->
+<script th:inline="javascript">
+    const CURRENT_USER_ID = [[${currentUserId}]];
+</script>
+<script src="/js/chat.js"></script>
+</body>
 </html>

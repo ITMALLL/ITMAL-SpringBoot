@@ -14,9 +14,9 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/header.css" />
     <link rel="stylesheet" href="/css/footer.css" />
-    <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/questions-detail.css" />
     <link rel="stylesheet" href="/css/comment.css" />
   </head>
@@ -26,50 +26,103 @@
   <!-- Main Content -->
     <main class="question-detail-main">
       <div class="question-detail-container">
-        <!-- Back Link -->
-        <a href="#" class="back-link">← 목록으로</a>
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="breadcrumb">
+          <a href="/" class="breadcrumb-item">홈</a>
+          <span class="breadcrumb-sep">/</span>
+          <a href="/questions/list" class="breadcrumb-item">질문 게시판</a>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-current">질문 상세</span>
+        </nav>
 
         <div class="detail-grid">
           <!-- Main Content -->
           <div class="detail-content">
+            <!-- Question Card -->
+            <div class="question-card">
             <!-- Question Header -->
             <div class="question-header">
+              <!-- [질문 메타 영역] 백엔드 연결 필요: 질문 상태/언어/카테고리/튜터전용 값에 따라 배지·태그 렌더링 -->
               <div class="question-meta">
-                <span class="tag primary">영어</span>
-                <span class="tag secondary">표현</span>
-                <span class="badge badge-success">채택됨</span>
+                <!-- ⭐ 상태 배지: status 값으로 3분기 -->
+                <span th:if="${question.status == 'PENDING'}"  class="badge badge-pending">답변대기</span>
+                <span th:if="${question.status == 'ANSWERED'}" class="badge badge-progress">채택대기</span>
+                <span th:if="${question.status == 'ADOPTED'}"  class="badge badge-adopted">채택됨</span>
+                <!-- 언어 -->
+                <span class="tag primary" th:text="${question.languageName}">영어</span>
+                <!-- 카테고리 -->
+                <span class="tag secondary" th:text="${question.category}">문법</span>
+                <!-- 질문 대상: target 값으로 3분기 -->
+                <span class="badge badge-tutor" th:if="${question.target == 'tutor'}">
+                  <span class="material-symbols-outlined">verified_user</span>
+                  튜터 전용
+                </span>
+                <span class="badge badge-tutor" th:if="${question.target == 'native'}">
+                  <span class="material-symbols-outlined">record_voice_over</span>
+                  원어민만
+                </span>
+                <span class="tag secondary" th:if="${question.target == 'community'}">전체 사용자</span>
               </div>
-              <h1 class="question-title">
-                "I'm good" vs "I'm well" — 실제로 어떻게 달라요?
-              </h1>
+
+              <!-- 제목 -->
+              <h1 class="question-title" th:text="${question.title}">제목</h1>
+
               <div class="question-info">
+                <span class="info-item author">
+                  <span class="author-avatar-sm"
+                        th:text="${question.nickname != null ? question.nickname.substring(0,1) : '?'}">이</span>
+                  <span th:text="${question.nickname != null ? question.nickname : '탈퇴한 회원'}">이진우</span>
+                </span>
                 <span class="info-item">
-                  <span class="material-symbols-outlined">person</span>
-                  김민준
+                  <span class="material-symbols-outlined">calendar_today</span>
+                  <span th:text="${#temporals.format(question.createdAt, 'yyyy.MM.dd HH:mm')}">2025.06.22 14:37</span>
                 </span>
                 <span class="info-item">
                   <span class="material-symbols-outlined">visibility</span>
-                  조회 128
-                </span>
-                <span class="info-item">
-                  <span class="material-symbols-outlined">schedule</span>
-                  2시간 전
+                  <span th:text="'조회 ' + ${question.viewCount}">조회 284</span>
                 </span>
               </div>
             </div>
+            <!-- /Question Header -->
 
-            <!-- Question Content -->
             <div class="question-body">
-              <p>
-                학교에서 문법적으로는 "I'm well"이 맞다고 배웠는데, 미국 드라마
-                보면 "I'm good"을 훨씬 많이 쓰더라고요.
-              </p>
-              <p>
-                "How are you?" 라는 질문에 답할 때 원어민은 실제로 어떤 표현을
-                더 자주 쓰나요?<br />
-                그리고 두 표현 사이에 뉘앙스 차이가 있나요?
-              </p>
+              <div th:utext="${question.content}" class="detail-content-body">본문 미리보기</div>
             </div>
+
+              <div class="attachment-section" th:if="${not #lists.isEmpty(attachments)}">
+                <h3 class="attachment-title">
+                  <span class="material-symbols-outlined">attach_file</span>
+                  첨부파일
+                </h3>
+                <div class="attachment-list">
+                  <a th:each="att : ${attachments}"
+                     th:href="@{'/questions/attachments/' + ${att.id} + '/download'}"
+                     class="attachment-image">
+                    <span class="attachment-image-name" th:text="${att.originalName}">파일명</span>
+                  </a>
+                </div>
+              </div>
+
+            <!-- [번역 박스] 백엔드 연결 필요: Papago 번역 API 결과 바인딩 -->
+            <!-- TODO(data): 번역 API 연동 시 토글/번역문 바인딩 -->
+            <div class="translation-box">
+              <div class="translation-header">
+                <span class="translation-label">
+                  <span class="translation-logo">P</span>
+                  Papago 자동 번역
+                </span>
+                <span class="translation-direction">KO → EN</span>
+              </div>
+              <div class="translation-body">
+                <p>
+                  While studying English grammar, I got confused about the
+                  difference between <strong>Past Perfect</strong> and
+                  <strong>Simple Past</strong>.
+                </p>
+              </div>
+            </div>
+            </div>
+            <!-- /Question Card -->
 
             <!-- Answer Button -->
             <button class="btn btn-primary btn-lg answer-btn">
@@ -239,33 +292,74 @@
 
           <!-- Sidebar -->
           <aside class="detail-sidebar">
-            <!-- Question Info Card -->
+            <!-- [사이드바: 작성자 정보] 백엔드 연결 필요: 닉네임/아바타, 작성 질문 수, 가입일 -->
             <div class="card">
-              <h3 class="card-title">질문자 정보</h3>
-              <div class="author-card">
-                <div class="author-avatar-lg">K</div>
+              <h3 class="card-title">
+                <span class="material-symbols-outlined">account_circle</span>
+                작성자 정보
+              </h3>
+              <div class="author-card author-card-row">
+                <div class="author-avatar-lg"
+                     th:text="${question.nickname != null ? question.nickname.substring(0,1) : '?'}">박</div>
                 <div class="author-details">
-                  <div class="author-name">김민준</div>
-                  <div class="author-role">🇰🇷 한국어 원어민</div>
-                  <div class="author-skill">학습 관심: 영어</div>
+                  <div class="author-name"
+                       th:text="${question.nickname != null ? question.nickname : '탈퇴한 회원'}">박민준</div>
+                  <div class="author-role"
+                       th:text="${(question.nativeLanguage != null ? question.nativeLanguage : '-') + ' 원어민 · ' + question.languageName + ' 학습 중'}">
+                    한국어 원어민 · 영어 학습 중
+                  </div>
                 </div>
               </div>
-              <button class="btn btn-outline btn-sm">
-                <span class="material-symbols-outlined">mail</span>
-                1:1 채팅 신청
-              </button>
+              <div class="author-stats">
+                <div class="stat-item">
+                  <div class="stat-value" th:text="${questionCount}">12</div>
+                  <div class="stat-label">작성 질문</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value"
+                       th:text="${question.authorJoinedAt != null ? #temporals.format(question.authorJoinedAt, 'yyyy.MM') : '-'}">2024.03</div>
+                  <div class="stat-label">가입일</div>
+                </div>
+              </div>
             </div>
 
-            <!-- Related Questions -->
+            <!-- [사이드바: 관련 질문] 백엔드 연결 필요: 관련 질문 목록 반복 렌더링 -->
             <div class="card">
-              <h3 class="card-title">관련 질문</h3>
+              <h3 class="card-title">
+                <span class="material-symbols-outlined">link</span>
+                관련 질문
+              </h3>
               <div class="related-questions">
-                <a href="#" class="related-item">
-                  "Would you mind" vs "Do you mind" 차이가 뭐가요?
+                <!-- 관련 질문이 있을 때: 최대 3개 반복 -->
+                <a th:each="rel : ${relatedQuestions}"
+                   th:href="@{/questions/{id}(id=${rel.questionId})}"
+                   class="related-item">
+                  <span class="related-title" th:text="${rel.title}">관련 질문 제목</span>
+                  <span class="related-tags">
+                  <!-- 상태배지: 본문과 동일한 3분기 -->
+                  <span th:if="${rel.status == 'PENDING'}"  class="badge badge-pending">답변대기</span>
+                  <span th:if="${rel.status == 'ANSWERED'}" class="badge badge-progress">채택대기</span>
+                  <span th:if="${rel.status == 'ADOPTED'}"  class="badge badge-adopted">채택됨</span>
+                                <!-- 언어 태그 / 카테고리 태그 -->
+                  <span class="tag primary"   th:text="${rel.languageName}">언어</span>
+                  <span class="tag secondary" th:text="${rel.category}">카테고리</span>
+                    <!-- 질문 대상 배지: 본문과 동일한 3분기 -->
+                  <span class="badge badge-tutor" th:if="${rel.target == 'tutor'}">
+                  <span class="material-symbols-outlined">verified_user</span>
+                  튜터 전용
+                  </span>
+                  <span class="badge badge-tutor" th:if="${rel.target == 'native'}">
+                  <span class="material-symbols-outlined">record_voice_over</span>
+                  원어민만
+                  </span>
+                  <span class="tag secondary" th:if="${rel.target == 'community'}">전체 사용자</span>
+                </span>
                 </a>
-                <a href="#" class="related-item">
-                  영어로 감사 표현 다양하게 하는 법
-                </a>
+
+                <!-- 관련 질문이 하나도 없을 때 -->
+                <p th:if="${#lists.isEmpty(relatedQuestions)}" class="related-empty">
+                  관련 질문이 없습니다.
+                </p>
               </div>
             </div>
           </aside>
@@ -290,6 +384,56 @@
         window.location.href = "/answer-write";
       });
     </script>
+
+    <script th:inline="javascript">
+      // 외부 응답 값은 HTML로 해석하지 않고 텍스트 노드로 렌더링 (XSS 방지)
+      function renderTranslation(box, message) {
+        box.replaceChildren();
+        const p = document.createElement('p');
+        p.textContent = message;
+        box.appendChild(p);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        // 한글 언어 이름 → Papago 언어 코드 변환표
+        const LANG_CODE = {
+          '한국어': 'ko', '영어': 'en', '일본어': 'ja', '중국어': 'zh-CN',
+          '프랑스어': 'fr', '스페인어': 'es', '독일어': 'de',
+          // native_language가 코드로 저장된 경우도 대비 (둘 다 받아줌)
+          'ko':'ko','en':'en','ja':'ja','zh-CN':'zh-CN','fr':'fr','es':'es','de':'de'
+        };
+
+        const text     = /*[[${question.content}]]*/ '';
+        const nativeKo = /*[[${question.nativeLanguage}]]*/ '';  // 작성자 모국어
+        const learnKo  = /*[[${question.languageName}]]*/ '';    // 학습 언어
+
+        const source = LANG_CODE[nativeKo] || 'ko';   // 표에 없으면 ko로 기본값
+        const target = LANG_CODE[learnKo]  || 'en';   // 표에 없으면 en으로 기본값
+
+        const box   = document.querySelector('.translation-body');
+        const label = document.querySelector('.translation-direction');
+        if (label) label.textContent = source.toUpperCase() + ' → ' + target.toUpperCase();
+
+        // 원문 언어 == 번역 언어면 번역 불필요
+        if (source === target) {
+          renderTranslation(box, '원문과 번역 언어가 같아 번역을 생략합니다.');
+          return;
+        }
+
+        const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        fetch('/api/papago/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+          body: JSON.stringify({ source, target, text })   // 변수명=키명이라 축약형
+        })
+                .then(res => res.json())
+                .then(json => { renderTranslation(box, json.data.translatedText); })
+                .catch(() => { renderTranslation(box, '번역을 불러오지 못했습니다.'); });
+      });
+    </script>
+
     <script src="/js/comment.js"></script>
   </body>
 </html>

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -70,6 +70,14 @@
         <!-- Divider -->
         <div class="login-divider">
           <span>또는 이메일로 로그인</span>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${param.error}" class="error-message">
+          이메일 또는 비밀번호가 올바르지 않습니다.
+        </div>
+        <div th:if="${param.deleted}" class="error-message">
+          탈퇴된 계정입니다.
         </div>
 
         <!-- Login Form -->
@@ -188,15 +196,12 @@
         }
       });
 
-      // Social login handlers
       document.querySelector(".github").addEventListener("click", () => {
-        console.log("GitHub login");
-        // GitHub OAuth 로직
+        location.href = "/oauth2/authorization/github";
       });
 
       document.querySelector(".google").addEventListener("click", () => {
-        console.log("Google login");
-        // Google OAuth 로직
+        location.href = "/oauth2/authorization/google";
       });
     </script>
   </body>

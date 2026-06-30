@@ -1,5 +1,9 @@
 package com.itmal.global.config;
 
+import com.itmal.auth.handler.OAuth2LoginSuccessHandler;
+import com.itmal.auth.service.CustomOAuth2UserService;
+import com.itmal.auth.service.CustomOidcUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,12 +16,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Value("${app.remember-me.key}")
     private String rememberMeKey;
+
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
+                          CustomOidcUserService customOidcUserService,
+                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.customOidcUserService = customOidcUserService;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -29,10 +46,14 @@ public class SecurityConfig {
                 )
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/register", "/register/social").permitAll()
+                .requestMatchers("/", "/login", "/register").permitAll()
+                .requestMatchers("/mypage/**", "/register/social").authenticated()
+                .requestMatchers(HttpMethod.GET,  "/questions/write").authenticated()
+                .requestMatchers(HttpMethod.POST, "/questions/write").authenticated()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/email/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/**").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/**").authenticated()
@@ -50,12 +71,19 @@ public class SecurityConfig {
             .rememberMe(remember -> remember
                 .key(rememberMeKey)
                 .tokenValiditySeconds(60 * 60 * 24 * 14) // 14일
+            )
+            .oauth2Login(oauth -> oauth
+                .loginPage("/login")
+                .successHandler(oAuth2LoginSuccessHandler)
+                .failureHandler((request, response, exception) -> {
+                    log.error("[OAuth] 로그인 실패: {}", exception.getMessage(), exception);
+                    response.sendRedirect("/login?error");
+                })
+                .userInfoEndpoint(userInfo -> userInfo
+                    .userService(customOAuth2UserService)       // GitHub 등 non-OIDC
+                    .oidcUserService(customOidcUserService)     // Google 등 OIDC
+                )
             );
-            // TODO: OAuth2 credentials 준비되면 아래 추가
-            // .oauth2Login(oauth -> oauth
-            //     .loginPage("/login")
-            //     .defaultSuccessUrl("/questions")
-            // );
 
         return http.build();
     }

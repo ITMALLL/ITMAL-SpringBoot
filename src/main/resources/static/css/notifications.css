@@ -170,12 +170,12 @@
   background-color: var(--surface-container-low);
 }
 
-.notification-item.unread {
-  background-color: rgba(0, 88, 190, 0.02);
+.notification-item.read {
+  opacity: 0.5;
 }
 
-.notification-item.unread .notification-avatar {
-  box-shadow: 0 0 0 2px var(--primary);
+.notification-item.unread {
+  background-color: #ffffff;
 }
 
 .notification-avatar {
@@ -243,21 +243,14 @@
   line-height: 1.5;
 }
 
-.notification-question,
-.notification-comment {
+.notification-body {
   font-size: 13px;
-  color: var(--on-surface);
-  background-color: var(--surface-container);
-  padding: 12px;
-  border-radius: var(--radius-lg);
-  margin: 0;
+  color: #aaa;
+  margin: 4px 0 0 0;
   line-height: 1.5;
-  border-left: 3px solid var(--primary);
-}
-
-.notification-comment {
-  border-left-color: var(--secondary);
-  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .question-icon {
@@ -274,9 +267,20 @@
   margin-right: 8px;
 }
 
-.notification-item .btn {
-  margin-left: auto;
-  margin-top: -8px;
+.btn-read {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-item.read .btn-read {
+  display: none;
 }
 
 /* ============================================
@@ -318,13 +322,37 @@
   }
 
   .notifications-sidebar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    display: block;
   }
 
   .sidebar-section {
     margin-bottom: 0;
+  }
+
+  .filter-group {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .filter-item {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 12px;
+    background-color: var(--surface-container-lowest);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+  }
+
+  .filter-item:has(input:checked) {
+    background-color: var(--primary-fixed);
+    border-color: var(--primary);
+  }
+
+  .filter-item input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
   }
 }
 
@@ -338,8 +366,13 @@
     gap: 16px;
   }
 
-  .notifications-sidebar {
-    display: none;
+  .filter-group {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .filter-item {
+    padding: 8px 12px;
   }
 
   .content-header {

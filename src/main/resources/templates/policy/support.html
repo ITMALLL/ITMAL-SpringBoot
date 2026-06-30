@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>잇말 - 고객센터</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/header.css"/>
+  <link rel="stylesheet" href="/css/footer.css"/>
+  <link rel="stylesheet" href="/css/common.css"/>
+  <style>
+    .support-container { max-width: 800px; margin: 60px auto; padding: 0 24px 80px; }
+    .support-title { font-size: 28px; font-weight: 700; color: var(--on-surface); margin-bottom: 8px; }
+    .support-subtitle { font-size: 14px; color: var(--on-surface-variant); margin-bottom: 40px; }
+    .support-section { margin-bottom: 40px; }
+    .support-section h2 { font-size: 18px; font-weight: 600; color: var(--on-surface); margin-bottom: 16px; }
+    .contact-card { background: var(--surface-container); border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; }
+
+    .contact-card .info { display: flex; flex-direction: column; gap: 4px; }
+    .contact-card .label { font-size: 13px; color: var(--on-surface-variant); }
+    .contact-card .value { font-size: 15px; font-weight: 600; color: var(--on-surface); }
+    .faq-item { border-bottom: 1px solid var(--outline-variant); padding: 16px 0; }
+    .faq-item .question { font-size: 15px; font-weight: 600; color: var(--on-surface); margin-bottom: 8px; }
+    .faq-item .answer { font-size: 14px; line-height: 1.7; color: var(--on-surface-variant); }
+    .notice-box { background: var(--surface-container); border-radius: 12px; padding: 20px 24px; font-size: 14px; color: var(--on-surface-variant); line-height: 1.7; }
+  </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="support-container">
+  <h1 class="support-title">고객센터</h1>
+  <p class="support-subtitle">잇말 서비스 이용 중 불편한 점이 있으시면 아래로 문의해 주세요.</p>
+
+  <div class="support-section">
+    <h2>문의 채널</h2>
+    <div class="contact-card">
+      <div class="info">
+        <span class="label">이메일 문의</span>
+        <span class="value">support@itmal.com</span>
+      </div>
+    </div>
+    <div class="contact-card">
+      <div class="info">
+        <span class="label">운영 시간</span>
+        <span class="value">평일 09:00 ~ 18:00 (주말·공휴일 휴무)</span>
+      </div>
+    </div>
+    <div class="contact-card">
+      <div class="info">
+        <span class="label">평균 응답 시간</span>
+        <span class="value">1~2 영업일 이내</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="support-section">
+    <h2>자주 묻는 질문</h2>
+    <div class="faq-item">
+      <p class="question">Q. 채팅 요청을 보냈는데 상대방이 수락하지 않아요.</p>
+      <p class="answer">상대방이 요청을 확인하지 않았거나 아직 응답 중일 수 있습니다. 요청 후 3일 이내에 응답이 없으면 요청이 자동 만료될 수 있습니다.</p>
+    </div>
+    <div class="faq-item">
+      <p class="question">Q. 회원 탈퇴는 어떻게 하나요?</p>
+      <p class="answer">마이페이지 &gt; 계정 설정에서 탈퇴 신청이 가능합니다. 탈퇴 시 작성하신 질문과 답변은 삭제되지 않으며, 개인정보만 즉시 삭제됩니다.</p>
+    </div>
+    <div class="faq-item">
+      <p class="question">Q. 소셜 로그인 계정을 연결하고 싶어요.</p>
+      <p class="answer">마이페이지 &gt; 소셜 계정 연결 메뉴에서 Google, Github 계정을 연결하실 수 있습니다.</p>
+    </div>
+    <div class="faq-item">
+      <p class="question">Q. 부적절한 사용자를 신고하고 싶어요.</p>
+      <p class="answer">특정 사용자 신고는 불가하나, 댓글 혹은 게시글은 신고 가능합니다. 그 외 신고 사항은 support@itmal.com으로 직접 문의해 주세요.</p>
+    </div>
+    <div class="faq-item">
+      <p class="question">Q. 비밀번호를 잊어버렸어요.</p>
+      <p class="answer">로그인 화면에서 "비밀번호 찾기"를 클릭하시면 가입 시 등록한 이메일로 재설정 링크가 발송됩니다.</p>
+    </div>
+  </div>
+
+  <div class="support-section">
+    <div class="notice-box">
+      문의 시 회원 이메일과 문의 내용을 함께 보내주시면 더 빠른 답변이 가능합니다.
+    </div>
+  </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

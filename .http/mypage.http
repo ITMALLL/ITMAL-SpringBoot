@@ -1,0 +1,22 @@
+### 마이페이지 조회
+GET http://localhost:8080/mypage
+
+### 프로필 수정 제출
+POST http://localhost:8080/mypage/edit
+Content-Type: application/x-www-form-urlencoded
+
+nickname=새닉네임&nativeLanguage=한국어
+
+### 비밀번호 변경 폼
+GET http://localhost:8080/mypage/password
+
+### 비밀번호 변경 제출
+POST http://localhost:8080/mypage/password
+Content-Type: application/x-www-form-urlencoded
+
+currentPassword=oldpassword&newPassword=newpassword1&newPasswordConfirm=newpassword1
+
+### 회원 탈퇴
+POST http://localhost:8080/mypage/delete
+Content-Type: application/x-www-form-urlencoded
+

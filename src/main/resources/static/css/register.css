@@ -294,11 +294,25 @@
   color: var(--primary);
 }
 
+.lang-chip-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lang-chip:has(input:checked),
 .lang-chip.selected {
   border-color: var(--primary);
   background-color: var(--primary-fixed);
   color: var(--on-primary-fixed-variant);
   font-weight: 600;
+}
+
+.lang-chip:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .lang-chip span:first-child {
