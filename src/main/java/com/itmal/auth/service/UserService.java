@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.List;
 
 
@@ -28,6 +29,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final LearningLanguageMapper learningLanguageMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
 
     public boolean existsByEmail(String email) {
         return userMapper.existsByEmail(email);
@@ -95,6 +97,30 @@ public class UserService {
             throw new DuplicateNicknameException();
         }
         saveLanguages(userId, languageNames);
+    }
+
+    @Transactional
+    public void resetPassword(String email) {
+        User user = userMapper.findByEmail(email)
+                .filter(u -> !u.isDeleted())
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.isSocialUser()) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST);
+        }
+
+        String tempPassword = generateTempPassword();
+        userMapper.updatePassword(user.getUserId(), passwordEncoder.encode(tempPassword));
+        emailVerificationService.sendTempPasswordEmail(email, tempPassword);
+        log.info("[비밀번호 찾기] 임시 비밀번호 발급 - email={}", email);
+    }
+
+    private String generateTempPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 10; i++) sb.append(chars.charAt(random.nextInt(chars.length())));
+        return sb.toString();
     }
 
     @Transactional

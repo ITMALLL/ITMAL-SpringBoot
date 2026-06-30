@@ -35,6 +35,7 @@ public class MypageController {
     @GetMapping
     public String mypage(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         model.addAttribute("user", userDetails);
+        model.addAttribute("isMyPage", true);
         if (!model.containsAttribute("profileUpdateRequest")) {
             loadProfileModel(userDetails, model);
         } else {
