@@ -122,7 +122,7 @@
 
 <!-- JavaScript -->
 <script th:inline="javascript">
-    const CURRENT_USER_ID = [[${currentUserId}]];
+    const CURRENT_USER_ID = /*[[${currentUserId}]]*/ null;
 </script>
 <script src="/js/chat.js"></script>
 </body>
