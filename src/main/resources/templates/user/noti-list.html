@@ -79,7 +79,7 @@
             <div class="notification-content">
               <div class="notification-header">
                 <h3 class="notification-title">
-                  <span th:if="${n.targetType == 'QUESTION'}"><strong th:text="${n.questionTitle}"></strong> 글에 답변이 달렸습니다</span>
+                  <span th:if="${n.targetType == 'ANSWER'}"><strong th:text="${n.questionTitle}"></strong> 글에 답변이 달렸습니다</span>
                   <span th:if="${n.targetType == 'COMMENT'}"><strong th:text="${n.questionTitle}"></strong> 글에 댓글이 달렸습니다</span>
                 </h3>
                 <time class="notification-time"
@@ -103,11 +103,27 @@
     const csrfToken = document.querySelector('meta[name="_csrf"]').content;
     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-    function putRequest(url) {
-      return fetch(url, {
+    async function putRequest(url) {
+      const res = await fetch(url, {
         method: 'PUT',
         headers: { [csrfHeader]: csrfToken }
       });
+      if (!res.ok) throw new Error('요청 실패: ' + res.status);
+      return res;
+    }
+
+    function applyCurrentFilter() {
+      const value = document.querySelector('input[name="filter"]:checked')?.value ?? 'all';
+      document.querySelectorAll('.notification-item').forEach(item => {
+        if (value === 'all') {
+          item.style.display = 'flex';
+        } else if (value === 'unread') {
+          item.style.display = item.classList.contains('unread') ? 'flex' : 'none';
+        } else {
+          item.style.display = item.classList.contains('read') ? 'flex' : 'none';
+        }
+      });
+      updateEmptyState();
     }
 
     document.querySelectorAll('input[name="filter"]').forEach(radio => {
@@ -140,22 +156,28 @@
     }
 
     async function markAllAsRead() {
-      await putRequest('/api/notifications/read-all');
-      document.querySelectorAll('.notification-item.unread').forEach(item => {
-        item.classList.remove('unread');
-        item.classList.add('read');
-      });
-      refreshBadge();
+      try {
+        await putRequest('/api/notifications/read-all');
+        document.querySelectorAll('.notification-item.unread').forEach(item => {
+          item.classList.remove('unread');
+          item.classList.add('read');
+        });
+        refreshBadge();
+        applyCurrentFilter();
+      } catch (e) {}
     }
 
     async function markAsRead(btn) {
       const item = btn.closest('.notification-item');
       if (!item.classList.contains('unread')) return;
       const id = item.dataset.id;
-      await putRequest(`/api/notifications/${id}/read`);
-      item.classList.remove('unread');
-      item.classList.add('read');
-      refreshBadge();
+      try {
+        await putRequest(`/api/notifications/${id}/read`);
+        item.classList.remove('unread');
+        item.classList.add('read');
+        refreshBadge();
+        applyCurrentFilter();
+      } catch (e) {}
     }
 
     document.querySelectorAll('.notification-item').forEach(item => {

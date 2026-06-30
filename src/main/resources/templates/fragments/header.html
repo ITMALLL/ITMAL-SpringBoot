@@ -89,7 +89,7 @@
         pulseBadge();
       }
     });
-    eventSource.onerror = () => eventSource.close();
+    // onerror 시 close() 호출하지 않음 - 브라우저가 자동 재연결 처리
 
     function updateBadge(count) {
       const badge = document.getElementById('notification-badge');

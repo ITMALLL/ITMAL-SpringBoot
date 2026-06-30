@@ -19,7 +19,8 @@ public class SseEmitterRepository {
         return emitters.get(userId);
     }
 
-    public void remove(Long userId){
-        emitters.remove(userId);
+    public void remove(Long userId, SseEmitter emitter){
+        // 현재 저장된 emitter와 같은 인스턴스일 때만 제거 (재연결 시 새 emitter 보호)
+        emitters.remove(userId, emitter);
     }
 }

@@ -18,7 +18,8 @@ public interface NotificationMapper {
 
     Long findQuestionOwnerByAnswerId(Long answerId);
 
-    int updateRead(Long notificationId);
+    int updateRead(@org.apache.ibatis.annotations.Param("notificationId") Long notificationId,
+                   @org.apache.ibatis.annotations.Param("userId") Long userId);
 
     int updateAllRead(Long userId);
 

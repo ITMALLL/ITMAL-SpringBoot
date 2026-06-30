@@ -22,8 +22,8 @@ public class NotificationService {
     public SseEmitter subscribe(Long userId){
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         sseEmitterRepository.save(userId, emitter);
-        emitter.onCompletion(() -> sseEmitterRepository.remove(userId));
-        emitter.onTimeout(() -> sseEmitterRepository.remove(userId));
+        emitter.onCompletion(() -> sseEmitterRepository.remove(userId, emitter));
+        emitter.onTimeout(() -> sseEmitterRepository.remove(userId, emitter));
         return emitter;
     }
 
@@ -43,7 +43,7 @@ public class NotificationService {
                 int count = notificationMapper.countUnread(userId);
                 emitter.send(SseEmitter.event().name("notification").data(count));
             } catch (IOException e) {
-                sseEmitterRepository.remove(userId);
+                sseEmitterRepository.remove(userId, emitter);
             }
         }
     }
@@ -96,8 +96,8 @@ public class NotificationService {
     }
 
 
-    public void updateRead(Long notificationId) {
-        notificationMapper.updateRead(notificationId);
+    public void updateRead(Long notificationId, Long userId) {
+        notificationMapper.updateRead(notificationId, userId);
     }
 
     public void updateAllRead(Long userId) {

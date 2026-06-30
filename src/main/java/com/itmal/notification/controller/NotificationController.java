@@ -28,8 +28,9 @@ public class NotificationController {
     }
 
     @PutMapping("/{id}/read")
-    public void markAsRead(@PathVariable Long id) {
-        notificationService.updateRead(id);
+    public void markAsRead(@PathVariable Long id,
+                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+        notificationService.updateRead(id, userDetails.getUserId());
     }
 
     @PutMapping("/read-all")

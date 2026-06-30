@@ -33,8 +33,12 @@ public class CommentService {
 
         //DB에 저장
         commentMapper.insert(comment);
-        //알림을 위한 코드
-        notificationService.createCommentNotification(answerId, comment.getCommentId());
+        //알림을 위한 코드 (알림 실패가 댓글 저장 결과에 영향을 주지 않도록 분리)
+        try {
+            notificationService.createCommentNotification(answerId, comment.getCommentId());
+        } catch (Exception e) {
+            // 알림 실패는 무시
+        }
         //값을 다시 가져오기
         Comment saved = commentMapper.findById(comment.getCommentId());
 
