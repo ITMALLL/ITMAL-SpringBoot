@@ -44,7 +44,7 @@
         q.target,
         q.view_count,
         q.created_at,
-        u.nickname,
+        CASE WHEN u.deleted_at IS NOT NULL THEN '탈퇴한 회원' ELSE u.nickname END AS nickname,
         l.language_name,
         CASE
         WHEN EXISTS (SELECT 1 FROM answer a
@@ -107,10 +107,10 @@
         q.target,
         q.user_id,
         q.language_id,
-        u.nickname,
-        u.native_language,
-        u.role,
-        u.created_at    AS author_joined_at,
+        CASE WHEN u.deleted_at IS NOT NULL THEN '탈퇴한 회원' ELSE u.nickname END AS nickname,
+        CASE WHEN u.deleted_at IS NOT NULL THEN NULL ELSE u.native_language END AS native_language,
+        CASE WHEN u.deleted_at IS NOT NULL THEN NULL ELSE u.role END AS role,
+        CASE WHEN u.deleted_at IS NOT NULL THEN NULL ELSE u.created_at END AS author_joined_at,
         l.language_name,
         CASE
         WHEN EXISTS (SELECT 1 FROM answer a

@@ -192,6 +192,14 @@ button:active {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  border: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .btn-primary {

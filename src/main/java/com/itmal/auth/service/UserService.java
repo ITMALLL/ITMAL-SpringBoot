@@ -44,8 +44,8 @@ public class UserService {
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
     }
 
-    public List<String> getLearningLanguages(Long userId) {
-        return learningLanguageMapper.findLanguageNamesByUserId(userId);
+    public List<LanguageDto> getLearningLanguages(Long userId) {
+        return learningLanguageMapper.findLanguageCodesByUserId(userId);
     }
 
     public List<LanguageDto> getAllLanguages() {
@@ -106,7 +106,7 @@ public class UserService {
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         if (user.isSocialUser()) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST);
+            throw new ApiException(ErrorCode.SOCIAL_USER_NO_PASSWORD);
         }
 
         String tempPassword = generateTempPassword();

@@ -1,6 +1,7 @@
 package com.itmal.auth.controller;
 
 import com.itmal.auth.domain.CustomUserDetails;
+import java.util.List;
 import com.itmal.auth.dto.PasswordChangeRequest;
 import com.itmal.auth.dto.ProfileUpdateRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
@@ -124,7 +125,9 @@ public class MypageController {
         ProfileUpdateRequest profileRequest = new ProfileUpdateRequest();
         profileRequest.setNickname(userDetails.getNickname());
         profileRequest.setNativeLanguage(userDetails.getNativeLanguage());
-        profileRequest.setLearningLanguages(userService.getLearningLanguages(userDetails.getUserId()));
+        List<String> learningLanguageNames = userService.getLearningLanguages(userDetails.getUserId())
+                .stream().map(l -> l.getLanguageName()).collect(java.util.stream.Collectors.toList());
+        profileRequest.setLearningLanguages(learningLanguageNames);
         model.addAttribute("profileUpdateRequest", profileRequest);
         model.addAttribute("allLanguages", userService.getAllLanguages());
     }
