@@ -9,13 +9,13 @@ import com.itmal.chat.service.ChatRequestService;
 import com.itmal.chat.service.ChatRoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.Principal;
@@ -31,7 +31,8 @@ public class ChatController {
     private final ChatRequestService chatRequestService;
 
     @GetMapping("/chat")
-    public String chat() {
+    public String chat(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
+        model.addAttribute("currentUserId", userDetails.getUserId());
         return "chat/chat";
     }
 
@@ -67,19 +68,5 @@ public class ChatController {
                 "/topic/unread-count/" + otherUserId,
                 (Object) Map.of("chatRoomId", message.getChatRoomId())
         );
-    }
-    @GetMapping("/api/auth/me")
-    public ResponseEntity<Map<String, Object>> getCurrentUser(
-            @AuthenticationPrincipal CustomUserDetails user) {
-
-        if (user == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        return ResponseEntity.ok(Map.of(
-                "userId", user.getUserId(),
-                "username", user.getUsername(),
-                "nickname", user.getNickname()
-        ));
     }
 }

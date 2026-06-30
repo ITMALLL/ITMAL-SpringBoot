@@ -65,10 +65,7 @@ function setupWebSocket() {
 // ============ 초기화 ============
 async function initCurrentUser() {
     try {
-        const response = await fetch('/api/auth/me');
-        const data = await response.json();
-        currentUserId = data.userId;
-
+        currentUserId = CURRENT_USER_ID;
         console.log('Current User ID:', currentUserId);
 
         if (!currentUserId) {

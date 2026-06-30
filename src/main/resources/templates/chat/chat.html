@@ -121,8 +121,9 @@
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <!-- JavaScript -->
-<script src="/js/chat.js">
-
+<script th:inline="javascript">
+    const CURRENT_USER_ID = [[${currentUserId}]];
 </script>
+<script src="/js/chat.js"></script>
 </body>
 </html>
