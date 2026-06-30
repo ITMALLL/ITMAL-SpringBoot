@@ -16,4 +16,7 @@ public class AnswerCreateRequest {
     @NotBlank
     @Size(max = 2000)
     private String content;
+
+    // 폼에서 받지 않고 서비스에서 세팅
+    private Long userId;
 }

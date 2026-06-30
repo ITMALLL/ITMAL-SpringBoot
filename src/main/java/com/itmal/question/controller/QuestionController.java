@@ -1,7 +1,9 @@
 package com.itmal.question.controller;
 
+import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.service.QuestionService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -81,7 +83,12 @@ public class QuestionController {
         // 질문 생성 처리
         @PostMapping("/write")
         public String createQuestion(QuestionDto questionDto,
-                                     @RequestParam(value = "files", required = false) List<MultipartFile> files) {
+                                     @RequestParam(value = "files", required = false) List<MultipartFile> files,
+                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+            if (userDetails == null) {
+                return "redirect:/login"; // 비로그인 접근 시 NPE 방지 (이중 방어)
+            }
+            questionDto.setUserId(userDetails.getUserId());
             questionService.writeQuestion(questionDto, files);
             return "redirect:/questions/list";
         }
