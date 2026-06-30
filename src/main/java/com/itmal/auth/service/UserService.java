@@ -17,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
 import java.util.List;
 
 
@@ -30,6 +29,7 @@ public class UserService {
     private final LearningLanguageMapper learningLanguageMapper;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
+    private final PasswordResetTokenStore passwordResetTokenStore;
 
     public boolean existsByEmail(String email) {
         return userMapper.existsByEmail(email);
@@ -99,28 +99,34 @@ public class UserService {
         saveLanguages(userId, languageNames);
     }
 
+    public void initiatePasswordReset(String email, String resetBaseUrl) {
+        userMapper.findByEmail(email)
+                .filter(u -> !u.isDeleted())
+                .filter(u -> !u.isSocialUser())
+                .ifPresent(user -> {
+                    String token = passwordResetTokenStore.save(email);
+                    String resetUrl = resetBaseUrl + "?token=" + token;
+                    emailVerificationService.sendPasswordResetEmail(email, resetUrl);
+                    log.info("[비밀번호 찾기] 재설정 링크 발송 - userId={}", user.getUserId());
+                });
+    }
+
     @Transactional
-    public void resetPassword(String email) {
+    public void confirmPasswordReset(String token, String newPassword) {
+        String email = passwordResetTokenStore.findEmail(token)
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_REQUEST));
+
         User user = userMapper.findByEmail(email)
                 .filter(u -> !u.isDeleted())
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.isSocialUser()) {
-            throw new ApiException(ErrorCode.SOCIAL_USER_NO_PASSWORD);
-        }
-
-        String tempPassword = generateTempPassword();
-        userMapper.updatePassword(user.getUserId(), passwordEncoder.encode(tempPassword));
-        emailVerificationService.sendTempPasswordEmail(email, tempPassword);
-        log.info("[비밀번호 찾기] 임시 비밀번호 발급 - userId={}", user.getUserId());
+        userMapper.updatePassword(user.getUserId(), passwordEncoder.encode(newPassword));
+        passwordResetTokenStore.delete(token);
+        log.info("[비밀번호 찾기] 비밀번호 변경 완료 - userId={}", user.getUserId());
     }
 
-    private String generateTempPassword() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        SecureRandom random = new SecureRandom();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 10; i++) sb.append(chars.charAt(random.nextInt(chars.length())));
-        return sb.toString();
+    public boolean isValidResetToken(String token) {
+        return passwordResetTokenStore.findEmail(token).isPresent();
     }
 
     @Transactional

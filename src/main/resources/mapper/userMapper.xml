@@ -71,7 +71,8 @@
 
     <update id="softDelete">
         UPDATE users
-        SET deleted_at = NOW()
+        SET deleted_at = NOW(),
+            email = CONCAT('deleted_', user_id, '@deleted.com')
         WHERE user_id = #{userId}
     </update>
 
