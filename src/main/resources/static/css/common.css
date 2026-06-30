@@ -219,6 +219,26 @@ button:active {
   background: none;
 }
 
+.btn-outline {
+  background-color: #ffffff;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.btn-outline:hover {
+  background-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.btn-danger {
+  background-color: var(--error);
+  color: var(--on-error);
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
 /* ============================================
    입력 요소
    ============================================ */
