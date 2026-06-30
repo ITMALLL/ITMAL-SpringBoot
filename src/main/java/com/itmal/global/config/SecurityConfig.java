@@ -48,6 +48,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register").permitAll()
                 .requestMatchers("/mypage/**", "/register/social").authenticated()
+                .requestMatchers(HttpMethod.GET,  "/questions/write").authenticated()
+                .requestMatchers(HttpMethod.POST, "/questions/write").authenticated()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
