@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -55,5 +56,9 @@ public class ReportController {
         return ResponseEntity.ok(reportService.findPendingComments());
     }
 
+    @GetMapping("/pending/count")
+    public ResponseEntity<Map<String, Object>> getPendingCount() {
+        return ResponseEntity.ok(reportService.countPendingByType());
+    }
 
 }

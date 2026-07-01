@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface ReportMapper {
@@ -25,5 +26,7 @@ public interface ReportMapper {
     List<ResponseReport> findPendingComments();
 
     Report findPendingByTarget(@Param("targetType") String targetType, @Param("targetId") Long targetId);
+
+    List<Map<String, Object>> countPendingByType();
 
 }

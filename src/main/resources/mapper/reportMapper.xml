@@ -59,6 +59,13 @@
         ORDER BY r.created_at DESC
     </select>
 
+    <select id="countPendingByType" resultType="map">
+        SELECT target_type AS targetType, COUNT(*) AS count
+        FROM report
+        WHERE status = 'PENDING'
+        GROUP BY target_type
+    </select>
+
     <select id="findPendingComments" resultType="ResponseReport">
         SELECT r.*, u.nickname AS reporter_nickname,
                pa.question_id,
