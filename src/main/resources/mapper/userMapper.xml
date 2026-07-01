@@ -47,8 +47,8 @@
     <select id="existsByEmail" resultType="boolean">
         SELECT COUNT(*) > 0
         FROM users
-        WHERE email = #{email}
-        AND deleted_at IS NULL
+        WHERE (email = #{email} AND deleted_at IS NULL)
+           OR (original_email = #{email} AND deleted_at IS NOT NULL AND deleted_at > NOW() - INTERVAL 15 DAY)
     </select>
 
     <select id="existsByNickname" resultType="boolean">
@@ -71,7 +71,8 @@
 
     <update id="softDelete">
         UPDATE users
-        SET deleted_at = NOW(),
+        SET original_email = email,
+            deleted_at = NOW(),
             email = CONCAT('deleted_', user_id, '@deleted.com')
         WHERE user_id = #{userId}
     </update>
