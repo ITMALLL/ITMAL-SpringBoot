@@ -188,7 +188,7 @@
     // 닉네임 기반 아바타 색상
     const colors = ['#5C6BC0','#26A69A','#EF5350','#AB47BC','#FF7043','#29B6F6','#66BB6A','#FFA726'];
     const nickname = /*[[${user.nickname}]]*/ '';
-    const color = colors[nickname.charCodeAt(0) % colors.length];
+    const color = colors[(nickname.charCodeAt(0) || 0) % colors.length];
     document.getElementById('profile-avatar').style.backgroundColor = color;
 
     const profileUserId = /*[[${user.userId}]]*/ null;
@@ -196,6 +196,13 @@
   </script>
 
   <script>
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     function formatDate(dateStr) {
       if (!dateStr) return '';
       return new Date(dateStr).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -211,12 +218,12 @@
       el.innerHTML = list.map(q => `
         <article class="activity-item" onclick="location.href='/questions/${q.questionId}'" style="cursor:pointer;">
           <div class="activity-header">
-            <h3 class="activity-title">${q.title}</h3>
+            <h3 class="activity-title">${escapeHtml(q.title)}</h3>
             <div class="activity-status">
-              ${q.languageName ? `<span class="badge badge-primary">${q.languageName}</span>` : ''}
+              ${q.languageName ? `<span class="badge badge-primary">${escapeHtml(q.languageName)}</span>` : ''}
             </div>
           </div>
-          <p class="activity-preview">${q.content ? q.content.slice(0, 80) + (q.content.length > 80 ? '...' : '') : ''}</p>
+          <p class="activity-preview">${q.content ? escapeHtml(q.content.slice(0, 80)) + (q.content.length > 80 ? '...' : '') : ''}</p>
           <div class="activity-meta">
             <span class="material-symbols-outlined">calendar_today</span>
             <span>${formatDate(q.createdAt)}</span>
@@ -237,7 +244,7 @@
               ${a.accepted ? '<span class="badge badge-success">채택됨</span>' : ''}
             </div>
           </div>
-          <p class="activity-preview">${a.content ? a.content.slice(0, 80) + (a.content.length > 80 ? '...' : '') : ''}</p>
+          <p class="activity-preview">${a.content ? escapeHtml(a.content.slice(0, 80)) + (a.content.length > 80 ? '...' : '') : ''}</p>
           <div class="activity-meta">
             <span class="material-symbols-outlined">calendar_today</span>
             <span>${formatDate(a.createdAt)}</span>
@@ -254,7 +261,7 @@
       el.innerHTML = list.map(c => `
         <article class="activity-item">
           <p class="comment-preview-label">작성한 댓글</p>
-          <p class="activity-preview">${c.content}</p>
+          <p class="activity-preview">${escapeHtml(c.content)}</p>
           <div class="activity-meta">
             <span class="material-symbols-outlined">calendar_today</span>
             <span>${formatDate(c.createdAt)}</span>

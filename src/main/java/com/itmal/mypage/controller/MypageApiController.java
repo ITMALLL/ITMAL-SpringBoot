@@ -30,6 +30,9 @@ public class MypageApiController {
     @GetMapping("/questions")
     public List<QuestionDto> getQuestion(@AuthenticationPrincipal CustomUserDetails userDetails,
                                          @RequestParam(required = false) Long userId){
+        if(userId == null && userDetails == null ){
+            return null;
+        }
         Long targetId = (userId != null) ? userId : userDetails.getUserId();
         return questionService.findByUserId(targetId);
     }
@@ -37,6 +40,9 @@ public class MypageApiController {
     @GetMapping("/answers")
     public List<Answer> getAnswer(@AuthenticationPrincipal CustomUserDetails userDetails,
                                   @RequestParam(required = false) Long userId){
+        if(userId == null && userDetails == null ){
+            return null;
+        }
         Long targetId = (userId != null) ? userId : userDetails.getUserId();
         return answerService.getAnswerByUserId(targetId);
     }
@@ -44,6 +50,9 @@ public class MypageApiController {
     @GetMapping("/comment")
     public List<CommentResponseDto> getMypageComment(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                      @RequestParam(required = false) Long userId){
+        if(userId == null && userDetails == null ){
+            return null;
+        }
         Long targetId = (userId != null) ? userId : userDetails.getUserId();
         return commentService.getMypageComment(targetId);
     }
@@ -51,6 +60,9 @@ public class MypageApiController {
     @GetMapping("/countQuestions")
     public int countQuestions(@AuthenticationPrincipal CustomUserDetails userDetails,
                               @RequestParam(required = false) Long userId) {
+        if(userId == null && userDetails == null ){
+            return 0;
+        }
         Long targetId = (userId != null) ? userId : userDetails.getUserId();
         return mypageMapper.countQuestionByUserId(targetId);
     }
@@ -58,6 +70,9 @@ public class MypageApiController {
     @GetMapping("/countAnswers")
     public int countAnswers(@AuthenticationPrincipal CustomUserDetails userDetails,
                             @RequestParam(required = false) Long userId) {
+        if(userId == null && userDetails == null ){
+            return 0;
+        }
         Long targetId = (userId != null) ? userId : userDetails.getUserId();
         return mypageMapper.countAnswerByUserId(targetId);
     }
@@ -65,6 +80,9 @@ public class MypageApiController {
     @GetMapping("/countComments")
     public int countComments(@AuthenticationPrincipal CustomUserDetails userDetails,
                              @RequestParam(required = false) Long userId) {
+        if(userId == null && userDetails == null ){
+            return 0;
+        }
         Long targetId = (userId != null) ? userId : userDetails.getUserId();
         return mypageMapper.countCommentByUserId(targetId);
     }
