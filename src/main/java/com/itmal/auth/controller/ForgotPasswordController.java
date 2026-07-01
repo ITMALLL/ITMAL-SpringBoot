@@ -3,9 +3,9 @@ package com.itmal.auth.controller;
 import com.itmal.auth.exception.EmailSendException;
 import com.itmal.auth.service.UserService;
 import com.itmal.global.exception.ApiException;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,17 +21,19 @@ public class ForgotPasswordController {
 
     private final UserService userService;
 
+    @Value("${app.base-url}")
+    private String appBaseUrl;
+
     @GetMapping("/forgot-password")
     public String form() {
         return "user/forgot-password";
     }
 
     @PostMapping("/forgot-password")
-    public String submit(@RequestParam String email, HttpServletRequest request,
-                         RedirectAttributes redirectAttributes) {
+    public String submit(@RequestParam String email, RedirectAttributes redirectAttributes) {
         try {
-            String resetBaseUrl = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString())
-                    .replacePath("/forgot-password/reset")
+            String resetBaseUrl = UriComponentsBuilder.fromUriString(appBaseUrl)
+                    .path("/forgot-password/reset")
                     .build().toUriString();
             userService.initiatePasswordReset(email, resetBaseUrl);
         } catch (EmailSendException e) {

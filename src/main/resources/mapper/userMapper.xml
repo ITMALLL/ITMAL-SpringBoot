@@ -48,7 +48,7 @@
         SELECT COUNT(*) > 0
         FROM users
         WHERE email = #{email}
-        AND (deleted_at IS NULL OR deleted_at > NOW() - INTERVAL 15 DAY)
+        AND deleted_at IS NULL
     </select>
 
     <select id="existsByNickname" resultType="boolean">

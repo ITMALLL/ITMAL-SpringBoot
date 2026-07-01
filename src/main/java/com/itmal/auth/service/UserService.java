@@ -113,7 +113,11 @@ public class UserService {
 
     @Transactional
     public void confirmPasswordReset(String token, String newPassword) {
-        String email = passwordResetTokenStore.findEmail(token)
+        if (newPassword == null || newPassword.isBlank() || newPassword.length() < 8) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST);
+        }
+
+        String email = passwordResetTokenStore.consumeEmail(token)
                 .orElseThrow(() -> new ApiException(ErrorCode.INVALID_REQUEST));
 
         User user = userMapper.findByEmail(email)
@@ -121,7 +125,6 @@ public class UserService {
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
         userMapper.updatePassword(user.getUserId(), passwordEncoder.encode(newPassword));
-        passwordResetTokenStore.delete(token);
         log.info("[비밀번호 찾기] 비밀번호 변경 완료 - userId={}", user.getUserId());
     }
 

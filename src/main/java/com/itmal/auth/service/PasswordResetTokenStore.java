@@ -32,8 +32,12 @@ public class PasswordResetTokenStore {
         return Optional.of(entry.email());
     }
 
-    public void delete(String token) {
-        store.remove(token);
+    public Optional<String> consumeEmail(String token) {
+        TokenEntry entry = store.remove(token);
+        if (entry == null || LocalDateTime.now().isAfter(entry.expiredAt())) {
+            return Optional.empty();
+        }
+        return Optional.of(entry.email());
     }
 
     @Scheduled(fixedRate = 60_000)
