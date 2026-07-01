@@ -19,6 +19,82 @@
     <link rel="stylesheet" href="/css/footer.css" />
     <link rel="stylesheet" href="/css/questions-detail.css" />
     <link rel="stylesheet" href="/css/comment.css" />
+    <style>
+      /* 작성자용 케밥(⋮) 메뉴 */
+      .question-header { position: relative; }
+      /* 파파고 번역 칸 오른쪽 끝(카드 안쪽 여백 기준)에 완전히 붙임.
+         버튼 안 아이콘이 가운데 정렬이라 음수 offset으로 끝까지 밀어줌 */
+      .question-menu { position: absolute; top: 0; right: -8px; }
+      .question-menu-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; padding: 0;
+        border: none; border-radius: 8px;
+        background: transparent; color: #6b7280; cursor: pointer;
+      }
+      .question-menu-btn:hover { background: #f3f4f6; color: #111827; }
+      .question-menu-dropdown {
+        position: absolute; top: 42px; left: 0; min-width: 140px;
+        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .12); padding: 6px; z-index: 20;
+      }
+      .question-menu-dropdown[hidden] { display: none; }
+      .question-menu-dropdown form { margin: 0; }
+      .question-menu-item {
+        display: flex; align-items: center; gap: 8px; width: 100%;
+        padding: 8px 10px; border: none; background: transparent;
+        border-radius: 8px; font-size: 14px; color: #374151;
+        text-decoration: none; cursor: pointer; text-align: left;
+      }
+      .question-menu-item:hover { background: #f3f4f6; }
+      .question-menu-item.danger { color: #dc2626; }
+      .question-menu-item.danger:hover { background: #fef2f2; }
+      .question-menu-item .material-symbols-outlined { font-size: 18px; }
+
+      /* 첨부파일 텍스트 목록 + 다운로드 아이콘 */
+      .att-file-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+      .att-file-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 14px; border: 1px solid var(--outline-variant, #e5e7eb);
+        border-radius: 10px; background: var(--surface-container-lowest, #fff);
+      }
+      .att-file-ic { font-size: 20px; color: #6b7280; flex-shrink: 0; }
+      .att-file-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+      .att-file-name { font-size: 14px; color: #374151; word-break: break-all; }
+      .att-file-audio { width: 100%; height: 36px; }
+      .att-file-download {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 34px; height: 34px; border-radius: 8px;
+        color: #6b7280; text-decoration: none; flex-shrink: 0;
+      }
+      .att-file-download:hover { background: #f3f4f6; color: #111827; }
+      .att-file-download .material-symbols-outlined { font-size: 20px; }
+
+      /* 신고 사유 입력 모달 */
+      .report-modal-overlay {
+        position: fixed; inset: 0; background: rgba(0, 0, 0, .45);
+        display: flex; align-items: center; justify-content: center; z-index: 100;
+      }
+      .report-modal-overlay[hidden] { display: none; }
+      .report-modal {
+        background: #fff; border-radius: 14px; padding: 24px;
+        width: 90%; max-width: 420px; box-shadow: 0 12px 40px rgba(0, 0, 0, .2);
+      }
+      .report-modal-title { margin: 0 0 14px; font-size: 17px; font-weight: 700; color: #111827; }
+      .report-modal-textarea {
+        width: 100%; box-sizing: border-box; resize: vertical; min-height: 96px;
+        border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px;
+        font-size: 14px; font-family: inherit; color: #374151;
+      }
+      .report-modal-textarea:focus { outline: none; border-color: #6b7280; }
+      .report-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+      /* 간단 토스트 (모달이 뜨던 화면 중앙에 표시) */
+      .app-toast {
+        position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        background: #111827; color: #fff; padding: 14px 22px; border-radius: 12px;
+        font-size: 15px; z-index: 120; box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+      }
+    </style>
   </head>
   <body>
   <div th:replace="~{fragments/header :: header}"></div>
@@ -42,6 +118,41 @@
             <div class="question-card">
             <!-- Question Header -->
             <div class="question-header">
+              <!-- 케밥(⋮) 메뉴: 로그인 유저에게 노출. 작성자=수정/삭제, 그 외=신고 -->
+              <div class="question-menu" th:if="${currentUserId != null}">
+                <button type="button" class="question-menu-btn" id="question-menu-btn"
+                        aria-label="더보기" aria-haspopup="true" aria-expanded="false">
+                  <span class="material-symbols-outlined">more_vert</span>
+                </button>
+                <div class="question-menu-dropdown" id="question-menu-dropdown" hidden>
+
+                  <!-- 작성자 본인: 수정 / 삭제 -->
+                  <th:block th:if="${isOwner}">
+                    <a th:href="@{/questions/{id}/edit(id=${question.questionId})}"
+                       class="question-menu-item">
+                      <span class="material-symbols-outlined">edit</span>
+                      수정
+                    </a>
+                    <form th:action="@{/questions/{id}/delete(id=${question.questionId})}"
+                          method="post"
+                          onsubmit="return confirm('정말 삭제하시겠어요? 삭제 후에는 복구할 수 없습니다.');">
+                      <button type="submit" class="question-menu-item danger">
+                        <span class="material-symbols-outlined">delete</span>
+                        삭제
+                      </button>
+                    </form>
+                  </th:block>
+
+                  <!-- 작성자가 아닌 로그인 유저: 신고 -->
+                  <button type="button" th:unless="${isOwner}"
+                          class="question-menu-item"
+                          id="question-report-btn"
+                          th:attr="data-question-id=${question.questionId}">
+                    <span class="material-symbols-outlined">flag</span>
+                    신고
+                  </button>
+                </div>
+              </div>
               <!-- [질문 메타 영역] 백엔드 연결 필요: 질문 상태/언어/카테고리/튜터전용 값에 따라 배지·태그 렌더링 -->
               <div class="question-meta">
                 <!-- ⭐ 상태 배지: status 값으로 3분기 -->
@@ -68,10 +179,18 @@
               <h1 class="question-title" th:text="${question.title}">제목</h1>
 
               <div class="question-info">
-                <span class="info-item author">
+                <span class="info-item author"
+                      th:attr="onclick=${question.nickname != null} ? 'toggleHeaderProfile(event)' : null"
+                      th:style="${question.nickname != null} ? 'position:relative; cursor:pointer;' : 'position:relative;'">
                   <span class="author-avatar-sm"
                         th:text="${question.nickname != null ? question.nickname.substring(0,1) : '?'}">이</span>
                   <span th:text="${question.nickname != null ? question.nickname : '탈퇴한 회원'}">이진우</span>
+                  <!-- 닉네임 클릭 시 노출: 프로필로 이동 -->
+                  <a th:if="${question.nickname != null}" id="headerProfileBtn"
+                     th:href="@{${isOwner ? '/mypage' : '/users/' + question.userId}}"
+                     class="btn btn-sm btn-outline"
+                     style="display:none; position:absolute; top:28px; left:0; z-index:20; white-space:nowrap;"
+                     th:text="${isOwner} ? '마이페이지로 이동' : '프로필로 이동'">프로필로 이동</a>
                 </span>
                 <span class="info-item">
                   <span class="material-symbols-outlined">calendar_today</span>
@@ -94,13 +213,29 @@
                   <span class="material-symbols-outlined">attach_file</span>
                   첨부파일
                 </h3>
-                <div class="attachment-list">
-                  <a th:each="att : ${attachments}"
-                     th:href="@{'/questions/attachments/' + ${att.id} + '/download'}"
-                     class="attachment-image">
-                    <span class="attachment-image-name" th:text="${att.originalName}">파일명</span>
-                  </a>
-                </div>
+                <ul class="att-file-list">
+                  <li th:each="att : ${attachments}" class="att-file-row"
+                      th:with="lowerName=${#strings.toLowerCase(att.originalName)},
+                               isAudio=${(att.fileType != null and #strings.startsWith(att.fileType, 'audio/'))
+                                         or #strings.endsWith(lowerName, '.mp3')
+                                         or #strings.endsWith(lowerName, '.m4a')
+                                         or #strings.endsWith(lowerName, '.wav')
+                                         or #strings.endsWith(lowerName, '.ogg')
+                                         or #strings.endsWith(lowerName, '.aac')}">
+                    <span class="material-symbols-outlined att-file-ic"
+                          th:text="${isAudio} ? 'mic' : 'description'">description</span>
+                    <div class="att-file-main">
+                      <span class="att-file-name" th:text="${att.originalName}">파일명</span>
+                      <audio th:if="${isAudio}" class="att-file-audio" controls preload="none"
+                             th:src="@{'/questions/attachments/' + ${att.id} + '/download'}"></audio>
+                    </div>
+                    <a th:href="@{'/questions/attachments/' + ${att.id} + '/download'}"
+                       th:attr="download=${att.originalName}"
+                       class="att-file-download" aria-label="다운로드" title="다운로드">
+                      <span class="material-symbols-outlined">download</span>
+                    </a>
+                  </li>
+                </ul>
               </div>
 
             <!-- [번역 박스] 백엔드 연결 필요: Papago 번역 API 결과 바인딩 -->
@@ -149,16 +284,31 @@
                 <span class="material-symbols-outlined">account_circle</span>
                 작성자 정보
               </h3>
-              <div class="author-card author-card-row">
+              <div class="author-card author-card-row" style="position:relative;">
                 <div class="author-avatar-lg"
                      th:text="${question.nickname != null ? question.nickname.substring(0,1) : '?'}">박</div>
-                <div class="author-details">
-                  <div class="author-name"
-                       th:text="${question.nickname != null ? question.nickname : '탈퇴한 회원'}">박민준</div>
+                <div class="author-details" style="flex:1; min-width:0;">
+                  <div class="author-name-row"
+                       style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <span class="author-name"
+                          th:text="${question.nickname != null ? question.nickname : '탈퇴한 회원'}">박민준</span>
+                    <!-- 케밥 메뉴 (유효 회원만) -->
+                    <button th:if="${question.nickname != null}" type="button"
+                            class="author-kebab-btn" onclick="toggleAuthorMenu(event)"
+                            aria-label="작성자 메뉴"
+                            style="background:none; border:none; cursor:pointer; padding:2px 6px; font-size:18px; line-height:1; color:#666; border-radius:6px;">⋮</button>
+                  </div>
                   <div class="author-role"
                        th:text="${(question.nativeLanguage != null ? question.nativeLanguage : '-') + ' 원어민 · ' + question.languageName + ' 학습 중'}">
                     한국어 원어민 · 영어 학습 중
                   </div>
+                </div>
+                <!-- 드롭다운 -->
+                <div th:if="${question.nickname != null}" id="authorMenu"
+                     style="display:none; position:absolute; top:36px; right:8px; z-index:20; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); min-width:140px; overflow:hidden;">
+                  <a th:href="@{${isOwner ? '/mypage' : '/users/' + question.userId}}"
+                     style="display:block; padding:10px 14px; text-decoration:none; color:#333; font-size:14px;"
+                     th:text="${isOwner} ? '마이페이지로 이동' : '프로필로 이동'">프로필로 이동</a>
                 </div>
               </div>
               <div class="author-stats">
@@ -217,6 +367,20 @@
         </div>
       </div>
     </main>
+
+  <!-- 신고 사유 입력 모달 (작성자 아닌 로그인 유저) -->
+  <div class="report-modal-overlay" id="report-modal" hidden>
+    <div class="report-modal">
+      <h3 class="report-modal-title">신고 사유</h3>
+      <textarea id="report-reason" class="report-modal-textarea"
+                placeholder="신고 사유를 입력해주세요." maxlength="500"></textarea>
+      <div class="report-modal-actions">
+        <button type="button" class="btn btn-outline" id="report-cancel">취소</button>
+        <button type="button" class="btn btn-primary" id="report-submit">신고</button>
+      </div>
+    </div>
+  </div>
+
   <div th:replace="~{fragments/footer :: footer}"></div>
 
     <script th:inline="javascript">
@@ -320,6 +484,122 @@
         });
     </script>
 
+    <script>
+      // Answer tab switching
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          document
+            .querySelectorAll(".tab-btn")
+            .forEach((b) => b.classList.remove("active"));
+          e.target.classList.add("active");
+        });
+      });
+
+      // 작성자 케밥(⋮) 메뉴 열고 닫기
+      (function () {
+        const menuBtn = document.getElementById("question-menu-btn");
+        const dropdown = document.getElementById("question-menu-dropdown");
+        if (!menuBtn || !dropdown) return; // 작성자가 아니면 메뉴 자체가 없음
+
+        function closeMenu() {
+          dropdown.setAttribute("hidden", "");
+          menuBtn.setAttribute("aria-expanded", "false");
+        }
+
+        menuBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const willOpen = dropdown.hasAttribute("hidden");
+          if (willOpen) {
+            dropdown.removeAttribute("hidden");
+            menuBtn.setAttribute("aria-expanded", "true");
+          } else {
+            closeMenu();
+          }
+        });
+
+        // 바깥 클릭 / ESC 로 닫기
+        document.addEventListener("click", (e) => {
+          if (!dropdown.hasAttribute("hidden") && !e.target.closest(".question-menu")) {
+            closeMenu();
+          }
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeMenu();
+        });
+
+        // 간단 토스트 (네이티브 alert 대신)
+        function showToast(message) {
+          const t = document.createElement("div");
+          t.className = "app-toast";
+          t.textContent = message;
+          document.body.appendChild(t);
+          setTimeout(() => t.remove(), 2500);
+        }
+
+        // 신고: 작성자가 아닌 로그인 유저에게만 버튼이 있음 → 커스텀 모달로 사유 입력
+        const reportBtn    = document.getElementById("question-report-btn");
+        const reportModal  = document.getElementById("report-modal");
+        const reportReason = document.getElementById("report-reason");
+        const reportCancel = document.getElementById("report-cancel");
+        const reportSubmit = document.getElementById("report-submit");
+
+        function closeReportModal() {
+          if (reportModal) reportModal.setAttribute("hidden", "");
+        }
+
+        if (reportBtn && reportModal) {
+          // 신고 클릭 → 케밥 닫고 모달 열기
+          reportBtn.addEventListener("click", () => {
+            closeMenu();
+            reportReason.value = "";
+            reportModal.removeAttribute("hidden");
+            reportReason.focus();
+          });
+
+          reportCancel.addEventListener("click", closeReportModal);
+          reportModal.addEventListener("click", (e) => {   // 오버레이 바깥 클릭 시 닫기
+            if (e.target === reportModal) closeReportModal();
+          });
+          document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeReportModal();
+          });
+
+          // 모달의 신고 버튼 → 실제 전송
+          reportSubmit.addEventListener("click", async () => {
+            const reason = reportReason.value.trim();
+            if (!reason) { reportReason.focus(); return; } // 빈 값이면 포커스만
+
+            const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            try {
+              const res = await fetch('/api/reports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
+                body: JSON.stringify({
+                  targetType: "QUESTION",
+                  targetId: Number(reportBtn.dataset.questionId),
+                  reason
+                })
+              });
+              if (res.ok) {
+                const msg = await res.text();
+                closeReportModal();
+                showToast(msg || "신고되었습니다.");
+              } else if (res.status === 401) {
+                showToast("로그인이 필요합니다.");
+              } else {
+                const msg = await res.text();
+                showToast(msg || ('신고에 실패했습니다. (' + res.status + ')'));
+              }
+            } catch (e) {
+              console.error(e);
+              showToast("네트워크 오류가 발생했습니다.");
+            }
+          });
+        }
+      })();
+    </script>
+
     <script th:inline="javascript">
       // 외부 응답 값은 HTML로 해석하지 않고 텍스트 노드로 렌더링 (XSS 방지)
       function renderTranslation(box, message) {
@@ -329,31 +609,49 @@
         box.appendChild(p);
       }
 
+      // ── 작성자 프로필 이동 UI ──────────────────────────────
+      function closeProfileMenus() {
+        const btn = document.getElementById('headerProfileBtn');
+        const menu = document.getElementById('authorMenu');
+        if (btn)  btn.style.display = 'none';
+        if (menu) menu.style.display = 'none';
+      }
+      // 헤더 닉네임 클릭 → "프로필로 이동" 버튼 토글
+      function toggleHeaderProfile(e) {
+        e.stopPropagation();
+        const btn = document.getElementById('headerProfileBtn');
+        if (!btn) return;
+        const menu = document.getElementById('authorMenu');
+        if (menu) menu.style.display = 'none';
+        btn.style.display = (btn.style.display === 'none') ? 'inline-block' : 'none';
+      }
+      // 사이드바 케밥(⋮) 클릭 → 드롭다운 토글
+      function toggleAuthorMenu(e) {
+        e.stopPropagation();
+        const menu = document.getElementById('authorMenu');
+        if (!menu) return;
+        const btn = document.getElementById('headerProfileBtn');
+        if (btn) btn.style.display = 'none';
+        menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+      }
+      // 바깥 클릭 시 닫기
+      document.addEventListener('click', closeProfileMenus);
+
       document.addEventListener('DOMContentLoaded', () => {
-        // 한글 언어 이름 → Papago 언어 코드 변환표
-        const LANG_CODE = {
-          '한국어': 'ko', '영어': 'en', '일본어': 'ja', '중국어': 'zh-CN',
-          '프랑스어': 'fr', '스페인어': 'es', '독일어': 'de',
-          // native_language가 코드로 저장된 경우도 대비 (둘 다 받아줌)
-          'ko':'ko','en':'en','ja':'ja','zh-CN':'zh-CN','fr':'fr','es':'es','de':'de'
-        };
+        const rawHtml = /*[[${question.content}]]*/ '';        // 본문(HTML)
+        const target  = /*[[${question.languageCode}]]*/ '';   // 학습 언어 코드 (DB)
 
-        const text     = /*[[${question.content}]]*/ '';
-        const nativeKo = /*[[${question.nativeLanguage}]]*/ '';  // 작성자 모국어
-        const learnKo  = /*[[${question.languageName}]]*/ '';    // 학습 언어
-
-        const source = LANG_CODE[nativeKo] || 'ko';   // 표에 없으면 ko로 기본값
-        const target = LANG_CODE[learnKo]  || 'en';   // 표에 없으면 en으로 기본값
+        // HTML → 평문 변환: <p> 등 태그 제거 (DOM에 붙이지 않아 XSS 안전)
+        const tmp = document.createElement('div');
+        tmp.innerHTML = rawHtml;
+        const text = (tmp.textContent || '').trim();
 
         const box   = document.querySelector('.translation-body');
         const label = document.querySelector('.translation-direction');
-        if (label) label.textContent = source.toUpperCase() + ' → ' + target.toUpperCase();
+        if (label) label.textContent = 'AUTO → ' + (target || '').toUpperCase();
 
-        // 원문 언어 == 번역 언어면 번역 불필요
-        if (source === target) {
-          renderTranslation(box, '원문과 번역 언어가 같아 번역을 생략합니다.');
-          return;
-        }
+        if (!text)   { renderTranslation(box, '번역할 본문이 없습니다.'); return; }
+        if (!target) { renderTranslation(box, '번역 대상 언어 정보가 없습니다.'); return; }
 
         const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
@@ -361,10 +659,21 @@
         fetch('/api/papago/translate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
-          body: JSON.stringify({ source, target, text })   // 변수명=키명이라 축약형
+          body: JSON.stringify({ source: 'auto', target, text })   // source=auto → 본문 언어 자동 감지
         })
-                .then(res => res.json())
-                .then(json => { renderTranslation(box, json.data.translatedText); })
+                .then(async (res) => {
+                  const json = await res.json();
+                  if (!res.ok) {
+                    // N2MT05 = 감지된 원문 언어 == target → 번역 불필요
+                    if (json.code === 'N2MT05') {
+                      renderTranslation(box, '본문 언어가 번역 언어와 같아 번역하지 않습니다.');
+                    } else {
+                      renderTranslation(box, json.message || '번역을 불러오지 못했습니다.');
+                    }
+                    return;
+                  }
+                  renderTranslation(box, json.data.translatedText);
+                })
                 .catch(() => { renderTranslation(box, '번역을 불러오지 못했습니다.'); });
       });
     </script>

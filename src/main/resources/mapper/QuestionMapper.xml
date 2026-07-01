@@ -89,14 +89,6 @@
         ORDER BY language_id
     </select>
 
-    <select id="findAttachmentById" parameterType="Long" resultType="QuestionAttachmentDto">
-        SELECT * FROM question_attachment WHERE id = #{id}
-    </select>
-
-    <select id="findAttachmentsByQuestionId" parameterType="Long" resultType="QuestionAttachmentDto">
-        SELECT * FROM question_attachment WHERE question_id = #{questionId}
-    </select>
-
     <select id="findQuestionDetailById" parameterType="Long" resultType="QuestionDto">
         SELECT q.question_id,
         q.title,
@@ -112,6 +104,7 @@
         CASE WHEN u.deleted_at IS NOT NULL THEN NULL ELSE u.role END AS role,
         CASE WHEN u.deleted_at IS NOT NULL THEN NULL ELSE u.created_at END AS author_joined_at,
         l.language_name,
+        l.language_code,
         CASE
         WHEN EXISTS (SELECT 1 FROM answer a
         WHERE a.question_id = q.question_id
@@ -167,6 +160,52 @@
         AND q.category = #{category}
         ORDER BY q.created_at DESC
         LIMIT 3
+    </select>
+
+    <update id="softDeleteQuestion" parameterType="Long">
+        UPDATE question
+        SET deleted_at = NOW()
+        WHERE question_id = #{id}
+        AND deleted_at IS NULL
+    </update>
+
+    <update id="updateQuestion" parameterType="QuestionDto">
+        UPDATE question
+        SET title   = #{title},
+        content     = #{content},
+        category    = #{category},
+        target      = #{target},
+        language_id = #{languageId},
+        updated_at  = NOW()
+        WHERE question_id = #{questionId}
+        AND deleted_at IS NULL
+    </update>
+
+    <delete id="deleteAttachment" parameterType="Long">
+        DELETE FROM question_attachment WHERE id = #{id}
+    </delete>
+
+    <update id="softDeleteAttachment" parameterType="Long">
+        UPDATE question_attachment
+        SET deleted_at = NOW()
+        WHERE id = #{id}
+        AND deleted_at IS NULL
+    </update>
+
+    <select id="findAttachmentById" parameterType="Long" resultType="QuestionAttachmentDto">
+        SELECT * FROM question_attachment WHERE id = #{id}
+        AND deleted_at IS NULL
+    </select>
+
+    <select id="findAttachmentsByQuestionId" parameterType="Long" resultType="QuestionAttachmentDto">
+        SELECT * FROM question_attachment WHERE question_id = #{questionId}
+        AND deleted_at IS NULL
+    </select>
+
+    <select id="findAttachmentsToPurge" resultType="QuestionAttachmentDto">
+        SELECT * FROM question_attachment
+        WHERE deleted_at IS NOT NULL
+        AND deleted_at &lt; NOW() - INTERVAL 1 DAY
     </select>
 
 </mapper>

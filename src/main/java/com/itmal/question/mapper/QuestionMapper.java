@@ -31,6 +31,16 @@ public interface QuestionMapper {
 
     void increaseViewCount(Long id);
 
+    void softDeleteQuestion(Long id);
+
+    void updateQuestion(QuestionDto questionDto);
+
+    void deleteAttachment(Long id); // 스케쥴러용
+
+    void softDeleteAttachment(Long id);
+
+    List<QuestionAttachmentDto> findAttachmentsToPurge();
+
     List<QuestionDto> findRelatedQuestions(@Param("questionId") Long questionId,
                                            @Param("languageId") Long languageId,
                                            @Param("category") String category);

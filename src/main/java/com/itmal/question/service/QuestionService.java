@@ -7,6 +7,7 @@ import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
 import com.itmal.question.util.HtmlSanitizer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,7 +23,7 @@ import java.util.UUID;
 import java.util.List;
 import java.util.Set;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
@@ -181,4 +182,85 @@ public class QuestionService {
                 question.getCategory()
         );
     }
+
+
+    //질문 삭제
+    @Transactional
+    public void deleteQuestion(Long questionId, Long loginUserId){
+        QuestionDto question = questionMapper.findQuestionDetailById(questionId);
+        if(question == null){
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if (!question.getUserId().equals(loginUserId)){
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
+        questionMapper.softDeleteQuestion(questionId);
+    }
+
+    //수정 폼에 기존에 있던 글 채우기
+    public QuestionDto getQuestionForEdit(Long questionId, Long loginUserId){
+        QuestionDto question = questionMapper.findQuestionDetailById(questionId);
+        if(question == null){
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if(!question.getUserId().equals(loginUserId)){
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
+        return question;
+    }
+
+    // 실제 수정 반영 (자기 글만)
+    @Transactional
+    public void updateQuestion(QuestionDto dto, Long loginUserId, List<MultipartFile> newFiles,
+                               List<Long> deleteAttachmentIds){
+        QuestionDto question = questionMapper.findQuestionDetailById(dto.getQuestionId());
+        if (question == null){
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if (!question.getUserId().equals(loginUserId)){
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
+
+        List<QuestionAttachmentDto> current = questionMapper.findAttachmentsByQuestionId(dto.getQuestionId());
+
+        List<QuestionAttachmentDto> toDelete = current.stream()
+                .filter(a->deleteAttachmentIds != null && deleteAttachmentIds.contains(a.getId())).toList();
+
+        validateFiles(newFiles);
+        List<MultipartFile> realNew = (newFiles == null) ? List.of() : newFiles
+                                                                       .stream()
+                                                                       .filter(f-> f != null && !f.isEmpty()).toList();
+
+        int finalCount = current.size() - toDelete.size() + realNew.size();
+        if (finalCount > MAX_FILE_COUNT) {
+            throw new IllegalArgumentException("파일은 최대 " + MAX_FILE_COUNT + "개까지 첨부할 수 있습니다.");
+        }
+
+        dto.setContent(HtmlSanitizer.clean(dto.getContent()));
+        questionMapper.updateQuestion(dto);
+
+        for (QuestionAttachmentDto att : toDelete) {
+            questionMapper.softDeleteAttachment(att.getId());
+        }
+
+        for (MultipartFile file : realNew) {
+            saveAttachment(dto.getQuestionId(),file);
+        }
+
+    }
+
+    // 파일첨부 삭제 스케쥴러용
+    public void purgeDetachedAttachments() {
+        List<QuestionAttachmentDto> targets = questionMapper.findAttachmentsToPurge();
+        for (QuestionAttachmentDto att : targets) {
+            try {
+                Files.deleteIfExists(Paths.get(uploadDir).resolve(att.getFilePath()));
+                questionMapper.deleteAttachment(att.getId());
+            } catch (IOException e) {
+                log.warn("첨부 정리 실패(다음 배치 재시도): {}", att.getFilePath(), e);
+            }
+        }
+    }
+
+
 }
