@@ -27,4 +27,6 @@ public interface UserMapper {
     void updatePassword(@Param("userId") Long userId, @Param("password") String password);
 
     void softDelete(@Param("userId") Long userId);
+
+    void updateRole(@Param("userId") Long userId, @Param("role") String role);
 }

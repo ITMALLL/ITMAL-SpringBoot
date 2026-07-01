@@ -79,4 +79,10 @@
           AND deleted_at IS NULL
     </update>
 
+    <update id="updateRole">
+        UPDATE users
+        SET role = #{role}
+        WHERE user_id = #{userId}
+    </update>
+
 </mapper>
