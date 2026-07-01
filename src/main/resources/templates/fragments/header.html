@@ -43,12 +43,29 @@
           마이페이지
         </a>
 
-        <a th:href="@{/admin/reports}"
-           sec:authorize="hasRole('ADMIN')"
-           th:class="${page == 'admin'} ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant border-b-2 border-transparent pb-1 hover:text-primary'"
-           class="text-label-md transition-colors">
-          관리자페이지
-        </a>
+        <!-- 관리자 드롭다운 -->
+        <div sec:authorize="hasRole('ADMIN')" class="relative" id="admin-dropdown-wrapper">
+          <button id="admin-dropdown-btn"
+                  class="text-label-md text-on-surface-variant border-b-2 border-transparent pb-1 hover:text-primary transition-colors flex items-center gap-1">
+            관리자페이지
+            <span class="material-symbols-outlined" style="font-size:16px;">expand_more</span>
+          </button>
+          <div id="admin-dropdown-menu"
+               style="display:none; position:absolute; top:calc(100% + 8px); right:0; min-width:160px; background:var(--surface); border:1px solid var(--outline-variant); border-radius:0.75rem; box-shadow:0 4px 16px rgba(0,0,0,0.1); z-index:100; overflow:hidden;">
+            <a th:href="@{/admin/reports}"
+               style="display:block; padding:12px 16px; font-size:14px; font-weight:500; color:var(--on-surface); text-decoration:none;"
+               onmouseover="this.style.background='var(--surface-container-high)'"
+               onmouseout="this.style.background=''">
+              신고 관리
+            </a>
+            <a th:href="@{/admin/tutor-applications}"
+               style="display:block; padding:12px 16px; font-size:14px; font-weight:500; color:var(--on-surface); text-decoration:none;"
+               onmouseover="this.style.background='var(--surface-container-high)'"
+               onmouseout="this.style.background=''">
+              튜터 신청 관리
+            </a>
+          </div>
+        </div>
       </nav>
 
       <!-- Divider -->
@@ -146,6 +163,18 @@
       header.classList.remove("shadow-md");
     }
   });
+
+  const adminBtn = document.getElementById("admin-dropdown-btn");
+  const adminMenu = document.getElementById("admin-dropdown-menu");
+  if (adminBtn && adminMenu) {
+    adminBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      adminMenu.style.display = adminMenu.style.display === "none" ? "block" : "none";
+    });
+    document.addEventListener("click", () => {
+      adminMenu.style.display = "none";
+    });
+  }
 </script>
 </body>
 </html>
