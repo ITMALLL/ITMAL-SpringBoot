@@ -15,17 +15,18 @@ const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 function authHeaders() {
     return csrfToken ? { [csrfHeader]: csrfToken } : {};
 }
-
-// ============ 유저 정보 조회 (캐시) ============
-async function getUserNickname(userId) {
+async function getUserInfo(userId) {
     if (userCache[userId]) return userCache[userId];
     try {
         const res = await fetch(`/api/users/${userId}`);
         const json = await res.json();
-        userCache[userId] = json.data.nickname;
-        return json.data.nickname;
+        userCache[userId] = {
+            nickname: json.data.nickname,
+            nativeLanguage: json.data.nativeLanguage
+        };
+        return userCache[userId];
     } catch {
-        return `사용자 ${userId}`;
+        return { nickname: `사용자 ${userId}`, nativeLanguage: null };
     }
 }
 
@@ -109,7 +110,7 @@ function applyFilters() {
     const query = document.getElementById('chatSearch')?.value.trim().toLowerCase() || '';
     let rooms = [...allRooms];
     if (currentTab === 'unread') rooms = rooms.filter(r => r.unreadCount > 0);
-    if (query) rooms = rooms.filter(r => (userCache[r.otherUserId] || '').toLowerCase().includes(query));
+    if (query) rooms = rooms.filter(r => (userCache[r.otherUserId]?.nickname || '').toLowerCase().includes(query));
     displayChatRooms(rooms);
 }
 
@@ -120,7 +121,7 @@ async function loadChatRooms() {
         allRooms = await response.json();
         if (!Array.isArray(allRooms)) allRooms = [];
         // 닉네임 미리 캐싱
-        await Promise.all(allRooms.map(r => getUserNickname(r.otherUserId)));
+        await Promise.all(allRooms.map(r => getUserInfo(r.otherUserId)));
         applyFilters();
     } catch (error) {
         console.error('채팅 목록 로드 실패:', error);
@@ -138,7 +139,7 @@ async function displayChatRooms(rooms) {
     }
 
     for (const room of rooms) {
-        const nickname = await getUserNickname(room.otherUserId);
+        const nickname = (await getUserInfo(room.otherUserId)).nickname;
         const element = document.createElement('div');
         element.className = 'chat-item';
         element.dataset.roomId = room.id;
@@ -185,7 +186,7 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
         document.getElementById('chatMain').style.display = 'flex';
         document.getElementById('noChat').style.display = 'none';
         const otherUserId = data.otherUserId;
-        const otherNickname = await getUserNickname(otherUserId);
+        const otherNickname = (await getUserInfo(otherUserId)).nickname;
         document.getElementById('chatUserName').textContent = otherNickname;
         document.getElementById('chatUserAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(otherNickname)}&length=1&background=random`;
         document.getElementById('messageContainer').innerHTML = '';
@@ -268,7 +269,7 @@ async function addMessageToUI(message) {
           ${message.isRead === false ? '<span class="read-indicator">1</span>' : ''}
         `;
     } else {
-        const nickname = await getUserNickname(message.senderId);
+        const nickname = (await getUserInfo(message.senderId)).nickname;
         const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&length=1&background=random`;
         messageElement.innerHTML = `
           <div class="message-avatar">
@@ -320,7 +321,7 @@ async function translateMessage(btn, text) {
         const res = await fetch('/api/papago/translate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders() },
-            body: JSON.stringify({ source: 'auto', target: 'ko', text })
+            body: JSON.stringify({ source: 'auto', target: (await getUserInfo(CURRENT_USER_ID)).nativeLanguage || 'ko', text })
         });
         const json = await res.json();
         if (!res.ok) {
@@ -429,7 +430,7 @@ async function displayChatRequests(requests) {
     }
 
     for (const req of requests) {
-        const nickname = await getUserNickname(req.requesterId);
+        const nickname = (await getUserInfo(req.requesterId)).nickname;
         const element = document.createElement('div');
         element.className = 'chat-request-item';
         element.innerHTML = `

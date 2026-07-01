@@ -19,4 +19,7 @@ public class AnswerCreateRequest {
 
     // 폼에서 받지 않고 서비스에서 세팅
     private Long userId;
+
+    // insert 후 DB가 자동 생성한 PK 값이 세팅됨 (useGeneratedKeys)
+    private Long answerId;
 }

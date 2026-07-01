@@ -11,7 +11,7 @@ public interface LearningLanguageMapper {
 
     List<LanguageDto> findAllLanguages();
 
-    List<String> findLanguageNamesByUserId(@Param("userId") Long userId);
+    List<LanguageDto> findLanguageCodesByUserId(@Param("userId") Long userId);
 
     void deleteByUserId(@Param("userId") Long userId);
 

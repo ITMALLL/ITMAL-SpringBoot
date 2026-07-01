@@ -7,7 +7,7 @@ import com.itmal.auth.dto.ProfileUpdateRequest;
 import com.itmal.auth.dto.SocialRegisterRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.repository.UserMapper;
-
+import com.itmal.question.dto.LanguageDto;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,8 +77,8 @@ class UserServiceTest {
         assertThat(updated.getNickname()).isEqualTo("새닉네임");
         assertThat(updated.getNativeLanguage()).isEqualTo("en");
 
-        List<String> langs = userService.getLearningLanguages(user.getUserId());
-        assertThat(langs).containsExactlyInAnyOrder("영어", "일본어");
+        List<LanguageDto> langs = userService.getLearningLanguages(user.getUserId());
+        assertThat(langs).extracting(LanguageDto::getLanguageName).containsExactlyInAnyOrder("영어", "일본어");
     }
 
     @Test
@@ -153,8 +153,8 @@ class UserServiceTest {
         assertThat(updated.getNickname()).isEqualTo("설정닉네임");
         assertThat(updated.getNativeLanguage()).isEqualTo("ko");
 
-        List<String> langs = userService.getLearningLanguages(user.getUserId());
-        assertThat(langs).containsExactlyInAnyOrder("영어", "일본어");
+        List<LanguageDto> langs = userService.getLearningLanguages(user.getUserId());
+        assertThat(langs).extracting(LanguageDto::getLanguageName).containsExactlyInAnyOrder("영어", "일본어");
     }
 
     @Test

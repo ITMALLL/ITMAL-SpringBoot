@@ -13,7 +13,7 @@
     <select id="findByAnswerId" resultType="Comment">
         SELECT c.comment_id, c.answer_id, c.user_id, c.content,
                c.created_at, c.updated_at, c.deleted_at,
-               u.nickname
+               CASE WHEN u.deleted_at IS NOT NULL THEN '탈퇴한 회원' ELSE u.nickname END AS nickname
         FROM comment c
         JOIN users u ON c.user_id = u.user_id
         WHERE c.answer_id = #{answerId}
@@ -24,7 +24,7 @@
     <select id="findById" resultType="Comment">
         SELECT c.comment_id, c.answer_id, c.user_id, c.content,
                c.created_at, c.updated_at, c.deleted_at,
-               u.nickname
+               CASE WHEN u.deleted_at IS NOT NULL THEN '탈퇴한 회원' ELSE u.nickname END AS nickname
         FROM comment c
         JOIN users u ON c.user_id = u.user_id
         WHERE c.comment_id = #{commentId}
