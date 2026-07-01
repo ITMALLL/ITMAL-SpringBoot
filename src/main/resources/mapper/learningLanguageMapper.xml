@@ -5,13 +5,13 @@
 <mapper namespace="com.itmal.auth.repository.LearningLanguageMapper">
 
     <select id="findAllLanguages" resultType="com.itmal.question.dto.LanguageDto">
-        SELECT language_id, language_name
+        SELECT language_id, language_name, language_code
         FROM language
         ORDER BY language_id
     </select>
 
-    <select id="findLanguageNamesByUserId" resultType="string">
-        SELECT l.language_name
+    <select id="findLanguageCodesByUserId" resultType="com.itmal.question.dto.LanguageDto">
+        SELECT l.language_id, l.language_name, l.language_code
         FROM user_learning_language ull
         JOIN language l ON ull.language_id = l.language_id
         WHERE ull.user_id = #{userId}
