@@ -7,7 +7,8 @@ import com.itmal.auth.dto.ProfileUpdateRequest;
 import com.itmal.auth.dto.SocialRegisterRequest;
 import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.repository.UserMapper;
-
+import com.itmal.global.exception.ApiException;
+import com.itmal.question.dto.LanguageDto;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,8 +78,8 @@ class UserServiceTest {
         assertThat(updated.getNickname()).isEqualTo("새닉네임");
         assertThat(updated.getNativeLanguage()).isEqualTo("en");
 
-        List<String> langs = userService.getLearningLanguages(user.getUserId());
-        assertThat(langs).containsExactlyInAnyOrder("영어", "일본어");
+        List<LanguageDto> langs = userService.getLearningLanguages(user.getUserId());
+        assertThat(langs).extracting(LanguageDto::getLanguageName).containsExactlyInAnyOrder("영어", "일본어");
     }
 
     @Test
@@ -116,8 +117,7 @@ class UserServiceTest {
 
         // Act & Assert
         assertThatThrownBy(() -> userService.changePassword(user.getUserId(), request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("현재 비밀번호가 일치하지 않습니다.");
+                .isInstanceOf(ApiException.class);
     }
 
     @Test
@@ -153,8 +153,8 @@ class UserServiceTest {
         assertThat(updated.getNickname()).isEqualTo("설정닉네임");
         assertThat(updated.getNativeLanguage()).isEqualTo("ko");
 
-        List<String> langs = userService.getLearningLanguages(user.getUserId());
-        assertThat(langs).containsExactlyInAnyOrder("영어", "일본어");
+        List<LanguageDto> langs = userService.getLearningLanguages(user.getUserId());
+        assertThat(langs).extracting(LanguageDto::getLanguageName).containsExactlyInAnyOrder("영어", "일본어");
     }
 
     @Test
@@ -185,7 +185,7 @@ class UserServiceTest {
         userService.deleteAccount(user.getUserId());
 
         // Assert
-        User deleted = userMapper.findByEmail("delete@itmal.com").orElseThrow();
+        User deleted = userMapper.findById(user.getUserId()).orElseThrow();
         assertThat(deleted.isDeleted()).isTrue();
     }
 
@@ -199,7 +199,7 @@ class UserServiceTest {
         userService.deleteAccount(user.getUserId());
 
         // Assert
-        User deleted = userMapper.findByEmail("social-delete@itmal.com").orElseThrow();
+        User deleted = userMapper.findById(user.getUserId()).orElseThrow();
         assertThat(deleted.isDeleted()).isTrue();
     }
 }

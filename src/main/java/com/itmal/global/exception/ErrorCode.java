@@ -18,6 +18,7 @@ public enum ErrorCode {
     COMMENT_FORBIDDEN(HttpStatus.FORBIDDEN, "CM002", "본인 댓글만 수정/삭제할 수 있습니다."),
 
     // Auth
+    SOCIAL_USER_NO_PASSWORD(HttpStatus.BAD_REQUEST, "A008", "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "A001", "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "A002", "이미 사용 중인 닉네임입니다."),
     EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "A003", "이메일 발송에 실패했습니다."),

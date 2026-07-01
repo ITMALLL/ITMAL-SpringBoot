@@ -24,6 +24,7 @@ public class User implements Serializable {
     private LocalDateTime deletedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String originalEmail;
 
     public boolean isDeleted() {
         return deletedAt != null;

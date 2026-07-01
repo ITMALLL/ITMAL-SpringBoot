@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.itmal.question.dto.LanguageDto;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,8 +48,8 @@ class LearningLanguageMapperTest {
         learningLanguageMapper.insertUserLearningLanguagesByNames(userId, List.of("영어", "일본어"));
 
         // Assert
-        List<String> result = learningLanguageMapper.findLanguageNamesByUserId(userId);
-        assertThat(result).containsExactlyInAnyOrder("영어", "일본어");
+        List<LanguageDto> result = learningLanguageMapper.findLanguageCodesByUserId(userId);
+        assertThat(result).extracting(LanguageDto::getLanguageName).containsExactlyInAnyOrder("영어", "일본어");
     }
 
     @Test
@@ -63,8 +64,8 @@ class LearningLanguageMapperTest {
         learningLanguageMapper.insertUserLearningLanguagesByNames(userId, List.of("일본어"));
 
         // Assert
-        List<String> result = learningLanguageMapper.findLanguageNamesByUserId(userId);
-        assertThat(result).containsExactly("일본어");
+        List<LanguageDto> result = learningLanguageMapper.findLanguageCodesByUserId(userId);
+        assertThat(result).extracting(LanguageDto::getLanguageName).containsExactly("일본어");
     }
 
     @Test

@@ -72,12 +72,21 @@
           <span>또는 이메일로 로그인</span>
         </div>
 
+        <!-- Success Message -->
+        <div th:if="${successMessage}" class="success-message">
+          <div th:text="${successMessage}"></div>
+          <div style="margin-top: 4px; font-weight: 400;">임시 비밀번호로 로그인 후 마이페이지에서 비밀번호를 변경해주세요.</div>
+        </div>
+
         <!-- Error Message -->
         <div th:if="${param.error}" class="error-message">
           이메일 또는 비밀번호가 올바르지 않습니다.
         </div>
         <div th:if="${param.deleted}" class="error-message">
           탈퇴된 계정입니다.
+        </div>
+        <div th:if="${param.reregistration_blocked}" class="error-message">
+          탈퇴 후 15일 이내에는 동일한 이메일로 재가입할 수 없습니다.
         </div>
 
         <!-- Login Form -->
@@ -142,7 +151,7 @@
                 <span class="checkbox-label">로그인 상태 유지</span>
               </label>
             </div>
-            <a href="#" class="forgot-link">비밀번호 찾기</a>
+            <a href="/forgot-password" class="forgot-link">비밀번호 찾기</a>
           </div>
 
           <!-- Login Button -->
