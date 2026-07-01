@@ -106,8 +106,7 @@ public class AnswerController {
     //답변 작성 페이지
     @GetMapping("/write")
     public String writePage(@RequestParam Long questionId, Model model) {
-        QuestionDto question = questionMapper.findQuestionDetailById(questionId);
-        model.addAttribute("questionId",questionId);
-        return "answers/write";
+        model.addAttribute("questionId", questionId);
+        return "answer/write";
     }
 }
