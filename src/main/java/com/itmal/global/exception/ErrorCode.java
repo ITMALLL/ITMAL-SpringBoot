@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
     // 기존
-    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Q001", "질문을 찾을 수 없습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "사용자를 찾을 수 없습니다."),
     ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "AN001", "답변을 찾을 수 없습니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "C002", "권한이 없습니다."),
@@ -35,6 +34,11 @@ public enum ErrorCode {
     N2MT04(HttpStatus.BAD_REQUEST, "N2MT04", "target을 지원하지 않음"),
     N2MT05(HttpStatus.BAD_REQUEST, "N2MT05", "source와 target이 동일"),
     N2MT99(HttpStatus.INTERNAL_SERVER_ERROR, "N2MT99", "서버 내부 오류"),
+
+    //QUESTION
+    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "Q001", "질문을 찾을 수 없습니다."),
+    QUESTION_FORBIDDEN(HttpStatus.FORBIDDEN, "Q002", "본인 질문만 수정/삭제할 수 있습니다."),
+
 
     //채팅
     DUPLICATE_CHAT_REQUEST(HttpStatus.CONFLICT, "CH001", "이미 채팅 요청을 보냈습니다."),

@@ -8,7 +8,7 @@
     <meta name="_csrf" th:content="${_csrf.token}" />
     <meta name="_csrf_header" th:content="${_csrf.headerName}" />
 
-    <title>잇말 - 질문 등록</title>
+    <title>잇말 - 질문 수정</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
@@ -34,9 +34,9 @@
       <div class="write-container">
         <!-- Header Section -->
         <div class="write-header">
-          <h1 class="write-title">새 질문 등록</h1>
+          <h1 class="write-title">질문 수정</h1>
           <p class="write-description">
-            외국어 학습 중 궁금한 점을 잇말 커뮤니티나 튜터에게 물어보세요.
+            작성한 질문의 내용을 수정할 수 있어요.
           </p>
         </div>
 
@@ -44,7 +44,7 @@
         <form
                 class="write-form"
                 id="question-form"
-                th:action="@{/questions/write}"
+                th:action="@{/questions/{id}/edit(id=${question.questionId})}"
                 method="post"
                 enctype="multipart/form-data"
         >
@@ -57,7 +57,8 @@
                 <option value="">언어를 선택하세요</option>
                 <option th:each="lang : ${languages}"
                         th:value="${lang.languageId}"
-                        th:text="${lang.languageName}">
+                        th:text="${lang.languageName}"
+                        th:selected="${lang.languageId == question.languageId}">
                 </option>
               </select>
             </div>
@@ -67,10 +68,10 @@
               <label class="form-label required">카테고리</label>
               <select class="form-select" name="category" required>
                 <option value="">카테고리를 선택하세요</option>
-                <option value="grammar">문법 (Grammar)</option>
-                <option value="expression">표현 (Expression)</option>
-                <option value="pronunciation">발음 (Pronunciation)</option>
-                <option value="culture">문화 (Culture)</option>
+                <option value="grammar"       th:selected="${question.category == 'grammar'}">문법 (Grammar)</option>
+                <option value="expression"    th:selected="${question.category == 'expression'}">표현 (Expression)</option>
+                <option value="pronunciation" th:selected="${question.category == 'pronunciation'}">발음 (Pronunciation)</option>
+                <option value="culture"       th:selected="${question.category == 'culture'}">문화 (Culture)</option>
               </select>
             </div>
 
@@ -79,9 +80,9 @@
               <label class="form-label required">질문 대상</label>
               <select class="form-select" name="target" required>
                 <option value="">대상을 선택하세요</option>
-                <option value="tutor">튜터 (답변 비용)</option>
-                <option value="community">전체 사용자</option>
-                <option value="native">원어민만</option>
+                <option value="tutor"     th:selected="${question.target == 'tutor'}">튜터 (답변 비용)</option>
+                <option value="community" th:selected="${question.target == 'community'}">전체 사용자</option>
+                <option value="native"    th:selected="${question.target == 'native'}">원어민만</option>
               </select>
             </div>
           </div>
@@ -95,6 +96,7 @@
               class="form-input"
               placeholder="제목을 입력해주세요"
               maxlength="200"
+              th:value="${question.title}"
               required
             />
           </div>
@@ -108,6 +110,7 @@
               id="editor"
               placeholder="궁금한 내용을 자세히 설명해주세요. 상황이나 문맥을 함께 적어주시면 원어민에게 큰 도움이 될 거예요."
               maxlength="5000"
+              th:text="${question.content}"
             ></textarea>
             <div class="char-counter">
               <span id="char-count">0</span> / 5,000자
@@ -117,6 +120,26 @@
           <!-- File Attachment Section -->
           <div class="form-field full-width">
             <label class="form-label">파일 첨부</label>
+
+            <!-- 기존 첨부파일: × 로 연결 끊기 -->
+            <ul class="attachment-file-list" id="existing-file-list">
+              <li th:each="att : ${attachments}"
+                  class="attachment-file-item"
+                  th:attr="data-id=${att.id}">
+                <span class="material-symbols-outlined attachment-file-icon"
+                      th:text="${att.fileType != null and #strings.startsWith(att.fileType, 'audio/')} ? 'mic' : 'description'">description</span>
+                <span class="attachment-file-name" th:text="${att.originalName}">파일명</span>
+                <span class="attachment-file-size" th:if="${att.fileSize != null}"
+                      th:text="${att.fileSize < 1048576}
+                               ? ${#numbers.formatDecimal(att.fileSize / 1024.0, 1, 1)} + 'KB'
+                               : ${#numbers.formatDecimal(att.fileSize / 1048576.0, 1, 1)} + 'MB'">1.2MB</span>
+                <button type="button" class="attachment-file-remove">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </li>
+            </ul>
+
+            <!-- 새 파일 추가 -->
             <div class="attachment-area">
               <label class="attachment-btn" for="file-input">
                 <span class="material-symbols-outlined">attach_file</span>
@@ -140,7 +163,7 @@
           <!-- Form Actions -->
           <div class="form-actions">
             <button type="button" class="btn btn-outline">취소</button>
-            <button type="submit" class="btn btn-primary">질문 등록하기</button>
+            <button type="submit" class="btn btn-primary">수정 완료</button>
           </div>
         </form>
       </div>
@@ -150,32 +173,16 @@
 
 
   <script>
-      // 글자 수 카운터
-      const textarea = document.querySelector(".form-textarea");
-      const charCount = document.getElementById("char-count");
-
-      textarea.addEventListener("input", () => {
-        charCount.textContent = textarea.value.length;
-      });
-
-      // 취소 버튼
+      // 취소 버튼 (변경 사항이 있어도 안전하게 뒤로가기 확인)
       document.querySelector(".btn-outline").addEventListener("click", () => {
-        if (
-          document.querySelector(".form-input").value.trim() ||
-          textarea.value.trim()
-        ) {
-          if (confirm("작성 중인 내용이 있습니다. 정말 취소하시겠어요?")) {
-            history.back();
-          }
-        } else {
+        if (confirm("수정을 취소하시겠어요? 변경한 내용은 저장되지 않아요.")) {
           history.back();
         }
       });
     </script>
 
     <script>
-      const fileInput = document.getElementById('file-input');
-      const fileListEl = document.getElementById('file-list');
+      // ===== 첨부파일: 기존 파일 제거 + 신규 파일 추가 (총합 최대 3개) =====
       const MAX_FILES = 3;
       const MAX_SIZE = 50 * 1024 * 1024;
       // 서버 ALLOWED_EXTENSIONS 와 동일하게 유지할 것
@@ -184,12 +191,37 @@
         const dot = name.lastIndexOf('.');
         return dot >= 0 ? name.slice(dot + 1).toLowerCase() : '';
       }
-      let selectedFiles = [];
 
+      const existingListEl = document.getElementById('existing-file-list');
+      const fileInput = document.getElementById('file-input');
+      const fileListEl = document.getElementById('file-list');
+
+      let selectedFiles = [];   // 새로 추가한 파일
+      let deletedIds = [];      // 연결 끊을 기존 첨부 id
+
+      // 화면에 남아있는 기존 첨부 수
+      function remainingExistingCount() {
+        return existingListEl.querySelectorAll('.attachment-file-item').length;
+      }
+      function totalCount() {
+        return remainingExistingCount() + selectedFiles.length;
+      }
+
+      // 기존 파일 × 클릭 → 목록에서 빼고 삭제 id 수집
+      existingListEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.attachment-file-remove');
+        if (!btn) return;
+        const li = btn.closest('.attachment-file-item');
+        const id = li.dataset.id;
+        if (id) deletedIds.push(id);
+        li.remove();
+      });
+
+      // 새 파일 선택
       fileInput.addEventListener('change', () => {
         const newFiles = Array.from(fileInput.files);
         for (const file of newFiles) {
-          if (selectedFiles.length >= MAX_FILES) {
+          if (totalCount() >= MAX_FILES) {
             alert('파일은 최대 3개까지 첨부할 수 있습니다.');
             break;
           }
@@ -228,13 +260,16 @@
         });
       }
 
+      // 새로 추가한 파일 × 클릭 → 목록에서 제거
       fileListEl.addEventListener('click', (e) => {
         const btn = e.target.closest('.attachment-file-remove');
         if (!btn) return;
         selectedFiles.splice(parseInt(btn.dataset.index), 1);
         renderFileList();
       });
+    </script>
 
+    <script>
       document.getElementById('question-form').addEventListener('submit', async (e) => {
         e.preventDefault(); // 기본 전송을 막고 fetch로 직접 보냄
 
@@ -246,12 +281,13 @@
           return;
         }
 
-        // 2) 폼 필드 수집 + CKEditor 내용/첨부파일 반영
+        // 2) 폼 필드 수집 + CKEditor 내용 / 첨부 변경 반영
         const form = e.target;
         const formData = new FormData(form);
         formData.set('content', content); // 숨은 textarea 대신 에디터 내용 사용
         formData.delete('files');                          // 비어있는 file input 제거
-        selectedFiles.forEach(file => formData.append('files', file)); // 실제 선택 파일 추가
+        selectedFiles.forEach(file => formData.append('files', file));           // 새로 추가한 파일
+        deletedIds.forEach(id => formData.append('deleteAttachmentIds', id));    // 삭제할 기존 첨부 id
 
         // 3) CSRF 토큰을 헤더에 실어 전송
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
@@ -267,7 +303,7 @@
             window.location.href = res.url;
           } else {
             const msg = await res.text();
-            alert(msg || ('등록에 실패했습니다. (' + res.status + ')'));
+            alert(msg || ('수정에 실패했습니다. (' + res.status + ')'));
           }
         } catch (err) {
           console.error(err);
@@ -282,6 +318,15 @@
               .create(document.querySelector('#editor'))
               .then(editor => {
                 editorInstance = editor;
+
+                // 기존 내용 기준으로 글자 수 초기 표시
+                const initText = editor.getData()
+                        .replace(/<[^>]*>/g, '')
+                        .replace(/&nbsp;/g, '')
+                        .replace(/&[a-z]+;/g, '')
+                        .trim();
+                document.getElementById('char-count').textContent = initText.length;
+
                 editor.model.document.on('change:data', () => {
                   const text = editor.getData()
                           .replace(/<[^>]*>/g, '')     // HTML 태그 제거
