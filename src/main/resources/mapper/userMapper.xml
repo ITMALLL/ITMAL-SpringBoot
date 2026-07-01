@@ -48,6 +48,7 @@
         SELECT COUNT(*) > 0
         FROM users
         WHERE email = #{email}
+        AND deleted_at IS NULL
     </select>
 
     <select id="existsByNickname" resultType="boolean">
@@ -70,7 +71,8 @@
 
     <update id="softDelete">
         UPDATE users
-        SET deleted_at = NOW()
+        SET deleted_at = NOW(),
+            email = CONCAT('deleted_', user_id, '@deleted.com')
         WHERE user_id = #{userId}
     </update>
 

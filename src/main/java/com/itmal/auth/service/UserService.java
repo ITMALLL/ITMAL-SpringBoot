@@ -28,6 +28,8 @@ public class UserService {
     private final UserMapper userMapper;
     private final LearningLanguageMapper learningLanguageMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
+    private final PasswordResetTokenStore passwordResetTokenStore;
 
     public boolean existsByEmail(String email) {
         return userMapper.existsByEmail(email);
@@ -42,8 +44,8 @@ public class UserService {
                 .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
     }
 
-    public List<String> getLearningLanguages(Long userId) {
-        return learningLanguageMapper.findLanguageNamesByUserId(userId);
+    public List<LanguageDto> getLearningLanguages(Long userId) {
+        return learningLanguageMapper.findLanguageCodesByUserId(userId);
     }
 
     public List<LanguageDto> getAllLanguages() {
@@ -95,6 +97,39 @@ public class UserService {
             throw new DuplicateNicknameException();
         }
         saveLanguages(userId, languageNames);
+    }
+
+    public void initiatePasswordReset(String email, String resetBaseUrl) {
+        userMapper.findByEmail(email)
+                .filter(u -> !u.isDeleted())
+                .filter(u -> !u.isSocialUser())
+                .ifPresent(user -> {
+                    String token = passwordResetTokenStore.save(email);
+                    String resetUrl = resetBaseUrl + "?token=" + token;
+                    emailVerificationService.sendPasswordResetEmail(email, resetUrl);
+                    log.info("[비밀번호 찾기] 재설정 링크 발송 - userId={}", user.getUserId());
+                });
+    }
+
+    @Transactional
+    public void confirmPasswordReset(String token, String newPassword) {
+        if (newPassword == null || newPassword.isBlank() || newPassword.length() < 8) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST);
+        }
+
+        String email = passwordResetTokenStore.consumeEmail(token)
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_REQUEST));
+
+        User user = userMapper.findByEmail(email)
+                .filter(u -> !u.isDeleted())
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        userMapper.updatePassword(user.getUserId(), passwordEncoder.encode(newPassword));
+        log.info("[비밀번호 찾기] 비밀번호 변경 완료 - userId={}", user.getUserId());
+    }
+
+    public boolean isValidResetToken(String token) {
+        return passwordResetTokenStore.findEmail(token).isPresent();
     }
 
     @Transactional

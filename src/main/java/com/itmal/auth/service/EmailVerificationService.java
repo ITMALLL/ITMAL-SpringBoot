@@ -46,6 +46,57 @@ public class EmailVerificationService {
         }
     }
 
+    public void sendPasswordResetEmail(String to, String resetUrl) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            helper.setFrom(new InternetAddress(fromEmail, "잇말 - ITMAL"));
+            helper.setTo(to);
+            helper.setSubject("[잇말] 비밀번호 재설정 안내");
+            helper.setText("""
+                    안녕하세요, 잇말(ITMAL)입니다.
+
+                    비밀번호 재설정을 요청하셨습니다.
+                    아래 링크를 클릭하여 비밀번호를 변경해주세요.
+
+                    %s
+
+                    링크는 30분 후 만료됩니다.
+                    본인이 요청하지 않은 경우 이 메일을 무시해주세요.
+
+                    감사합니다.
+                    잇말(ITMAL) 팀 드림
+                    """.formatted(resetUrl));
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new EmailSendException("이메일 발송에 실패했습니다.", e);
+        }
+    }
+
+    public void sendTempPasswordEmail(String to, String tempPassword) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+            helper.setFrom(new InternetAddress(fromEmail, "잇말 - ITMAL"));
+            helper.setTo(to);
+            helper.setSubject("[잇말] 임시 비밀번호 안내");
+            helper.setText("""
+                    안녕하세요, 잇말(ITMAL)입니다.
+
+                    임시 비밀번호가 발급되었습니다.
+                    아래 임시 비밀번호로 로그인 후 반드시 비밀번호를 변경해주세요.
+
+                    [임시 비밀번호] %s
+
+                    감사합니다.
+                    잇말(ITMAL) 팀 드림
+                    """.formatted(tempPassword));
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new EmailSendException("이메일 발송에 실패했습니다.", e);
+        }
+    }
+
     private String generateCode() {
         return String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
     }
