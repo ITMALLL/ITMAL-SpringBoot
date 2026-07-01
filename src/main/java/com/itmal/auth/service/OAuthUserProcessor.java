@@ -6,6 +6,8 @@ import com.itmal.auth.dto.OAuthAttributes;
 import com.itmal.auth.repository.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -41,7 +43,7 @@ public class OAuthUserProcessor {
     private User createNewUser(OAuthAttributes attributes) {
         // 3. 탈퇴 후 15일 재가입 차단 체크
         if (userMapper.existsByEmail(attributes.getEmail())) {
-            throw new IllegalStateException("reregistration_blocked");
+            throw new OAuth2AuthenticationException(new OAuth2Error("reregistration_blocked"));
         }
         // 4. 신규 유저 생성
         String nickname = resolveNickname(attributes.getNickname());
