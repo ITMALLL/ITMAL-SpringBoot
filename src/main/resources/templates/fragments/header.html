@@ -42,6 +42,13 @@
            class="text-label-md transition-colors">
           마이페이지
         </a>
+
+        <a th:href="@{/admin/reports}"
+           sec:authorize="hasRole('ADMIN')"
+           th:class="${page == 'admin'} ? 'text-primary font-bold border-b-2 border-primary pb-1' : 'text-on-surface-variant border-b-2 border-transparent pb-1 hover:text-primary'"
+           class="text-label-md transition-colors">
+          관리자페이지
+        </a>
       </nav>
 
       <!-- Divider -->
