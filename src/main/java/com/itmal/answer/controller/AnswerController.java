@@ -129,8 +129,12 @@ public class AnswerController {
     //답변 작성 페이지
     @GetMapping("/write")
     public String writePage(@RequestParam Long questionId, Model model) {
+        var question = questionMapper.findQuestionDetailById(questionId);
+        if (question == null) {
+            throw new BusinessException(ErrorCode.QUESTION_NOT_FOUND);
+        }
         model.addAttribute("questionId", questionId);
-        model.addAttribute("question", questionMapper.findQuestionDetailById(questionId));
+        model.addAttribute("question", question);
         return "answer/write";
     }
 }
