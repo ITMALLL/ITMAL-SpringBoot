@@ -64,6 +64,7 @@ public class AnswerController {
         }
         model.addAttribute("answer", answer);
         model.addAttribute("questionId", questionId);
+        model.addAttribute("answerUpdateRequest", new AnswerUpdateRequest());
         return "answers/edit";
     }
 
