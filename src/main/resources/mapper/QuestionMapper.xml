@@ -192,6 +192,13 @@
         AND deleted_at IS NULL
     </update>
 
+    <update id="softDeleteAttachmentsByQuestionId" parameterType="Long">
+        UPDATE question_attachment
+        SET deleted_at = NOW()
+        WHERE question_id = #{questionId}
+        AND deleted_at IS NULL
+    </update>
+
     <select id="findAttachmentById" parameterType="Long" resultType="QuestionAttachmentDto">
         SELECT * FROM question_attachment WHERE id = #{id}
         AND deleted_at IS NULL

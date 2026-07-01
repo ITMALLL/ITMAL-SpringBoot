@@ -108,7 +108,7 @@
               class="form-textarea"
               name="content"
               id="editor"
-              placeholder="궁금한 내용을 자세히 설명해주세요. 상황이나 문맥을 함께 작아주시면 원문자에게 큰 도움이 될 거예요."
+              placeholder="궁금한 내용을 자세히 설명해주세요. 상황이나 문맥을 함께 적어주시면 원어민에게 큰 도움이 될 거예요."
               maxlength="5000"
               th:text="${question.content}"
             ></textarea>
@@ -273,8 +273,9 @@
       document.getElementById('question-form').addEventListener('submit', async (e) => {
         e.preventDefault(); // 기본 전송을 막고 fetch로 직접 보냄
 
-        // 1) 내용(CKEditor) 빈 값 검증
-        const text = editorInstance.getData().replace(/<[^>]*>/g, '').trim();
+        // 1) 내용(CKEditor) 빈 값 검증 (에디터 초기화 실패 시 textarea 값으로 대체)
+        const content = editorInstance ? editorInstance.getData() : document.getElementById('editor').value;
+        const text = content.replace(/<[^>]*>/g, '').trim();
         if (!text) {
           alert('설명을 입력해주세요.');
           return;
@@ -283,7 +284,7 @@
         // 2) 폼 필드 수집 + CKEditor 내용 / 첨부 변경 반영
         const form = e.target;
         const formData = new FormData(form);
-        formData.set('content', editorInstance.getData()); // 숨은 textarea 대신 에디터 내용 사용
+        formData.set('content', content); // 숨은 textarea 대신 에디터 내용 사용
         formData.delete('files');                          // 비어있는 file input 제거
         selectedFiles.forEach(file => formData.append('files', file));           // 새로 추가한 파일
         deletedIds.forEach(id => formData.append('deleteAttachmentIds', id));    // 삭제할 기존 첨부 id
@@ -337,9 +338,7 @@
 
                   if (count > 5000) {
                     // 5000자 초과시 마지막 입력 되돌리기
-                    editor.model.change(writer => {
-                      editor.commands.execute('undo');
-                    });
+                    editor.execute('undo');
                     document.getElementById('char-count').textContent = 5000;
                   }
                 });

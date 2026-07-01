@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import com.itmal.question.dto.QuestionAttachmentDto;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,6 +114,7 @@ public class QuestionService {
             String storedName = UUID.randomUUID() + ext;
 
             Path target = dir.resolve(storedName);
+            registerRollbackCleanup(target); // 트랜잭션 롤백 시 디스크에 쓴 파일도 삭제(고아 파일 방지)
             file.transferTo(target);
 
             String relativePath = "questions/" + questionId + "/" + storedName;
@@ -128,6 +131,25 @@ public class QuestionService {
         } catch (IOException e) {
             throw new RuntimeException("파일 저장 실패: " + file.getOriginalFilename(), e);
         }
+    }
+
+    // 파일 기록 후 트랜잭션이 롤백되면, DB는 되돌아가도 디스크 파일은 남으므로 함께 삭제한다.
+    private void registerRollbackCleanup(Path target) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    try {
+                        Files.deleteIfExists(target);
+                    } catch (IOException e) {
+                        log.warn("롤백 시 첨부 파일 삭제 실패: {}", target, e);
+                    }
+                }
+            }
+        });
     }
 
     // 특정 유저의 질문 목록 (나경님 요청)
@@ -195,6 +217,7 @@ public class QuestionService {
             throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
         }
         questionMapper.softDeleteQuestion(questionId);
+        questionMapper.softDeleteAttachmentsByQuestionId(questionId); // 질문 삭제 시 첨부도 함께 비활성화
     }
 
     //수정 폼에 기존에 있던 글 채우기

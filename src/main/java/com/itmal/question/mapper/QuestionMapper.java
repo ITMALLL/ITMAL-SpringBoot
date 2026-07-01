@@ -39,6 +39,8 @@ public interface QuestionMapper {
 
     void softDeleteAttachment(Long id);
 
+    void softDeleteAttachmentsByQuestionId(Long questionId);
+
     List<QuestionAttachmentDto> findAttachmentsToPurge();
 
     List<QuestionDto> findRelatedQuestions(@Param("questionId") Long questionId,
