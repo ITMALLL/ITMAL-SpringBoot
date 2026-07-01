@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="/css/footer.css" />
     <link rel="stylesheet" href="/css/mypage.css" />
     <link rel="stylesheet" href="/css/mypage-edit.css" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
   </head>
   <body>
   <div th:replace="~{fragments/header :: header}"></div>
@@ -29,16 +30,19 @@
         <div class="profile-container">
           <!-- Profile Header -->
           <div class="profile-header">
-            <div class="profile-avatar-large">
-              <span class="material-symbols-outlined">person</span>
+            <div class="profile-avatar-large" id="profile-avatar">
+              <span th:text="${#strings.substring(user.nickname, 0, 1)}">닉</span>
             </div>
             <div class="profile-info">
               <h1 class="profile-name" th:text="${user.nickname}">닉네임</h1>
-              <p class="profile-email" th:text="${user.username}">이메일</p>
+              <p class="profile-email" th:text="${user.email != null ? user.email : user.username}">이메일</p>
             </div>
-            <div class="profile-actions">
+            <div class="profile-actions" th:if="${isMyPage}">
               <button type="button" class="btn btn-outline" onclick="openEditModal()">프로필 수정</button>
               <a href="/mypage/password" class="btn btn-outline" th:if="${!user.isSocialUser()}">비밀번호 변경</a>
+            </div>
+            <div class="profile-actions" th:if="${!isMyPage}">
+              <button type="button" class="btn btn-primary" onclick="requestChat()">1:1 채팅 신청</button>
             </div>
           </div>
 
@@ -48,19 +52,15 @@
           <div class="profile-stats">
             <div class="stat-card">
               <div class="stat-label">제출한 질문</div>
-              <div class="stat-value">24</div>
+              <div class="stat-value" id="stat-questions">-</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">작성한 답변</div>
-              <div class="stat-value">58</div>
+              <div class="stat-value" id="stat-answers">-</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">작성한 댓글</div>
-              <div class="stat-value">142</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">도움이 된 답변</div>
-              <div class="stat-value">31</div>
+              <div class="stat-value" id="stat-comments">-</div>
             </div>
           </div>
         </div>
@@ -72,220 +72,36 @@
           <div class="tabs-nav">
             <button class="tab-btn active" data-tab="questions">
               <span class="material-symbols-outlined">help</span>
-              내 질문 (24)
+              <span th:text="${isMyPage} ? '내 질문' : '질문'">내 질문</span>
             </button>
             <button class="tab-btn" data-tab="answers">
               <span class="material-symbols-outlined">check_circle</span>
-              내 답변 (58)
+              <span th:text="${isMyPage} ? '내 답변' : '답변'">내 답변</span>
             </button>
             <button class="tab-btn" data-tab="comments">
               <span class="material-symbols-outlined">chat_bubble</span>
-              내 댓글 (142)
+              <span th:text="${isMyPage} ? '내 댓글' : '댓글'">내 댓글</span>
             </button>
           </div>
 
           <!-- Tab Content -->
           <div class="tabs-content">
-            <!-- Questions Tab -->
             <div class="tab-pane active" id="questions">
-              <div class="activity-list">
-                <!-- Question Item 1 -->
-                <article class="activity-item">
-                  <div class="activity-header">
-                    <h3 class="activity-title">
-                      "I'm good" vs "I'm well" 차이가 뭔가요?
-                    </h3>
-                    <div class="activity-status">
-                      <span class="badge badge-primary">영어</span>
-                      <span class="badge badge-success">해결됨</span>
-                    </div>
-                  </div>
-                  <p class="activity-preview">
-                    문법적으로는 I'm well이 맞다고 배웠는데 원어민들은 일상
-                    대화에서 I'm good을 더 많이 쓰는 것 같아요...
-                  </p>
-                  <div class="activity-meta">
-                    <span class="material-symbols-outlined"
-                      >calendar_today</span
-                    >
-                    <span>2024년 6월 10일</span>
-                    <span class="material-symbols-outlined">chat_bubble</span>
-                    <span>3개 답변</span>
-                    <span class="material-symbols-outlined">visibility</span>
-                    <span>128회 조회</span>
-                  </div>
-                </article>
-
-                <!-- Question Item 2 -->
-                <article class="activity-item">
-                  <div class="activity-header">
-                    <h3 class="activity-title">
-                      "Have been to" 와 "Have gone to"의 정확한 차이를
-                      알려주세요
-                    </h3>
-                    <div class="activity-status">
-                      <span class="badge badge-primary">영어</span>
-                      <span class="badge badge-secondary">답변 대기중</span>
-                    </div>
-                  </div>
-                  <p class="activity-preview">
-                    현재완료 시제에서 두 표현이 헷갈려요. 어떤 상황에서 어떤
-                    표현을 써야 하는지...
-                  </p>
-                  <div class="activity-meta">
-                    <span class="material-symbols-outlined"
-                      >calendar_today</span
-                    >
-                    <span>2024년 6월 5일</span>
-                    <span class="material-symbols-outlined">chat_bubble</span>
-                    <span>0개 답변</span>
-                    <span class="material-symbols-outlined">visibility</span>
-                    <span>67회 조회</span>
-                  </div>
-                </article>
-
-                <!-- Question Item 3 -->
-                <article class="activity-item">
-                  <div class="activity-header">
-                    <h3 class="activity-title">
-                      「〜てしまう」와 「〜ちゃう」는 같은 말인가요?
-                    </h3>
-                    <div class="activity-status">
-                      <span class="badge badge-primary">일본어</span>
-                      <span class="badge badge-success">해결됨</span>
-                    </div>
-                  </div>
-                  <p class="activity-preview">
-                    일본 드라마 보다 보면 자주 나오는데 둘 다 '해버리다'라는
-                    뜻인가요? 축약형인지 궁금합니다.
-                  </p>
-                  <div class="activity-meta">
-                    <span class="material-symbols-outlined"
-                      >calendar_today</span
-                    >
-                    <span>2024년 5월 28일</span>
-                    <span class="material-symbols-outlined">chat_bubble</span>
-                    <span>5개 답변</span>
-                    <span class="material-symbols-outlined">visibility</span>
-                    <span>94회 조회</span>
-                  </div>
-                </article>
-              </div>
+              <div class="activity-list" id="questions-list"></div>
             </div>
-
-            <!-- Answers Tab -->
             <div class="tab-pane" id="answers">
-              <div class="activity-list">
-                <!-- Answer Item 1 -->
-                <article class="activity-item">
-                  <div class="activity-header">
-                    <h3 class="activity-title">
-                      Q: "However"와 "But"의 차이는?
-                    </h3>
-                    <div class="activity-status">
-                      <span class="badge badge-tertiary">답변 채택</span>
-                    </div>
-                  </div>
-                  <p class="activity-preview">
-                    But은 좀 더 casual하고, However는 formal한 느낌입니다. But은
-                    문장 중간이나 앞에 올 수 있지만, However는 주로 뒤에
-                    옵니다...
-                  </p>
-                  <div class="activity-meta">
-                    <span class="material-symbols-outlined"
-                      >calendar_today</span
-                    >
-                    <span>2024년 6월 8일</span>
-                    <span class="material-symbols-outlined">thumb_up</span>
-                    <span>12명이 도움이 됨</span>
-                    <span class="material-symbols-outlined">visibility</span>
-                    <span>256회 조회</span>
-                  </div>
-                </article>
-
-                <!-- Answer Item 2 -->
-                <article class="activity-item">
-                  <div class="activity-header">
-                    <h3 class="activity-title">
-                      Q: "Should"와 "Should have"의 차이
-                    </h3>
-                    <div class="activity-status">
-                      <span class="badge badge-secondary">일반 답변</span>
-                    </div>
-                  </div>
-                  <p class="activity-preview">
-                    Should는 미래의 조언이고, Should have는 과거에 했어야 했는데
-                    하지 않은 것을 말합니다...
-                  </p>
-                  <div class="activity-meta">
-                    <span class="material-symbols-outlined"
-                      >calendar_today</span
-                    >
-                    <span>2024년 6월 3일</span>
-                    <span class="material-symbols-outlined">thumb_up</span>
-                    <span>8명이 도움이 됨</span>
-                    <span class="material-symbols-outlined">visibility</span>
-                    <span>189회 조회</span>
-                  </div>
-                </article>
-              </div>
+              <div class="activity-list" id="answers-list"></div>
             </div>
-
-            <!-- Comments Tab -->
             <div class="tab-pane" id="comments">
-              <div class="activity-list">
-                <!-- Comment Item 1 -->
-                <article class="activity-item">
-                  <div class="activity-header">
-                    <h3 class="activity-title">
-                      Q: "Get used to" 와 "Used to"의 정확한 차이?
-                    </h3>
-                    <p class="comment-preview-label">작성한 댓글:</p>
-                  </div>
-                  <p class="activity-preview">
-                    좋은 답변입니다! 저는 처음에 둘 다 같은 의미라고 생각했는데,
-                    이제 정확하게 구분할 수 있을 것 같아요.
-                  </p>
-                  <div class="activity-meta">
-                    <span class="material-symbols-outlined"
-                      >calendar_today</span
-                    >
-                    <span>2024년 6월 12일</span>
-                    <span class="material-symbols-outlined">visibility</span>
-                    <span>45회 조회</span>
-                  </div>
-                </article>
-
-                <!-- Comment Item 2 -->
-                <article class="activity-item">
-                  <div class="activity-header">
-                    <h3 class="activity-title">
-                      Q: "Look" 과 "Look at"의 차이
-                    </h3>
-                    <p class="comment-preview-label">작성한 댓글:</p>
-                  </div>
-                  <p class="activity-preview">
-                    정말 명확하게 설명해주셨네요! 음성으로 들으면서 배우면 더
-                    쉬울 것 같습니다.
-                  </p>
-                  <div class="activity-meta">
-                    <span class="material-symbols-outlined"
-                      >calendar_today</span
-                    >
-                    <span>2024년 6월 10일</span>
-                    <span class="material-symbols-outlined">visibility</span>
-                    <span>32회 조회</span>
-                  </div>
-                </article>
-              </div>
+              <div class="activity-list" id="comments-list"></div>
             </div>
           </div>
         </div>
       </section>
     </main>
 
-  <!-- 계정 설정 섹션 -->
-  <section style="max-width:900px;margin:0 auto 60px;padding:0 20px;">
+  <!-- 계정 설정 섹션 (내 페이지에서만 표시) -->
+  <section th:if="${isMyPage}" style="max-width:900px;margin:0 auto 60px;padding:0 20px;">
     <div style="border:1px solid var(--error);border-radius:12px;padding:20px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;">
       <div>
         <p style="font-weight:600;color:var(--error);margin:0 0 4px;">회원 탈퇴</p>
@@ -299,8 +115,8 @@
     </div>
   </section>
 
-  <!-- 프로필 수정 모달 -->
-  <div id="editModal" class="modal-overlay" onclick="closeEditModalOutside(event)">
+  <!-- 프로필 수정 모달 (내 페이지에서만 표시) -->
+  <div th:if="${isMyPage}" id="editModal" class="modal-overlay" onclick="closeEditModalOutside(event)">
     <div class="modal-card">
       <div class="modal-header">
         <h3>프로필 수정</h3>
@@ -374,25 +190,169 @@
     if (openModal) openEditModal();
   </script>
 
+  <script th:inline="javascript">
+    // 닉네임 기반 아바타 색상
+    const colors = ['#5C6BC0','#26A69A','#EF5350','#AB47BC','#FF7043','#29B6F6','#66BB6A','#FFA726'];
+    const nickname = /*[[${user.nickname}]]*/ '';
+    const color = colors[(nickname.charCodeAt(0) || 0) % colors.length];
+    document.getElementById('profile-avatar').style.backgroundColor = color;
+
+    const profileUserId = /*[[${user.userId}]]*/ null;
+    const isMyPage = /*[[${isMyPage}]]*/ true;
+  </script>
+
   <script>
-      // Tab switching
-      document.querySelectorAll(".tab-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          const tabName = e.currentTarget.dataset.tab;
+    function escapeHtml(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
 
-          // Remove active from all buttons and panes
-          document
-            .querySelectorAll(".tab-btn")
-            .forEach((b) => b.classList.remove("active"));
-          document
-            .querySelectorAll(".tab-pane")
-            .forEach((p) => p.classList.remove("active"));
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      return new Date(dateStr).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
 
-          // Add active to clicked button and corresponding pane
-          e.currentTarget.classList.add("active");
-          document.getElementById(tabName).classList.add("active");
-        });
+    function emptyState(message) {
+      return `<p style="text-align:center; padding:2rem; color:#888;">${message}</p>`;
+    }
+
+    function renderQuestions(list) {
+      const el = document.getElementById('questions-list');
+      if (!list.length) { el.innerHTML = emptyState('작성한 질문이 없습니다.'); return; }
+      el.innerHTML = list.map(q => `
+        <article class="activity-item" onclick="location.href='/questions/${q.questionId}'" style="cursor:pointer;">
+          <div class="activity-header">
+            <h3 class="activity-title">${escapeHtml(q.title)}</h3>
+            <div class="activity-status">
+              ${q.languageName ? `<span class="badge badge-primary">${escapeHtml(q.languageName)}</span>` : ''}
+            </div>
+          </div>
+          <p class="activity-preview">${q.content ? escapeHtml(q.content.slice(0, 80)) + (q.content.length > 80 ? '...' : '') : ''}</p>
+          <div class="activity-meta">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <span>${formatDate(q.createdAt)}</span>
+            <span class="material-symbols-outlined">visibility</span>
+            <span>${q.viewCount ?? 0}회 조회</span>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderAnswers(list) {
+      const el = document.getElementById('answers-list');
+      if (!list.length) { el.innerHTML = emptyState('작성한 답변이 없습니다.'); return; }
+      el.innerHTML = list.map(a => `
+        <article class="activity-item" onclick="location.href='/questions/${a.questionId}'" style="cursor:pointer;">
+          <div class="activity-header">
+            <div class="activity-status">
+              ${a.accepted ? '<span class="badge badge-success">채택됨</span>' : ''}
+            </div>
+          </div>
+          <p class="activity-preview">${a.content ? escapeHtml(a.content.slice(0, 80)) + (a.content.length > 80 ? '...' : '') : ''}</p>
+          <div class="activity-meta">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <span>${formatDate(a.createdAt)}</span>
+            <span class="material-symbols-outlined">thumb_up</span>
+            <span>${a.likeCount ?? 0}</span>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderComments(list) {
+      const el = document.getElementById('comments-list');
+      if (!list.length) { el.innerHTML = emptyState('작성한 댓글이 없습니다.'); return; }
+      el.innerHTML = list.map(c => `
+        <article class="activity-item">
+          <p class="comment-preview-label">작성한 댓글</p>
+          <p class="activity-preview">${escapeHtml(c.content)}</p>
+          <div class="activity-meta">
+            <span class="material-symbols-outlined">calendar_today</span>
+            <span>${formatDate(c.createdAt)}</span>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    async function loadTab(tabName) {
+      try {
+        if (tabName === 'questions') {
+          const url = isMyPage ? '/api/mypage/questions' : `/api/mypage/questions?userId=${profileUserId}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`questions API 오류: ${res.status}`);
+          renderQuestions(await res.json());
+        } else if (tabName === 'answers') {
+          const url = isMyPage ? '/api/mypage/answers' : `/api/mypage/answers?userId=${profileUserId}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`answers API 오류: ${res.status}`);
+          renderAnswers(await res.json());
+        } else if (tabName === 'comments') {
+          const url = isMyPage ? '/api/mypage/comment' : `/api/mypage/comment?userId=${profileUserId}`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`comments API 오류: ${res.status}`);
+          renderComments(await res.json());
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const tabName = e.currentTarget.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        document.getElementById(tabName).classList.add('active');
+        loadTab(tabName);
       });
-    </script>
+    });
+
+    async function loadStats() {
+      const suffix = isMyPage ? '' : `?userId=${profileUserId}`;
+      async function fetchCount(endpoint) {
+        try {
+          const r = await fetch(`/api/mypage/${endpoint}${suffix}`);
+          if (!r.ok) return '-';
+          return await r.text();
+        } catch (e) {
+          return '-';
+        }
+      }
+      const [q, a, c] = await Promise.all([
+        fetchCount('countQuestions'),
+        fetchCount('countAnswers'),
+        fetchCount('countComments')
+      ]);
+      document.getElementById('stat-questions').textContent = q;
+      document.getElementById('stat-answers').textContent = a;
+      document.getElementById('stat-comments').textContent = c;
+    }
+
+    // 페이지 로드 시 질문 탭 + 갯수 자동 로드
+    loadTab('questions');
+    loadStats();
+
+    async function requestChat() {
+      const res = await fetch('/api/chat-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content
+        },
+        body: JSON.stringify({
+          responderId: profileUserId,
+          introMessage: '안녕하세요!'
+        })
+      });
+      if (res.ok) {
+        alert('채팅 신청을 보냈습니다.');
+      } else {
+        alert('채팅 신청 실패: ' + await res.text());
+      }
+    }
+  </script>
   </body>
 </html>
