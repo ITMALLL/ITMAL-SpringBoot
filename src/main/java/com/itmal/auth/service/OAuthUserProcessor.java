@@ -39,7 +39,11 @@ public class OAuthUserProcessor {
     }
 
     private User createNewUser(OAuthAttributes attributes) {
-        // 3. 신규 유저 생성
+        // 3. 탈퇴 후 15일 재가입 차단 체크
+        if (userMapper.existsByEmail(attributes.getEmail())) {
+            throw new IllegalStateException("reregistration_blocked");
+        }
+        // 4. 신규 유저 생성
         String nickname = resolveNickname(attributes.getNickname());
         User newUser = User.builder()
                 .email(attributes.getEmail())
