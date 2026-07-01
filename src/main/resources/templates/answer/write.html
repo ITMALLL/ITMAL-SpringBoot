@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,7 +24,7 @@
     <main class="answer-write-main">
       <div class="answer-write-container">
         <!-- Back Link -->
-        <a href="#" class="back-link">
+        <a th:href="@{/questions/{id}(id=${questionId})}" class="back-link">
           <span class="material-symbols-outlined">arrow_back</span>
           질문으로 돌아가기
         </a>
@@ -37,9 +37,8 @@
             </span>
             <span class="preview-label">답변 중인 질문</span>
           </div>
-          <h2 class="preview-title">
-            "I'm good" vs "I'm well" — 실제로 어떻게 달라요?
-          </h2>
+          <h2 class="preview-title" th:text="${question.title}"></h2>
+          <div class="preview-content" th:utext="${question.content}" style="margin-top:12px; font-size:14px; color:var(--text-sub); line-height:1.6;"></div>
         </div>
 
         <!-- Best Answer Tips -->
@@ -62,7 +61,8 @@
             <h3 class="form-title">답변 등록</h3>
           </div>
 
-          <form class="answer-form" onsubmit="handleSubmit(event)">
+          <form class="answer-form" th:action="@{/answers}" method="post">
+            <input type="hidden" name="questionId" th:value="${questionId}">
             <!-- Answer Content -->
             <div class="form-group">
               <label for="answer-content" class="form-label"
@@ -70,13 +70,14 @@
               >
               <textarea
                 id="answer-content"
+                name="content"
                 class="answer-textarea"
                 placeholder="답변을 입력해주세요."
-                maxlength="3000"
+                maxlength="2000"
                 required
               ></textarea>
               <div class="char-counter">
-                <span id="char-count">0</span> / 3,000자
+                <span id="char-count">0</span> / 2,000자
               </div>
             </div>
 
@@ -91,8 +92,8 @@
     </main>
   <div th:replace="~{fragments/footer :: footer}"></div>
 
-    <script>
-      // 글자 수 카운터
+    <script th:inline="javascript">
+      const questionId = /*[[${questionId}]]*/ 0;
       const textarea = document.getElementById("answer-content");
       const charCount = document.getElementById("char-count");
 
@@ -104,28 +105,12 @@
       document.querySelector(".btn-outline").addEventListener("click", () => {
         if (textarea.value.trim()) {
           if (confirm("작성 중인 내용이 있습니다. 정말 취소하시겠어요?")) {
-            history.back();
+            location.href = "/questions/" + questionId;
           }
         } else {
-          history.back();
+          location.href = "/questions/" + questionId;
         }
       });
-
-      // 폼 제출
-      function handleSubmit(event) {
-        event.preventDefault();
-        const content = textarea.value.trim();
-
-        if (!content) {
-          alert("답변 내용을 입력해주세요.");
-          return;
-        }
-
-        console.log("Answer submitted:", { content });
-        // 실제 제출 로직은 여기에 추가
-        alert("답변이 등록되었습니다!");
-        history.back();
-      }
     </script>
   </body>
 </html>

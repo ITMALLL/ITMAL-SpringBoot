@@ -20,9 +20,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -55,6 +56,11 @@ class AnswerControllerTest {
         var context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
+
+        // 공통 userMapper mock (일부 테스트는 검증 실패로 미사용 → lenient)
+        com.itmal.auth.domain.User authUser = mock(com.itmal.auth.domain.User.class);
+        lenient().when(authUser.getUserId()).thenReturn(1L);
+        lenient().when(userMapper.findByEmail("test@test.com")).thenReturn(Optional.of(authUser));
     }
 
     @AfterEach
@@ -62,12 +68,15 @@ class AnswerControllerTest {
         SecurityContextHolder.clearContext();
     }
 
+    // ===== 수정 페이지 =====
+
     @Test
     @DisplayName("수정 페이지 조회 성공")
     void editForm_success() throws Exception {
         // given
         Answer answer = new Answer();
         answer.setAnswerId(1L);
+        answer.setUserId(1L);
         answer.setContent("기존 답변 내용");
         when(answerService.getAnswer(anyLong())).thenReturn(answer);
 
@@ -132,4 +141,75 @@ class AnswerControllerTest {
                         org.hamcrest.Matchers.hasProperty("content", org.hamcrest.Matchers.is(invalidContent))))
                 .andExpect(model().attributeHasFieldErrors("answerUpdateRequest", "content"));
     }
+
+    // ===== 답변 작성 =====
+
+    @Test
+    @DisplayName("답변 작성 성공 - 질문 상세 페이지로 리다이렉트")
+    void createAnswer_success() throws Exception {
+        // when & then
+        mockMvc.perform(post("/answers")
+                        .param("questionId", "5")
+                        .param("content", "테스트 답변 내용입니다."))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/questions/5"));
+
+        verify(answerService).createAnswer(any(), eq(1L));
+    }
+
+    @Test
+    @DisplayName("답변 작성 실패 - 내용이 비어있으면 작성 페이지로 돌아온다")
+    void createAnswer_emptyContent() throws Exception {
+        // when & then
+        mockMvc.perform(post("/answers")
+                        .param("questionId", "5")
+                        .param("content", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("answer/write"));
+
+        verify(answerService, never()).createAnswer(any(), anyLong());
+    }
+
+    // ===== 삭제 =====
+
+    @Test
+    @DisplayName("답변 삭제 성공 - 질문 상세 페이지로 리다이렉트")
+    void deleteAnswer_success() throws Exception {
+        // when & then
+        mockMvc.perform(post("/answers/1/delete")
+                        .param("questionId", "5"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/questions/5"));
+
+        verify(answerService).deleteAnswer(eq(1L), eq(1L));
+    }
+
+    // ===== 좋아요 =====
+
+    @Test
+    @DisplayName("좋아요 토글 성공 - 질문 상세 페이지로 리다이렉트")
+    void likeAnswer_success() throws Exception {
+        // when & then
+        mockMvc.perform(post("/answers/1/like")
+                        .param("questionId", "5"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/questions/5"));
+
+        verify(answerService).toggleLike(eq(1L), eq(1L));
+    }
+
+    // ===== 채택 =====
+
+    @Test
+    @DisplayName("채택 성공 - 질문 상세 페이지로 리다이렉트")
+    void adoptAnswer_success() throws Exception {
+        // when & then
+        mockMvc.perform(post("/answers/1/adopt")
+                        .param("questionId", "5"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/questions/5"));
+
+        verify(answerService).adoptAnswer(eq(1L), eq(1L));
+    }
+
 }

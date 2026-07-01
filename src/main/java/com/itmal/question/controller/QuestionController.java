@@ -51,7 +51,8 @@ public class QuestionController {
 
         //질문 상세
         @GetMapping("/{id}")
-        public String detail(@PathVariable Long id, Model model, HttpSession session) {
+        public String detail(@PathVariable Long id, Model model, HttpSession session,
+                             @AuthenticationPrincipal CustomUserDetails userDetails) {
             // 1. 질문 상세 조회 (없으면 예외 → 400)
             QuestionDto question = questionService.findQuestionDetail(id);
 
@@ -76,6 +77,7 @@ public class QuestionController {
             model.addAttribute("attachments", questionService.findAttachments(id));
             model.addAttribute("questionCount", questionService.countUserQuestions(question.getUserId()));
             model.addAttribute("relatedQuestions", questionService.findRelatedQuestions(question));
+            model.addAttribute("currentUserId", userDetails != null ? userDetails.getUserId() : null);
             
             return "question/detail";
         }

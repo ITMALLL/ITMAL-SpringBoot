@@ -1,17 +1,25 @@
 package com.itmal.answer.controller;
 
+import com.itmal.answer.domain.Answer;
 import com.itmal.answer.dto.AnswerCreateRequest;
+import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.service.AnswerService;
 import com.itmal.auth.repository.UserMapper;
+import com.itmal.global.exception.BusinessException;
+import com.itmal.global.exception.ErrorCode;
+import com.itmal.question.mapper.QuestionMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/answers")
@@ -20,14 +28,16 @@ public class AnswerController {
 
     private final AnswerService answerService;
 
-    //필드 변수 추가. UserMApper 사용하도록 의존성 주입
+    // userId 조회를 위한 UserMapper
     private final UserMapper userMapper;
 
-    // 답변 목록 조회
+    private final QuestionMapper questionMapper;
+
+    // 답변 목록 조회 (JSON API - 질문 상세 페이지 fetch용)
     @GetMapping
-    public String getAnswers(@RequestParam Long questionId, Model model) {
-        model.addAttribute("answers", answerService.getAnswerByQuestionId(questionId));
-        return "answers/list";
+    @ResponseBody
+    public ResponseEntity<List<AnswerResponse>> getAnswers(@RequestParam Long questionId) {
+        return ResponseEntity.ok(answerService.getAnswerResponsesByQuestionId(questionId));
     }
 
     // 답변 작성
@@ -36,19 +46,23 @@ public class AnswerController {
                                BindingResult bindingResult,
                                @AuthenticationPrincipal UserDetails userDetails) {
         if (bindingResult.hasErrors()) {
-            return "answers/write";
+            return "answer/write";
         }
-        // 로그인한 사용자 ID를 서비스에 전달 (임시로 1L — 추후 실제 userId로 교체 -> 교체했음)
-        answerService.createAnswer(request,getCurrentUserId(userDetails));
-        return "redirect:/answers?questionId=" + request.getQuestionId();
+        answerService.createAnswer(request, getCurrentUserId(userDetails));
+        return "redirect:/questions/" + request.getQuestionId();
     }
 
     // 수정 페이지
     @GetMapping("/{id}/edit")
     public String editForm(@PathVariable Long id,
                            @RequestParam Long questionId,
+                           @AuthenticationPrincipal UserDetails userDetails,
                            Model model) {
-        model.addAttribute("answer", answerService.getAnswer(id));
+        Answer answer = answerService.getAnswer(id);
+        if (!answer.getUserId().equals(getCurrentUserId(userDetails))) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        model.addAttribute("answer", answer);
         model.addAttribute("questionId", questionId);
         return "answers/edit";
     }
@@ -75,44 +89,47 @@ public class AnswerController {
     // 삭제
     @PostMapping("/{id}/delete")
     public String deleteAnswer(
-            @PathVariable Long id, @RequestParam Long questionId,@AuthenticationPrincipal UserDetails userDetails
-            ) {
-        // 임시로 1L — 추후 실제 userId로 교체
+            @PathVariable Long id,
+            @RequestParam Long questionId,
+            @AuthenticationPrincipal UserDetails userDetails) {
         answerService.deleteAnswer(id, getCurrentUserId(userDetails));
-        return "redirect:/answers?questionId=" + questionId;
+        return "redirect:/questions/" + questionId;
     }
 
     // 좋아요
     @PostMapping("/{id}/like")
     public String likeAnswer(@PathVariable Long id, @RequestParam Long questionId, @AuthenticationPrincipal UserDetails userDetails) {
-        // 임시로 1L — 추후 실제 userId로 교체 -> 교체했음
         answerService.toggleLike(id, getCurrentUserId(userDetails));
-        return "redirect:/answers?questionId=" + questionId;
+        return "redirect:/questions/" + questionId;
     }
 
     // 채택
     @PostMapping("/{id}/adopt")
     public String adoptAnswer(@PathVariable Long id, @RequestParam Long questionId, @AuthenticationPrincipal UserDetails userDetails) {
-        // 임시로 1L — 추후 실제 userId로 교체
         answerService.adoptAnswer(id, getCurrentUserId(userDetails));
-        return "redirect:/answers?questionId=" + questionId;
+        return "redirect:/questions/" + questionId;
     }
 
     // 신고
     @PostMapping("/{id}/report")
-    public String reportAnswer(@PathVariable Long id, @RequestParam Long questionId) {
-        return "redirect:/answers?questionId=" + questionId;
+    public String reportAnswer(@PathVariable Long id,
+                               @RequestParam Long questionId,
+                               @AuthenticationPrincipal UserDetails userDetails) {
+        // TODO: 신고 기능 구현 예정
+        return "redirect:/questions/" + questionId;
     }
 
-    //UserId 꺼내기
-    private  Long getCurrentUserId(UserDetails userDetails) {
-        return userMapper.findByEmail(userDetails.getUsername()).orElseThrow().getUserId();
+    private Long getCurrentUserId(UserDetails userDetails) {
+        return userMapper.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND))
+                .getUserId();
     }
 
     //답변 작성 페이지
     @GetMapping("/write")
     public String writePage(@RequestParam Long questionId, Model model) {
         model.addAttribute("questionId", questionId);
+        model.addAttribute("question", questionMapper.findQuestionDetailById(questionId));
         return "answer/write";
     }
 }

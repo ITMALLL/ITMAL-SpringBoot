@@ -133,160 +133,11 @@
             <!-- Answers Section -->
             <section class="answers-section">
               <div class="answers-header">
-                <h2 class="answers-title">답변 3개</h2>
-                <div class="answer-tabs">
-                  <button class="tab-btn active">최신순</button>
-                  <button class="tab-btn">추천순</button>
-                  <button class="tab-btn">채택순</button>
-                </div>
+                <h2 class="answers-title" id="answers-title">답변 불러오는 중...</h2>
               </div>
 
-              <!-- Answer Items -->
-              <div class="answers-list">
-                <!-- Answer 1 - Adopted -->
-                <article class="answer-card adopted">
-                  <div class="answer-badge">
-                    <span class="material-symbols-outlined">check_circle</span>
-                    채택된 답변
-                  </div>
-
-                  <div class="answer-author">
-                    <div class="author-avatar">T</div>
-                    <div class="author-info">
-                      <div class="author-name">Tom (원어민)</div>
-                      <div class="author-badge">
-                        🌍 영어 원어민 · 답변 143개
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="answer-content">
-                    <p>
-                      Great question! Both are correct, but there's a subtle
-                      difference.
-                    </p>
-                    <p>
-                      "<strong>I'm good</strong>" — 일상 대화에서 훨씬 자주
-                      쓰며, "I'm fine"보다도 더 캐주얼합니다. "<strong
-                        >I'm well</strong
-                      >" — 더 격식 있는 표현이며, 비즈니스 이메일이나 공식적인
-                      자리에서 더 자주 씁니다.
-                    </p>
-                  </div>
-
-                  <div class="answer-actions">
-                    <button class="action-btn">
-                      <span class="material-symbols-outlined">thumb_up</span>
-                      도움이 돼요 12
-                    </button>
-                    <button class="action-btn">
-                      <span class="material-symbols-outlined">flag</span>
-                      제휴환료
-                    </button>
-                  </div>
-
-                  <!-- Comments -->
-                  <!-- TODO: data-answer-id 테스트 한다고 2를 넣어놨어요. 답변 기능 합쳐지면 값 교체해야 합니다!! -->
-                  <div class="comments-section" data-answer-id="2">
-                    <div class="comments-list"></div>
-
-                    <div class="comment-input">
-                      <label>
-                        <input
-                          type="text"
-                          class="comment-field"
-                          placeholder="댓글 입력..."
-                        >
-                      </label>
-                      <button class="btn btn-sm btn-primary">등록</button>
-                    </div>
-                  </div>
-
-                  <div class="answer-footer">
-                    <span>3시간 전</span>
-                    <span>신고</span>
-                  </div>
-                </article>
-
-                <!-- Answer 2 -->
-                <article class="answer-card">
-                  <div class="answer-author">
-                    <div class="author-avatar" style="background: #22c55e">
-                      S
-                    </div>
-                    <div class="author-info">
-                      <div class="author-name">Sarah</div>
-                      <div class="author-badge">🌍 영어 원어민 · 답변 87개</div>
-                    </div>
-                  </div>
-
-                  <div class="answer-content">
-                    <p>
-                      Tom's answer is spot on! I'd also add that "I'm good" can
-                      sometimes mean "No thanks" when someone offers you
-                      something. Context matters a lot!
-                    </p>
-                  </div>
-
-                  <div class="answer-actions">
-                    <button class="action-btn">
-                      <span class="material-symbols-outlined">thumb_up</span>
-                      도움이 돼요 5
-                    </button>
-                    <button class="action-btn">
-                      <span class="material-symbols-outlined">flag</span>
-                      제휴환료
-                    </button>
-                  </div>
-
-                  <div class="answer-footer">
-                    <span>5시간 전</span>
-                    <span>신고</span>
-                  </div>
-                </article>
-
-                <!-- Answer 3 -->
-                <article class="answer-card">
-                  <div class="answer-author">
-                    <div class="author-avatar" style="background: #f59e0b">
-                      나
-                    </div>
-                    <div class="author-info">
-                      <div class="author-name">나 (네 답변)</div>
-                      <div class="author-badge">
-                        🇰🇷 한국인 원어민 · 답변 12개
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="answer-content">
-                    <p>
-                      저도 언어에서 상황에는, "I'm good"은 궤수성이 상황에서
-                      자주 사용됩니다. "I'm well"은 의료적으로 격식적인
-                      자리에서는 것 같아요.
-                    </p>
-                  </div>
-
-                  <div class="answer-actions">
-                    <button class="action-btn">
-                      <span class="material-symbols-outlined">thumb_up</span>
-                      도움이 돼요 3
-                    </button>
-                    <button class="action-btn">
-                      <span class="material-symbols-outlined">flag</span>
-                      제휴환료
-                    </button>
-                  </div>
-
-                  <div class="answer-footer">
-                    <span>7시간 전</span>
-                    <span>신고</span>
-                  </div>
-                </article>
-              </div>
-
-              <!-- Load More -->
-              <div class="load-more">더 지켜본 답변이...</div>
+              <!-- Answer Items (JS로 렌더링) -->
+              <div class="answers-list" id="answers-list"></div>
             </section>
           </div>
 
@@ -368,22 +219,105 @@
     </main>
   <div th:replace="~{fragments/footer :: footer}"></div>
 
-    <script>
-      // Answer tab switching
-      document.querySelectorAll(".tab-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          document
-            .querySelectorAll(".tab-btn")
-            .forEach((b) => b.classList.remove("active"));
-          e.target.classList.add("active");
-        });
-      });
+    <script th:inline="javascript">
+      const questionId   = /*[[${question.questionId}]]*/ 0;
+      const questionUserId = /*[[${question.userId}]]*/ null;
+      const currentUserId  = /*[[${currentUserId}]]*/ null;
+      const csrfToken      = document.querySelector('meta[name="_csrf"]').content;
+      const csrfHeader     = document.querySelector('meta[name="_csrf_header"]').content;
 
-      // Answer button click
-      const questionId = /*[[${question.questionId}]]*/ 0;
+      // 답변 등록 버튼
       document.querySelector(".answer-btn").addEventListener("click", () => {
         window.location.href = "/answers/write?questionId=" + questionId;
       });
+
+      // 시간 포맷 (yyyy.MM.dd HH:mm)
+      function formatDate(isoStr) {
+        const d = new Date(isoStr);
+        const pad = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+
+      // 텍스트를 HTML-safe 텍스트 노드로
+      function esc(str) {
+        const d = document.createElement('div');
+        d.textContent = str || '';
+        return d.innerHTML;
+      }
+
+      function buildAnswerCard(a) {
+        const initial  = (a.nickname || '?')[0].toUpperCase();
+        const adopted  = a.accepted ? 'adopted' : '';
+        const isAuthor = currentUserId && currentUserId === a.userId;
+        const isQAuthor = currentUserId && currentUserId === questionUserId;
+
+        const adoptBtn = (isQAuthor && !a.accepted) ? `
+          <form action="/answers/${a.answerId}/adopt?questionId=${questionId}" method="post" style="display:inline">
+            <input type="hidden" name="_csrf" value="${csrfToken}">
+            <button type="submit" class="action-btn">채택</button>
+          </form>` : '';
+
+        const editDeleteBtns = isAuthor ? `
+          <a href="/answers/${a.answerId}/edit?questionId=${questionId}" class="action-btn">수정</a>
+          <form action="/answers/${a.answerId}/delete?questionId=${questionId}" method="post" style="display:inline">
+            <input type="hidden" name="_csrf" value="${csrfToken}">
+            <button type="submit" class="action-btn">삭제</button>
+          </form>` : '';
+
+        const adoptedBadge = a.accepted ? `
+          <div class="answer-badge">
+            <span class="material-symbols-outlined">check_circle</span>
+            채택된 답변
+          </div>` : '';
+
+        return `
+          <article class="answer-card ${adopted}">
+            ${adoptedBadge}
+            <div class="answer-author">
+              <div class="author-avatar">${esc(initial)}</div>
+              <div class="author-info">
+                <div class="author-name">${esc(a.nickname || '탈퇴한 회원')}</div>
+              </div>
+            </div>
+            <div class="answer-content">
+              <p>${esc(a.content)}</p>
+            </div>
+            <div class="answer-actions">
+              <form action="/answers/${a.answerId}/like?questionId=${questionId}" method="post" style="display:inline">
+                <input type="hidden" name="_csrf" value="${csrfToken}">
+                <button type="submit" class="action-btn">
+                  <span class="material-symbols-outlined">thumb_up</span>
+                  도움이 돼요 ${a.likeCount}
+                </button>
+              </form>
+              ${adoptBtn}
+              ${editDeleteBtns}
+            </div>
+            <div class="answer-footer">
+              <span>${formatDate(a.createdAt)}</span>
+            </div>
+          </article>`;
+      }
+
+      // 답변 로드
+      fetch(`/answers?questionId=${questionId}`, {
+        headers: { [csrfHeader]: csrfToken }
+      })
+        .then(res => res.json())
+        .then(answers => {
+          document.getElementById('answers-title').textContent = `답변 ${answers.length}개`;
+          const list = document.getElementById('answers-list');
+          if (answers.length === 0) {
+            list.innerHTML = '<p style="color:#888;padding:1rem 0">아직 답변이 없습니다.</p>';
+            return;
+          }
+          list.innerHTML = answers.map(buildAnswerCard).join('');
+        })
+        .catch(() => {
+          document.getElementById('answers-title').textContent = '답변';
+          document.getElementById('answers-list').innerHTML =
+            '<p style="color:#888;padding:1rem 0">답변을 불러오지 못했습니다.</p>';
+        });
     </script>
 
     <script th:inline="javascript">

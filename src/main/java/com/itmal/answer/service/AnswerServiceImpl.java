@@ -3,6 +3,7 @@ package com.itmal.answer.service;
 import com.itmal.answer.domain.Answer;
 import com.itmal.answer.domain.AnswerLike;
 import com.itmal.answer.dto.AnswerCreateRequest;
+import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.mapper.AnswerMapper;
 import com.itmal.global.exception.BusinessException;
@@ -11,7 +12,7 @@ import com.itmal.notification.service.NotificationService;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +38,12 @@ public class AnswerServiceImpl implements AnswerService {
     @Override
     public List<Answer> getAnswerByQuestionId(Long questionId) {
         return answerMapper.findByQuestionId(questionId);
+    }
+
+    // 답변 목록 조회 (닉네임 포함)
+    @Override
+    public List<AnswerResponse> getAnswerResponsesByQuestionId(Long questionId) {
+        return answerMapper.findResponsesByQuestionId(questionId);
     }
 
     // 답변 단건 조회
@@ -84,8 +91,8 @@ public class AnswerServiceImpl implements AnswerService {
         } else {
             try {
                 answerMapper.insertAnswerLike(answerLike);
-            } catch (DataIntegrityViolationException e) {
-                // 동시 요청으로 중복 insert 시 무시
+            } catch (DuplicateKeyException e) {
+                // 동시 요청으로 중복 좋아요 insert 시 무시
             }
         }
     }

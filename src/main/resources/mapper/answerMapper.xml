@@ -20,6 +20,29 @@
         <result property="deletedAt" column="deleted_at"/>
     </resultMap>
 
+    <resultMap id="AnswerResponseResultMap" type="com.itmal.answer.dto.AnswerResponse">
+        <id property="answerId" column="answer_id"/>
+        <result property="questionId" column="question_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="nickname" column="nickname"/>
+        <result property="content" column="content"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="isAccepted" column="is_accepted"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 답변 목록 조회 (닉네임 포함, 질문 상세 페이지용) -->
+    <select id="findResponsesByQuestionId" resultMap="AnswerResponseResultMap">
+        SELECT a.answer_id, a.question_id, a.user_id,
+               COALESCE(u.nickname, '탈퇴한 회원') AS nickname,
+               a.content, a.like_count, a.is_accepted, a.created_at
+        FROM answer a
+        LEFT JOIN users u ON a.user_id = u.user_id AND u.deleted_at IS NULL
+        WHERE a.question_id = #{questionId}
+          AND a.deleted_at IS NULL
+        ORDER BY a.is_accepted DESC, a.created_at DESC
+    </select>
+
     <!-- 답변 등록 -->
     <!-- useGeneratedKeys: DB가 자동 생성한 PK를 answerId에 넣어줌 -->
     <insert id="insertAnswer" useGeneratedKeys="true" keyProperty="answerId">
