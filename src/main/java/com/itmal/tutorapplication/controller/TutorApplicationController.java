@@ -66,6 +66,11 @@ public class TutorApplicationController {
     // 튜터 박탈
     @PostMapping("/admin/tutors/{userId}/revoke")
     public String revokeTutor(@PathVariable Long userId) {
+        com.itmal.auth.domain.User user = userMapper.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        if (user.getRole() != Role.ROLE_TUTOR) {
+            throw new BusinessException(ErrorCode.NOT_A_TUTOR);
+        }
         userMapper.updateRole(userId, Role.ROLE_USER.name());
         return "redirect:/admin/tutors";
     }

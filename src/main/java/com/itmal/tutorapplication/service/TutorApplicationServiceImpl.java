@@ -10,6 +10,7 @@ import com.itmal.tutorapplication.domain.TutorApplication;
 import com.itmal.tutorapplication.dto.TutorApplicationResponse;
 import com.itmal.tutorapplication.mapper.TutorApplicationMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,7 @@ public class TutorApplicationServiceImpl implements TutorApplicationService {
         User user = userMapper.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        if (user.getRole() == Role.ROLE_TUTOR) {
+        if (user.getRole() != Role.ROLE_USER) {
             throw new BusinessException(ErrorCode.ALREADY_TUTOR);
         }
         if (tutorApplicationMapper.findPendingByUserId(userId) != null) {
@@ -38,7 +39,11 @@ public class TutorApplicationServiceImpl implements TutorApplicationService {
         TutorApplication application = new TutorApplication();
         application.setUserId(userId);
         application.setStatus(ApplicationStatus.PENDING);
-        tutorApplicationMapper.insert(application);
+        try {
+            tutorApplicationMapper.insert(application);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException(ErrorCode.ALREADY_APPLIED);
+        }
     }
 
     @Override
@@ -47,6 +52,9 @@ public class TutorApplicationServiceImpl implements TutorApplicationService {
         TutorApplication application = tutorApplicationMapper.findById(applicationId);
         if (application == null) {
             throw new BusinessException(ErrorCode.TUTOR_APPLICATION_NOT_FOUND);
+        }
+        if (application.getStatus() != ApplicationStatus.PENDING) {
+            throw new BusinessException(ErrorCode.INVALID_APPLICATION_STATUS);
         }
 
         application.setStatus(ApplicationStatus.APPROVED);
@@ -60,6 +68,9 @@ public class TutorApplicationServiceImpl implements TutorApplicationService {
         TutorApplication application = tutorApplicationMapper.findById(applicationId);
         if (application == null) {
             throw new BusinessException(ErrorCode.TUTOR_APPLICATION_NOT_FOUND);
+        }
+        if (application.getStatus() != ApplicationStatus.PENDING) {
+            throw new BusinessException(ErrorCode.INVALID_APPLICATION_STATUS);
         }
 
         application.setStatus(ApplicationStatus.REJECTED);

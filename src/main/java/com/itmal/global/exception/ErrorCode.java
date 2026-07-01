@@ -43,7 +43,9 @@ public enum ErrorCode {
     // 튜터 신청
     TUTOR_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "TA001", "튜터 신청을 찾을 수 없습니다."),
     ALREADY_APPLIED(HttpStatus.CONFLICT, "TA002", "이미 튜터 신청 중입니다."),
-    ALREADY_TUTOR(HttpStatus.CONFLICT, "TA003", "이미 튜터입니다.");
+    ALREADY_TUTOR(HttpStatus.CONFLICT, "TA003", "이미 튜터입니다."),
+    INVALID_APPLICATION_STATUS(HttpStatus.BAD_REQUEST, "TA004", "이미 처리된 신청입니다."),
+    NOT_A_TUTOR(HttpStatus.BAD_REQUEST, "TA005", "튜터가 아닙니다.");
 
     private final HttpStatus status;
     private final String code;
