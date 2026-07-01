@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.itmal.report.mapper.ReportMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (target_type, target_id, reason, status, user_id)
+        VALUES (#{targetType}, #{targetId}, #{reason}, #{status}, #{userId})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE report
+        SET status = #{status}
+        WHERE report_id = #{reportId}
+    </update>
+
+    <select id="findById" resultType="Report">
+        SELECT * FROM report WHERE report_id = #{reportId}
+    </select>
+
+    <select id="findPendingByTarget" resultType="Report">
+        SELECT * FROM report
+        WHERE target_type = #{targetType}
+          AND target_id = #{targetId}
+          AND status = 'PENDING'
+        LIMIT 1
+    </select>
+
+    <!-- question 패키지에 소프트 삭제 기능이 아직 없어서, 신고 승인 시 여기서 직접 처리 -->
+    <update id="hideQuestion">
+        UPDATE question
+        SET deleted_at = NOW()
+        WHERE question_id = #{questionId}
+          AND deleted_at IS NULL
+    </update>
+
+    <select id="findPendingQuestions" resultType="ResponseReport">
+        SELECT r.*, u.nickname AS reporter_nickname,
+               q.question_id,
+               q.deleted_at IS NOT NULL AS is_target_deleted
+        FROM report r
+        JOIN users u ON r.user_id = u.user_id
+        JOIN question q ON q.question_id = r.target_id
+        WHERE r.target_type = 'QUESTION' AND r.status = 'PENDING'
+        ORDER BY r.created_at DESC
+    </select>
+
+    <select id="findPendingAnswers" resultType="ResponseReport">
+        SELECT r.*, u.nickname AS reporter_nickname,
+               a.question_id,
+               (a.deleted_at IS NOT NULL OR pq.deleted_at IS NOT NULL) AS is_target_deleted
+        FROM report r
+        JOIN users u ON r.user_id = u.user_id
+        JOIN answer a ON a.answer_id = r.target_id
+        JOIN question pq ON pq.question_id = a.question_id
+        WHERE r.target_type = 'ANSWER' AND r.status = 'PENDING'
+        ORDER BY r.created_at DESC
+    </select>
+
+    <select id="findPendingComments" resultType="ResponseReport">
+        SELECT r.*, u.nickname AS reporter_nickname,
+               pa.question_id,
+               (c.deleted_at IS NOT NULL OR pq.deleted_at IS NOT NULL) AS is_target_deleted
+        FROM report r
+        JOIN users u ON r.user_id = u.user_id
+        JOIN comment c ON c.comment_id = r.target_id
+        JOIN answer pa ON pa.answer_id = c.answer_id
+        JOIN question pq ON pq.question_id = pa.question_id
+        WHERE r.target_type = 'COMMENT' AND r.status = 'PENDING'
+        ORDER BY r.created_at DESC
+    </select>
+
+</mapper>
