@@ -44,22 +44,28 @@
         </a>
 
         <!-- 관리자 드롭다운 -->
-        <div sec:authorize="hasRole('ADMIN')" class="relative" id="admin-dropdown-wrapper">
+        <div sec:authorize="hasRole('ADMIN')" style="position:relative;" id="admin-dropdown-wrapper">
           <button id="admin-dropdown-btn"
-                  class="text-label-md text-on-surface-variant border-b-2 border-transparent pb-1 hover:text-primary transition-colors flex items-center gap-1">
+                  style="background:none; border:none; cursor:pointer; display:flex; align-items:center; gap:2px; padding-bottom:4px; border-bottom:2px solid transparent;"
+                  class="text-label-md text-on-surface-variant hover:text-primary transition-colors">
             관리자페이지
-            <span class="material-symbols-outlined" style="font-size:16px;">expand_more</span>
+            <span class="material-symbols-outlined" style="font-size:14px; line-height:1;">expand_more</span>
           </button>
           <div id="admin-dropdown-menu"
-               style="display:none; position:absolute; top:calc(100% + 8px); right:0; min-width:160px; background:var(--surface); border:1px solid var(--outline-variant); border-radius:0.75rem; box-shadow:0 4px 16px rgba(0,0,0,0.1); z-index:100; overflow:hidden;">
+               style="display:none; position:absolute; top:calc(100% + 12px); left:50%; transform:translateX(-50%); min-width:150px;
+                      background:var(--surface); border:1px solid var(--outline-variant); border-radius:0.75rem;
+                      box-shadow:0 4px 16px rgba(0,0,0,0.12); z-index:200; overflow:hidden;">
             <a th:href="@{/admin/reports}"
-               style="display:block; padding:12px 16px; font-size:14px; font-weight:500; color:var(--on-surface); text-decoration:none;"
+               class="text-label-md text-on-surface-variant hover:text-primary"
+               style="display:block; padding:10px 16px; text-decoration:none; transition:background 0.15s;"
                onmouseover="this.style.background='var(--surface-container-high)'"
                onmouseout="this.style.background=''">
               신고 관리
             </a>
+            <div style="height:1px; background:var(--outline-variant); margin:0 12px;"></div>
             <a th:href="@{/admin/tutor-applications}"
-               style="display:block; padding:12px 16px; font-size:14px; font-weight:500; color:var(--on-surface); text-decoration:none;"
+               class="text-label-md text-on-surface-variant hover:text-primary"
+               style="display:block; padding:10px 16px; text-decoration:none; transition:background 0.15s;"
                onmouseover="this.style.background='var(--surface-container-high)'"
                onmouseout="this.style.background=''">
               튜터 신청 관리
@@ -152,29 +158,29 @@
       } catch (e) {}
     }
   </script>
-</header>
 
-<script th:inline="javascript">
-  window.addEventListener("scroll", () => {
-    const header = document.querySelector("header");
-    if (window.scrollY > 20) {
-      header.classList.add("shadow-md");
-    } else {
-      header.classList.remove("shadow-md");
+  <script>
+    window.addEventListener("scroll", () => {
+      const header = document.querySelector("header");
+      if (window.scrollY > 20) {
+        header.classList.add("shadow-md");
+      } else {
+        header.classList.remove("shadow-md");
+      }
+    });
+
+    const adminBtn = document.getElementById("admin-dropdown-btn");
+    const adminMenu = document.getElementById("admin-dropdown-menu");
+    if (adminBtn && adminMenu) {
+      adminBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        adminMenu.style.display = adminMenu.style.display === "none" ? "block" : "none";
+      });
+      document.addEventListener("click", () => {
+        adminMenu.style.display = "none";
+      });
     }
-  });
-
-  const adminBtn = document.getElementById("admin-dropdown-btn");
-  const adminMenu = document.getElementById("admin-dropdown-menu");
-  if (adminBtn && adminMenu) {
-    adminBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      adminMenu.style.display = adminMenu.style.display === "none" ? "block" : "none";
-    });
-    document.addEventListener("click", () => {
-      adminMenu.style.display = "none";
-    });
-  }
-</script>
+  </script>
+</header>
 </body>
 </html>
