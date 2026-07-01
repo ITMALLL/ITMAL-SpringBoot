@@ -350,7 +350,8 @@
       if (res.ok) {
         alert('채팅 신청을 보냈습니다.');
       } else {
-        alert('채팅 신청 실패: ' + await res.text());
+        const error = await res.json();
+        alert(error.message);
       }
     }
   </script>
