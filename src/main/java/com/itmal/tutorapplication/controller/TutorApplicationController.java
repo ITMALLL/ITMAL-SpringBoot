@@ -36,7 +36,7 @@ public class TutorApplicationController {
 
     @GetMapping("/admin/tutor-applications")
     public String getPendingApplications(Model model) {
-        model.addAttribute("applications", tutorApplicationService.getPendingApplications());
+        model.addAttribute("applications", tutorApplicationService.getPendingApplicationsWithUser());
         return "admin/tutor-applications";
     }
 

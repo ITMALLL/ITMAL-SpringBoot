@@ -1,6 +1,7 @@
 package com.itmal.tutorapplication.mapper;
 
 import com.itmal.tutorapplication.domain.TutorApplication;
+import com.itmal.tutorapplication.dto.TutorApplicationResponse;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -12,5 +13,6 @@ public interface TutorApplicationMapper {
     TutorApplication findById(@Param("id") Long id);
     TutorApplication findPendingByUserId(@Param("userId") Long userId);
     List<TutorApplication> findAllPending();
+    List<TutorApplicationResponse> findAllPendingWithUser();
     void updateStatus(TutorApplication application);
 }

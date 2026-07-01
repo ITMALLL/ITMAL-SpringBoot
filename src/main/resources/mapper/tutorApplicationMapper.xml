@@ -37,6 +37,14 @@
         ORDER BY applied_at ASC
     </select>
 
+    <select id="findAllPendingWithUser" resultType="com.itmal.tutorapplication.dto.TutorApplicationResponse">
+        SELECT ta.tutor_application_id, ta.user_id, u.nickname, u.email, ta.applied_at
+        FROM tutor_application ta
+        JOIN users u ON ta.user_id = u.user_id
+        WHERE ta.status = 'PENDING'
+        ORDER BY ta.applied_at ASC
+    </select>
+
     <update id="updateStatus">
         UPDATE tutor_application
         SET status       = #{status},

@@ -5,8 +5,6 @@ import com.itmal.auth.domain.Role;
 import com.itmal.auth.domain.User;
 import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
-import com.itmal.tutorapplication.domain.ApplicationStatus;
-import com.itmal.tutorapplication.domain.TutorApplication;
 import com.itmal.tutorapplication.service.TutorApplicationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -110,11 +108,7 @@ class TutorApplicationControllerTest {
     @Test
     @DisplayName("관리자 - 튜터 신청 목록 조회")
     void getPendingApplications_success() throws Exception {
-        TutorApplication app = new TutorApplication();
-        app.setTutorApplicationId(1L);
-        app.setUserId(2L);
-        app.setStatus(ApplicationStatus.PENDING);
-        when(tutorApplicationService.getPendingApplications()).thenReturn(List.of(app));
+        when(tutorApplicationService.getPendingApplicationsWithUser()).thenReturn(List.of());
 
         mockMvc.perform(get("/admin/tutor-applications"))
                 .andExpect(status().isOk())

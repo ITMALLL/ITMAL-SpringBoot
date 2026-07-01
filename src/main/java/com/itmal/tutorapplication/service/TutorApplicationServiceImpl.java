@@ -7,6 +7,7 @@ import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
 import com.itmal.tutorapplication.domain.ApplicationStatus;
 import com.itmal.tutorapplication.domain.TutorApplication;
+import com.itmal.tutorapplication.dto.TutorApplicationResponse;
 import com.itmal.tutorapplication.mapper.TutorApplicationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -68,5 +69,10 @@ public class TutorApplicationServiceImpl implements TutorApplicationService {
     @Override
     public List<TutorApplication> getPendingApplications() {
         return tutorApplicationMapper.findAllPending();
+    }
+
+    @Override
+    public List<TutorApplicationResponse> getPendingApplicationsWithUser() {
+        return tutorApplicationMapper.findAllPendingWithUser();
     }
 }
