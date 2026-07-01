@@ -170,15 +170,15 @@
         AND deleted_at IS NULL
     </update>
 
-    <update id="updateQuestion" parameterType="QuestionDto">
+    <update id="updateQuestion">
         UPDATE question
-        SET title   = #{title},
-        content     = #{content},
-        category    = #{category},
-        target      = #{target},
-        language_id = #{languageId},
+        SET title   = #{question.title},
+        content     = #{question.content},
+        category    = #{question.category},
+        target      = #{question.target},
+        language_id = #{question.languageId},
         updated_at  = NOW()
-        WHERE question_id = #{questionId}
+        WHERE question_id = #{question.questionId}
         AND user_id = #{userId}
         AND deleted_at IS NULL
     </update>

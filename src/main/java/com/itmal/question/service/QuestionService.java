@@ -264,8 +264,7 @@ public class QuestionService {
         }
 
         dto.setContent(HtmlSanitizer.clean(dto.getContent()));
-        dto.setUserId(loginUserId); // SQL WHERE 절 소유자 조건에 사용
-        int updated = questionMapper.updateQuestion(dto);
+        int updated = questionMapper.updateQuestion(dto, loginUserId); // 소유자 조건을 SQL WHERE 절에 실어 판정
         if (updated == 0) {
             throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
         }

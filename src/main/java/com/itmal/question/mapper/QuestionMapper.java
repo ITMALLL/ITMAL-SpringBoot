@@ -33,7 +33,7 @@ public interface QuestionMapper {
 
     int softDeleteQuestion(@Param("questionId") Long questionId, @Param("userId") Long userId);
 
-    int updateQuestion(QuestionDto questionDto);
+    int updateQuestion(@Param("question") QuestionDto questionDto, @Param("userId") Long userId);
 
     void deleteAttachment(Long id); // 스케쥴러용
 
