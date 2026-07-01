@@ -32,7 +32,11 @@ public enum ErrorCode {
     N2MT03(HttpStatus.BAD_REQUEST, "N2MT03", "target 파라미터 누락"),
     N2MT04(HttpStatus.BAD_REQUEST, "N2MT04", "target을 지원하지 않음"),
     N2MT05(HttpStatus.BAD_REQUEST, "N2MT05", "source와 target이 동일"),
-    N2MT99(HttpStatus.INTERNAL_SERVER_ERROR, "N2MT99", "서버 내부 오류");
+    N2MT99(HttpStatus.INTERNAL_SERVER_ERROR, "N2MT99", "서버 내부 오류"),
+
+    //채팅
+    DUPLICATE_CHAT_REQUEST(HttpStatus.CONFLICT, "CH001", "이미 채팅 요청을 보냈습니다."),
+    CHAT_ROOM_ALREADY_EXISTS(HttpStatus.CONFLICT, "CH002", "이미 채팅방이 존재합니다.");
 
     private final HttpStatus status;
     private final String code;
