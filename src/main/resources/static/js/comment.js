@@ -60,6 +60,23 @@ function initCommentSection(section) {
     if (e.target.classList.contains("comment-edit")) {
       startEdit(e.target.closest(".comment-item"), commentId);
     }
+
+    if (e.target.classList.contains("comment-report")) {
+      const reason = await showReportModal();
+      if (!reason) return;
+
+      const res = await fetch(`/api/reports`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...getCsrfHeaders() },
+        body: JSON.stringify({ targetType: "COMMENT", targetId: Number(commentId), reason }),
+      });
+
+      if (!res.ok) {
+        alert(await res.text());
+        return;
+      }
+      alert("신고되었습니다.");
+    }
   });
 
   function startEdit(commentItem, commentId) {
@@ -135,6 +152,55 @@ function initCommentSection(section) {
       overlay.querySelector(".comment-modal-confirm").addEventListener("click", () => {
         overlay.remove();
         resolve(true);
+      });
+    });
+  }
+
+  function showReportModal() {
+    return new Promise((resolve) => {
+      const reasonOptions = ["욕설/비하", "스팸", "광고", "허위정보", "부적절한 내용", "기타"];
+
+      const overlay = document.createElement("div");
+      overlay.className = "comment-modal-overlay";
+      overlay.innerHTML = `
+        <div class="comment-modal comment-report-modal">
+          <div class="report-modal-header">
+            <span class="report-modal-icon">🚨</span>
+            <strong class="report-modal-title">댓글 신고</strong>
+          </div>
+          <p class="report-modal-subtitle">신고 사유를 선택해주세요. 허위 신고 시 제재를 받을 수 있습니다.</p>
+          <div class="report-reason-options">
+            ${reasonOptions
+              .map(
+                (option, i) => `
+              <label class="report-reason-option">
+                <input type="radio" name="report-reason" value="${option}" ${i === 0 ? "checked" : ""}>
+                ${option}
+              </label>`
+              )
+              .join("")}
+          </div>
+          <textarea class="comment-report-reason" rows="3" maxlength="200" placeholder="추가 설명 (선택, 최대 200자)"></textarea>
+          <div class="comment-modal-actions">
+            <button class="comment-modal-cancel">취소</button>
+            <button class="comment-modal-confirm">신고하기</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      const reasonInput = overlay.querySelector(".comment-report-reason");
+
+      overlay.querySelector(".comment-modal-cancel").addEventListener("click", () => {
+        overlay.remove();
+        resolve(null);
+      });
+      overlay.querySelector(".comment-modal-confirm").addEventListener("click", () => {
+        const selected = overlay.querySelector('input[name="report-reason"]:checked');
+        const detail = reasonInput.value.trim();
+        const reason = detail ? `${selected.value}: ${detail}` : selected.value;
+        overlay.remove();
+        resolve(reason);
       });
     });
   }

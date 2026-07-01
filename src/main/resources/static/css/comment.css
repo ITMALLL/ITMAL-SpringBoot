@@ -165,3 +165,59 @@
   color: #fff;
   border-color: #ef4444;
 }
+
+/* 신고 모달 */
+.comment-report-modal {
+  text-align: left;
+  min-width: 340px;
+}
+
+.report-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.report-modal-icon {
+  font-size: 20px;
+}
+
+.report-modal-title {
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.report-modal-subtitle {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.report-reason-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.report-reason-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.comment-report-modal .comment-report-reason {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 16px;
+}
