@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>답변 수정 - 잇말</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <style>
+    .edit-wrap { max-width: 760px; margin: 0 auto; }
+    .edit-box { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
+    .edit-box h2 { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
+    .char-info { text-align: right; font-size: 12px; color: var(--text-sub); margin-top: 6px; }
+    .char-info.warn { color: var(--danger); }
+    .permission-notice { display: flex; align-items: center; gap: 10px; background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #92400E; }
+    .btn-wrap { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="edit-wrap">
+    <div style="margin-bottom:16px;">
+      <a th:href="@{/questions/{id}(id=${questionId})}"
+         style="color:var(--text-sub); text-decoration:none; font-size:13px;">← 질문으로 돌아가기</a>
+    </div>
+
+    <div class="permission-notice">
+      🔒 본인이 작성한 답변만 수정할 수 있어요.
+    </div>
+
+    <div class="edit-box">
+      <h2>답변 수정</h2>
+
+      <form th:action="@{/answers/{id}/edit(id=${answer.answerId})}" method="post">
+        <input type="hidden" name="questionId" th:value="${questionId}">
+
+        <div class="form-group">
+          <label for="content">답변 내용</label>
+          <textarea
+            id="content"
+            name="content"
+            style="min-height:200px;"
+            maxlength="2000"
+            oninput="updateCharCount()"
+            th:text="${answer.content}"
+          ></textarea>
+          <div class="char-info" id="charInfo"><span id="charCount">0</span> / 2,000자</div>
+          <div class="char-info warn" th:if="${#fields.hasErrors('answerUpdateRequest.content')}" th:errors="answerUpdateRequest.content"></div>
+        </div>
+
+        <div class="btn-wrap">
+          <a th:href="@{/questions/{id}(id=${questionId})}" class="btn btn-outline">취소</a>
+          <button type="submit" class="btn btn-primary" id="submitBtn">수정 완료</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MAX = 2000;
+
+  function updateCharCount() {
+    const val = document.getElementById('content').value;
+    const count = val.length;
+    document.getElementById('charCount').textContent = count.toLocaleString();
+    document.getElementById('charInfo').classList.toggle('warn', count >= MAX * 0.9);
+  }
+
+  updateCharCount();
+</script>
+
+</body>
+</html>

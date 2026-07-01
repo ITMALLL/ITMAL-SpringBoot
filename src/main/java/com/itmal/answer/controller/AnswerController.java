@@ -45,8 +45,11 @@ public class AnswerController {
 
     // 수정 페이지
     @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable Long id, Model model) {
+    public String editForm(@PathVariable Long id,
+                           @RequestParam Long questionId,
+                           Model model) {
         model.addAttribute("answer", answerService.getAnswer(id));
+        model.addAttribute("questionId", questionId);
         return "answers/edit";
     }
 
@@ -56,14 +59,17 @@ public class AnswerController {
                              @RequestParam Long questionId,
                              @Valid @ModelAttribute AnswerUpdateRequest request,
                              BindingResult bindingResult,
-                             @AuthenticationPrincipal UserDetails userDetails
-                             ) {
+                             @AuthenticationPrincipal UserDetails userDetails,
+                             Model model) {
         if (bindingResult.hasErrors()) {
+            var answer = answerService.getAnswer(id);
+            answer.setContent(request.getContent());
+            model.addAttribute("answer", answer);
+            model.addAttribute("questionId", questionId);
             return "answers/edit";
         }
-        // 임시로 1L — 추후 실제 userId로 교체 ->교체했음
         answerService.updateAnswer(id, request, getCurrentUserId(userDetails));
-        return "redirect:/answers?questionId=" + questionId;
+        return "redirect:/questions/" + questionId;
     }
 
     // 삭제
