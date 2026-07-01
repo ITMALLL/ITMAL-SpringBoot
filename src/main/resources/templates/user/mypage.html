@@ -105,15 +105,41 @@
     <div style="border:1px solid var(--error);border-radius:12px;padding:20px 24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;">
       <div>
         <p style="font-weight:600;color:var(--error);margin:0 0 4px;">회원 탈퇴</p>
-        <p style="font-size:13px;color:var(--on-surface-variant);margin:0;">탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.</p>
+        <p style="font-size:13px;color:var(--on-surface-variant);margin:0;">탈퇴 시 계정 및 개인정보가 삭제됩니다.</p>
       </div>
-      <form th:action="@{/mypage/delete}" method="post"
-            onsubmit="return confirm('정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-        <button type="submit" class="btn btn-danger">회원 탈퇴</button>
-      </form>
+      <button type="button" class="btn btn-danger" onclick="openDeleteModal()">회원 탈퇴</button>
     </div>
   </section>
+
+  <!-- 회원탈퇴 확인 모달 -->
+  <div th:if="${isMyPage}" id="deleteModal" class="modal-overlay" onclick="closeDeleteModalOutside(event)">
+    <div class="modal-card" style="max-width:440px;">
+      <div class="modal-header">
+        <h3 style="color:var(--error);">회원 탈퇴</h3>
+        <button type="button" class="modal-close" onclick="closeDeleteModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div style="padding:8px 0 20px;">
+        <ul style="font-size:14px;color:var(--on-surface-variant);line-height:1.8;padding-left:18px;margin:0 0 20px;">
+          <li>회원 탈퇴 시 사용자 정보는 삭제됩니다.</li>
+          <li>동일한 이메일로 <strong>15일 동안 재가입이 불가</strong>합니다.</li>
+          <li>작성한 질문, 답변, 댓글은 <strong>'탈퇴한 회원'으로 표시됩니다.</strong></li>
+        </ul>
+        <p style="font-size:13px;font-weight:600;margin:0 0 8px;">확인을 위해 아래에 <strong style="color:var(--error);">회원탈퇴</strong>를 입력해주세요.</p>
+        <input type="text" id="deleteConfirmInput" placeholder="회원탈퇴"
+               style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--outline);border-radius:8px;font-size:14px;"
+               oninput="checkDeleteInput()"/>
+      </div>
+      <form th:action="@{/mypage/delete}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">취소</button>
+          <button type="submit" id="deleteSubmitBtn" class="btn btn-danger" disabled>회원 탈퇴</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- 프로필 수정 모달 (내 페이지에서만 표시) -->
   <div th:if="${isMyPage}" id="editModal" class="modal-overlay" onclick="closeEditModalOutside(event)">
@@ -329,6 +355,22 @@
       document.getElementById('stat-questions').textContent = q;
       document.getElementById('stat-answers').textContent = a;
       document.getElementById('stat-comments').textContent = c;
+    }
+
+    function openDeleteModal() {
+      document.getElementById('deleteModal').classList.add('active');
+      document.getElementById('deleteConfirmInput').value = '';
+      document.getElementById('deleteSubmitBtn').disabled = true;
+    }
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').classList.remove('active');
+    }
+    function closeDeleteModalOutside(e) {
+      if (e.target === document.getElementById('deleteModal')) closeDeleteModal();
+    }
+    function checkDeleteInput() {
+      const val = document.getElementById('deleteConfirmInput').value;
+      document.getElementById('deleteSubmitBtn').disabled = val !== '회원탈퇴';
     }
 
     // 페이지 로드 시 질문 탭 + 갯수 자동 로드
