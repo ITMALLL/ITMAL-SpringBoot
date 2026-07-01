@@ -3,6 +3,7 @@ package com.itmal.answer.mapper;
 import com.itmal.answer.domain.Answer;
 import com.itmal.answer.domain.AnswerLike;
 import com.itmal.answer.dto.AnswerCreateRequest;
+import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -16,6 +17,9 @@ public interface AnswerMapper {
 
     //답변 목록 조회
     List<Answer> findByQuestionId(Long questionId);
+
+    //답변 목록 조회 (닉네임 포함, 질문 상세 페이지용)
+    List<AnswerResponse> findResponsesByQuestionId(Long questionId);
 
     //답변 단건 조회
     Answer findById(Long answerId);
