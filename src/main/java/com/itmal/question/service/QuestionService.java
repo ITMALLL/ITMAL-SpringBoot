@@ -216,7 +216,11 @@ public class QuestionService {
         if (!question.getUserId().equals(loginUserId)){
             throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
         }
-        questionMapper.softDeleteQuestion(questionId);
+        // 소유자 조건을 SQL 에 실어 영향 row 수로 최종 판정 (선조회와 무관한 이중 방어)
+        int deleted = questionMapper.softDeleteQuestion(questionId, loginUserId);
+        if (deleted == 0) {
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
         questionMapper.softDeleteAttachmentsByQuestionId(questionId); // 질문 삭제 시 첨부도 함께 비활성화
     }
 
@@ -260,10 +264,15 @@ public class QuestionService {
         }
 
         dto.setContent(HtmlSanitizer.clean(dto.getContent()));
-        questionMapper.updateQuestion(dto);
+        dto.setUserId(loginUserId); // SQL WHERE 절 소유자 조건에 사용
+        int updated = questionMapper.updateQuestion(dto);
+        if (updated == 0) {
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
 
         for (QuestionAttachmentDto att : toDelete) {
-            questionMapper.softDeleteAttachment(att.getId());
+            // 첨부 삭제도 부모 질문 조건을 SQL 에 실어, 조작된 id 가 다른 질문 첨부를 건드리지 못하게 한다
+            questionMapper.softDeleteAttachment(att.getId(), dto.getQuestionId());
         }
 
         for (MultipartFile file : realNew) {
@@ -279,8 +288,8 @@ public class QuestionService {
             try {
                 Files.deleteIfExists(Paths.get(uploadDir).resolve(att.getFilePath()));
                 questionMapper.deleteAttachment(att.getId());
-            } catch (IOException e) {
-                log.warn("첨부 정리 실패(다음 배치 재시도): {}", att.getFilePath(), e);
+            } catch (Exception e) { // 파일 IO 예외 + DB 런타임 예외 모두 잡아 다음 대상으로 진행
+                log.warn("첨부 정리 실패(다음 배치 재시도): id={}, path={}", att.getId(), att.getFilePath(), e);
             }
         }
     }

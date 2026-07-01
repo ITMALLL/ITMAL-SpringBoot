@@ -150,9 +150,19 @@ public class QuestionController {
             return "question/list";
         }
 
-        //파일다운
+        //파일 다운로드 (항상 attachment 로 내려받기)
         @GetMapping("/attachments/{id}/download")
         public ResponseEntity<Resource> downloadAttachment(@PathVariable Long id) throws IOException {
+            return buildAttachmentResponse(id, "attachment");
+        }
+
+        //오디오 미리듣기용 스트리밍 (브라우저에서 바로 재생하도록 inline)
+        @GetMapping("/attachments/{id}/stream")
+        public ResponseEntity<Resource> streamAttachment(@PathVariable Long id) throws IOException {
+            return buildAttachmentResponse(id, "inline");
+        }
+
+        private ResponseEntity<Resource> buildAttachmentResponse(Long id, String dispositionType) throws IOException {
             QuestionAttachmentDto attachment = questionService.findAttachment(id);
             if (attachment == null) {
                 return ResponseEntity.notFound().build();
@@ -172,7 +182,7 @@ public class QuestionController {
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename*=UTF-8''" + encodedName)
+                            dispositionType + "; filename*=UTF-8''" + encodedName)
                     .body(resource);
         }
 

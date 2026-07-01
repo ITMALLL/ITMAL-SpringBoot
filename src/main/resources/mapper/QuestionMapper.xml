@@ -162,10 +162,11 @@
         LIMIT 3
     </select>
 
-    <update id="softDeleteQuestion" parameterType="Long">
+    <update id="softDeleteQuestion">
         UPDATE question
         SET deleted_at = NOW()
-        WHERE question_id = #{id}
+        WHERE question_id = #{questionId}
+        AND user_id = #{userId}
         AND deleted_at IS NULL
     </update>
 
@@ -178,6 +179,7 @@
         language_id = #{languageId},
         updated_at  = NOW()
         WHERE question_id = #{questionId}
+        AND user_id = #{userId}
         AND deleted_at IS NULL
     </update>
 
@@ -185,10 +187,11 @@
         DELETE FROM question_attachment WHERE id = #{id}
     </delete>
 
-    <update id="softDeleteAttachment" parameterType="Long">
+    <update id="softDeleteAttachment">
         UPDATE question_attachment
         SET deleted_at = NOW()
         WHERE id = #{id}
+        AND question_id = #{questionId}
         AND deleted_at IS NULL
     </update>
 

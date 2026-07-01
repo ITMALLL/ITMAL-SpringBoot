@@ -31,13 +31,13 @@ public interface QuestionMapper {
 
     void increaseViewCount(Long id);
 
-    void softDeleteQuestion(Long id);
+    int softDeleteQuestion(@Param("questionId") Long questionId, @Param("userId") Long userId);
 
-    void updateQuestion(QuestionDto questionDto);
+    int updateQuestion(QuestionDto questionDto);
 
     void deleteAttachment(Long id); // 스케쥴러용
 
-    void softDeleteAttachment(Long id);
+    int softDeleteAttachment(@Param("id") Long id, @Param("questionId") Long questionId);
 
     void softDeleteAttachmentsByQuestionId(Long questionId);
 

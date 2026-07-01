@@ -227,7 +227,7 @@
                     <div class="att-file-main">
                       <span class="att-file-name" th:text="${att.originalName}">파일명</span>
                       <audio th:if="${isAudio}" class="att-file-audio" controls preload="none"
-                             th:src="@{'/questions/attachments/' + ${att.id} + '/download'}"></audio>
+                             th:src="@{'/questions/attachments/' + ${att.id} + '/stream'}"></audio>
                     </div>
                     <a th:href="@{'/questions/attachments/' + ${att.id} + '/download'}"
                        th:attr="download=${att.originalName}"
