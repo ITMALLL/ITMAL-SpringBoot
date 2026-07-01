@@ -4,6 +4,7 @@ import com.itmal.auth.domain.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 @Mapper
@@ -27,4 +28,8 @@ public interface UserMapper {
     void updatePassword(@Param("userId") Long userId, @Param("password") String password);
 
     void softDelete(@Param("userId") Long userId);
+
+    void updateRole(@Param("userId") Long userId, @Param("role") String role);
+
+    List<User> findAllTutors();
 }

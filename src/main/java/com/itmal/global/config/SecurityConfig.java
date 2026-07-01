@@ -47,6 +47,8 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/forgot-password", "/forgot-password/reset").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/tutor-applications").authenticated()
                 .requestMatchers("/mypage/**", "/register/social").authenticated()
                 .requestMatchers(HttpMethod.GET,  "/questions/write").authenticated()
                 .requestMatchers(HttpMethod.POST, "/questions/write").authenticated()
