@@ -102,4 +102,12 @@ public class AnswerController {
     private  Long getCurrentUserId(UserDetails userDetails) {
         return userMapper.findByEmail(userDetails.getUsername()).orElseThrow().getUserId();
     }
+
+    //답변 작성 페이지
+    @GetMapping("/write")
+    public String writePage(@RequestParam Long questionId, Model model) {
+        QuestionDto question = questionMapper.findQuestionDetailById(questionId);
+        model.addAttribute("questionId",questionId);
+        return "answers/write";
+    }
 }
