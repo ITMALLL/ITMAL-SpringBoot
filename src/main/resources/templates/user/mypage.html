@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,6 +40,9 @@
             <div class="profile-actions" th:if="${isMyPage}">
               <button type="button" class="btn btn-outline" onclick="openEditModal()">프로필 수정</button>
               <a href="/mypage/password" class="btn btn-outline" th:if="${!user.isSocialUser()}">비밀번호 변경</a>
+              <button type="button" class="btn btn-primary"
+                      sec:authorize="hasRole('USER')"
+                      onclick="openTutorModal()">튜터 신청</button>
             </div>
             <div class="profile-actions" th:if="${!isMyPage}">
               <button type="button" class="btn btn-primary" onclick="requestChat()">1:1 채팅 신청</button>
@@ -195,6 +198,46 @@
     </div>
   </div>
 
+  <!-- 튜터 신청 모달 -->
+  <div id="tutor-modal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
+    <div style="background:var(--surface); border-radius:1.25rem; padding:40px; max-width:480px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.15); position:relative;">
+      <!-- 닫기 버튼 -->
+      <button onclick="closeTutorModal()" style="position:absolute; top:16px; right:16px; background:none; border:none; cursor:pointer; color:var(--on-surface-variant);">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <!-- 아이콘 + 제목 -->
+      <div style="text-align:center; margin-bottom:24px;">
+        <span class="material-symbols-outlined" style="font-size:48px; color:var(--primary);">school</span>
+        <h2 style="font-size:22px; font-weight:700; color:var(--on-surface); margin-top:12px;">튜터 신청</h2>
+        <p style="font-size:14px; color:var(--on-surface-variant); margin-top:8px;">잇말의 튜터가 되어 언어 학습자를 도와주세요</p>
+      </div>
+
+      <!-- 혜택 안내 -->
+      <div style="background:var(--surface-container-low); border-radius:0.75rem; padding:20px; margin-bottom:24px; display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="material-symbols-outlined" style="color:var(--primary); font-size:20px;">check_circle</span>
+          <span style="font-size:14px; color:var(--on-surface);">모국어 기반의 전문 답변 제공</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="material-symbols-outlined" style="color:var(--primary); font-size:20px;">check_circle</span>
+          <span style="font-size:14px; color:var(--on-surface);">튜터 전용 배지 부여</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="material-symbols-outlined" style="color:var(--primary); font-size:20px;">check_circle</span>
+          <span style="font-size:14px; color:var(--on-surface);">관리자 승인 후 튜터 활동 가능</span>
+        </div>
+      </div>
+
+      <!-- 신청 폼 -->
+      <form th:action="@{/tutor-applications}" method="post" style="display:flex; flex-direction:column; gap:12px;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:14px;">신청하기</button>
+        <button type="button" onclick="closeTutorModal()" class="btn btn-outline" style="width:100%;">취소</button>
+      </form>
+    </div>
+  </div>
+
   <div th:replace="~{fragments/footer :: footer}"></div>
 
 
@@ -214,6 +257,20 @@
     // 에러 시 모달 자동 오픈
     const openModal = /*[[${openEditModal}]]*/ false;
     if (openModal) openEditModal();
+
+    function openTutorModal() {
+      const modal = document.getElementById('tutor-modal');
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function closeTutorModal() {
+      const modal = document.getElementById('tutor-modal');
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    document.getElementById('tutor-modal')?.addEventListener('click', (e) => {
+      if (e.target === document.getElementById('tutor-modal')) closeTutorModal();
+    });
   </script>
 
   <script th:inline="javascript">
