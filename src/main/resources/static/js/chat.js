@@ -201,6 +201,7 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
 
         if (stompClient && stompClient.connected) {
             messageSubscription = stompClient.subscribe(`/topic/user/${chatRoomId}`, function (message) {
+                if (currentChatRoomId !== chatRoomId) return;
                 const msg = JSON.parse(message.body);
                 messageRenderQueue = messageRenderQueue
                     .then(() => addMessageToUI(msg))
@@ -378,10 +379,15 @@ async function leaveRoom() {
             readSubscription = null;
         }
 
-        await fetch(`/api/chat-room/${currentChatRoomId}/leave?chatRequestId=${currentChatRequestId}`, {
+        const response = await fetch(`/api/chat-room/${currentChatRoomId}/leave?chatRequestId=${currentChatRequestId}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json', ...authHeaders()}
         });
+        if (!response.ok) {
+            console.error('채팅방 나가기 실패:', response.status);
+            alert('채팅방 나가기에 실패했습니다.');
+            return;
+        }
 
         document.getElementById('chatMain').style.display = 'none';
         document.getElementById('noChat').style.display = 'flex';
@@ -439,6 +445,10 @@ async function acceptRequest(chatRequestId) {
             headers: authHeaders()
         });
         const data = await response.json();
+        if (!response.ok || !data.chatRoomId) {
+            console.error('채팅 요청 수락 실패:', data);
+            return;
+        }
         await loadChatRooms();
         await loadChatRequests();
         await enterChatRoom(data.chatRoomId, chatRequestId);
@@ -449,7 +459,11 @@ async function acceptRequest(chatRequestId) {
 
 async function rejectRequest(chatRequestId, btn) {
     try {
-        await fetch(`/api/chat-request/${chatRequestId}/reject`, {method: 'PUT', headers: authHeaders()});
+        const response = await fetch(`/api/chat-request/${chatRequestId}/reject`, {method: 'PUT', headers: authHeaders()});
+        if (!response.ok) {
+            console.error('채팅 요청 거절 실패:', response.status);
+            return;
+        }
         btn.closest('.chat-request-item').remove();
     } catch (error) {
         console.error('채팅 요청 거절 실패:', error);
