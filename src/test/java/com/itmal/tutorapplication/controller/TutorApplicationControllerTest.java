@@ -89,7 +89,7 @@ class TutorApplicationControllerTest {
 
         mockMvc.perform(post("/tutor-applications"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/mypage?error=already_applied"));
+                .andExpect(redirectedUrl("/mypage"));
     }
 
     @Test
@@ -100,7 +100,7 @@ class TutorApplicationControllerTest {
 
         mockMvc.perform(post("/tutor-applications"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/mypage?error=already_tutor"));
+                .andExpect(redirectedUrl("/mypage"));
     }
 
     // ===== 관리자 목록 조회 =====

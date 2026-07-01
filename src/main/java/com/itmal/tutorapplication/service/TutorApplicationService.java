@@ -11,4 +11,5 @@ public interface TutorApplicationService {
     void reject(Long applicationId);
     List<TutorApplication> getPendingApplications();
     List<TutorApplicationResponse> getPendingApplicationsWithUser();
+    boolean hasPendingApplication(Long userId);
 }

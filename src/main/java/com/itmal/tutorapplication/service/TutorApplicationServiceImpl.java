@@ -75,4 +75,9 @@ public class TutorApplicationServiceImpl implements TutorApplicationService {
     public List<TutorApplicationResponse> getPendingApplicationsWithUser() {
         return tutorApplicationMapper.findAllPendingWithUser();
     }
+
+    @Override
+    public boolean hasPendingApplication(Long userId) {
+        return tutorApplicationMapper.findPendingByUserId(userId) != null;
+    }
 }

@@ -85,4 +85,12 @@
         WHERE user_id = #{userId}
     </update>
 
+    <select id="findAllTutors" resultType="com.itmal.auth.domain.User">
+        SELECT *
+        FROM users
+        WHERE role = 'ROLE_TUTOR'
+          AND deleted_at IS NULL
+        ORDER BY user_id ASC
+    </select>
+
 </mapper>

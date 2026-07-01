@@ -40,9 +40,15 @@
             <div class="profile-actions" th:if="${isMyPage}">
               <button type="button" class="btn btn-outline" onclick="openEditModal()">프로필 수정</button>
               <a href="/mypage/password" class="btn btn-outline" th:if="${!user.isSocialUser()}">비밀번호 변경</a>
-              <button type="button" class="btn btn-primary"
-                      sec:authorize="hasRole('USER')"
-                      onclick="openTutorModal()">튜터 신청</button>
+              <!-- 튜터 신청 버튼 (ROLE_USER만) -->
+              <th:block sec:authorize="hasRole('USER')">
+                <button type="button" class="btn btn-outline"
+                        th:if="${!hasPendingApplication}"
+                        onclick="openTutorModal()">튜터 신청</button>
+                <button type="button" class="btn btn-outline" disabled
+                        th:if="${hasPendingApplication}"
+                        style="opacity:0.6; cursor:not-allowed;">튜터 신청 완료</button>
+              </th:block>
             </div>
             <div class="profile-actions" th:if="${!isMyPage}">
               <button type="button" class="btn btn-primary" onclick="requestChat()">1:1 채팅 신청</button>
@@ -50,6 +56,7 @@
           </div>
 
           <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+          <div th:if="${hasPendingApplication}" class="success-message">신청이 완료되었습니다! 관리자 승인 후 튜터로 활동할 수 있습니다.</div>
 
           <!-- Profile Stats -->
           <div class="profile-stats">
