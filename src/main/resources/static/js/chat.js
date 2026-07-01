@@ -171,11 +171,12 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             readSubscription = null;
         }
 
+        const response = await fetch(`/api/chat-room/${chatRoomId}`);
+        if (!response.ok) throw new Error(`채팅방 조회 실패: ${response.status}`);
+        const data = await response.json();
+
         currentChatRoomId = chatRoomId;
         currentChatRequestId = chatRequestId;
-
-        const response = await fetch(`/api/chat-room/${chatRoomId}`);
-        const data = await response.json();
 
         document.getElementById('chatMain').style.display = 'flex';
         document.getElementById('noChat').style.display = 'none';
