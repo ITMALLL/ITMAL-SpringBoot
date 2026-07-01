@@ -10,6 +10,7 @@ import com.itmal.report.dto.ResponseReport;
 import com.itmal.report.mapper.ReportMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,7 @@ public class ReportService {
         reportMapper.insert(report);
     }
 
+    @Transactional
     public void updateStatus(Long reportId, String status){
         int updated = reportMapper.updateStatus(reportId, status);
         if(updated == 0){
