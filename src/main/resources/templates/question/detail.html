@@ -380,8 +380,9 @@
       });
 
       // Answer button click
+      const questionId = /*[[${question.questionId}]]*/ 0;
       document.querySelector(".answer-btn").addEventListener("click", () => {
-        window.location.href = "/answer-write";
+        window.location.href = "/answers/write?questionId=" + questionId;
       });
     </script>
 
