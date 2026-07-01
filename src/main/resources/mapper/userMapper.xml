@@ -72,10 +72,11 @@
 
     <update id="softDelete">
         UPDATE users
-        SET original_email = email,
+        SET original_email = COALESCE(original_email, email),
             deleted_at = NOW(),
             email = CONCAT('deleted_', user_id, '@deleted.com')
         WHERE user_id = #{userId}
+          AND deleted_at IS NULL
     </update>
 
 </mapper>
