@@ -1,5 +1,6 @@
 package com.itmal.common.controller;
 
+import com.itmal.answer.dto.AnswerLikeResponseDto;
 import com.itmal.answer.service.AnswerService;
 import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.common.dto.LikeResponseDto;
@@ -30,8 +31,9 @@ public class LikeController {
             AnswerLikeResponseDto result = answerService.toggleLike(targetId, userId);
             return new LikeResponseDto(result.isLiked(), result.getLikeCount());
         } else {
-            QuestionLikeResponseDto result = questionService.toggleLike(targetId, userId);
-            return new LikeResponseDto(result.isLiked(), result.getLikeCount());
+//            QuestionLikeResponseDto result = questionService.toggleLike(targetId, userId);
+//            return new LikeResponseDto(result.isLiked(), result.getLikeCount());
+            throw new UnsupportedOperationException("준비중입니다");
         }
     }
 
