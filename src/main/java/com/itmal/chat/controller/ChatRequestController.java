@@ -27,12 +27,18 @@ public class ChatRequestController {
 
     // 채팅 요청 생성
     @PostMapping
-    public ResponseEntity<String> createChatRequest(
+    public ResponseEntity<Map<String, Object>> createChatRequest(
             @Valid @RequestBody ChatRequestDto chatRequest,
             @AuthenticationPrincipal CustomUserDetails user) {
         chatRequest.setRequesterId(user.getUserId());
-        chatRequestService.createChatRequest(chatRequest);
-        return ResponseEntity.ok("채팅 요청이 전송되었습니다.");
+        Long chatRoomId = chatRequestService.createChatRequest(chatRequest);
+        Map<String, Object> response = new HashMap<>();
+        if (chatRoomId != null) {
+            response.put("chatRoomId", chatRoomId);
+        } else {
+            response.put("message", "채팅 요청이 전송되었습니다.");
+        }
+        return ResponseEntity.ok(response);
     }
 
     // 채팅 요청 거절

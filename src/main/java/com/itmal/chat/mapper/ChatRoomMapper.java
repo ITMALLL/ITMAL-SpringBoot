@@ -34,6 +34,13 @@ public interface ChatRoomMapper {
     void leaveRoom(@Param("chatRoomId") Long chatRoomId,
                    @Param("isRequester") Boolean isRequester);
 
+    ChatRoomDto findPartiallyHiddenRoom(@Param("requesterId") Long requesterId,
+                                        @Param("responderId") Long responderId);
+
+    boolean isBothLeft(@Param("chatRoomId") Long chatRoomId);
+
+    void deleteRoom(@Param("chatRoomId") Long chatRoomId);
+
     // A가 복구 (B가 메시지 보냈을 때)
     void restoreHiddenA(@Param("id") Long id);
 
