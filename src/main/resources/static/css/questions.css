@@ -432,6 +432,17 @@
   pointer-events: none;
 }
 
+.pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  color: var(--on-surface-variant);
+  font-weight: 600;
+  user-select: none;
+}
+
 /* ============================================
    질문 작성 섹션
    ============================================ */

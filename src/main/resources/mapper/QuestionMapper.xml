@@ -5,6 +5,25 @@
 
 <mapper namespace="com.itmal.question.mapper.QuestionMapper">
 
+    <!-- 목록 조회(findQuestions)와 총건 조회(countQuestions) 공용 검색 조건 -->
+    <sql id="questionSearchWhere">
+        <where>
+            q.deleted_at IS NULL
+            <if test="keyword != null and keyword != ''">
+                AND q.title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="languageId != null">
+                AND q.language_id = #{languageId}
+            </if>
+            <if test="category != null and category != ''">
+                AND q.category = #{category}
+            </if>
+            <if test="target != null and target != ''">
+                AND q.target = #{target}
+            </if>
+        </where>
+    </sql>
+
     <insert id="insertQuestion" useGeneratedKeys="true" keyProperty="questionId">
         INSERT INTO question (
             title,
@@ -78,21 +97,7 @@
         FROM question q
         LEFT JOIN users u    ON q.user_id = u.user_id
         LEFT JOIN language l ON q.language_id = l.language_id
-        <where>
-            q.deleted_at IS NULL
-            <if test="keyword != null and keyword != ''">
-                AND q.title LIKE CONCAT('%', #{keyword}, '%')
-            </if>
-            <if test="languageId != null">
-                AND q.language_id = #{languageId}
-            </if>
-            <if test="category != null and category != ''">
-                AND q.category = #{category}
-            </if>
-            <if test="target != null and target != ''">
-                AND q.target = #{target}
-            </if>
-        </where>
+        <include refid="questionSearchWhere"/>
         <choose>
             <when test="sort == 'views'">ORDER BY q.view_count DESC</when>
             <otherwise>ORDER BY q.created_at DESC</otherwise>
@@ -105,21 +110,7 @@
         FROM question q
         LEFT JOIN users u    ON q.user_id = u.user_id
         LEFT JOIN language l ON q.language_id = l.language_id
-        <where>
-            q.deleted_at IS NULL
-            <if test="keyword != null and keyword != ''">
-                AND q.title LIKE CONCAT('%', #{keyword}, '%')
-            </if>
-            <if test="languageId != null">
-                AND q.language_id = #{languageId}
-            </if>
-            <if test="category != null and category != ''">
-                AND q.category = #{category}
-            </if>
-            <if test="target != null and target != ''">
-                AND q.target = #{target}
-            </if>
-        </where>
+        <include refid="questionSearchWhere"/>
     </select>
 
     <insert id="insertAttachment">

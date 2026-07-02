@@ -175,17 +175,29 @@
 
       <!-- Pagination -->
       <div class="pagination" th:if="${totalPages > 0}">
-        <!-- 이전 페이지 -->
-        <a class="pagination-btn"
-           th:classappend="${currentPage <= 1} ? ' disabled' : ''"
+        <!-- 이전 페이지: 첫 페이지에서는 링크 없이 비활성 span 으로 렌더 -->
+        <a th:if="${currentPage > 1}"
+           class="pagination-btn"
            th:href="@{/questions/list(page=${currentPage - 1}, size=${search.size},
                      keyword=${search.keyword}, languageId=${search.languageId},
                      category=${search.category}, target=${search.target}, sort=${search.sort})}">
           <span class="material-symbols-outlined">chevron_left</span>
         </a>
+        <span th:unless="${currentPage > 1}" class="pagination-btn disabled">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </span>
 
-        <!-- 페이지 번호 (1 ~ totalPages) -->
-        <a th:each="p : ${#numbers.sequence(1, totalPages)}"
+        <!-- 첫 페이지 + 생략 표시 (윈도우가 1보다 뒤에서 시작할 때만) -->
+        <a th:if="${startPage > 1}"
+           class="pagination-btn"
+           th:text="1"
+           th:href="@{/questions/list(page=1, size=${search.size},
+                     keyword=${search.keyword}, languageId=${search.languageId},
+                     category=${search.category}, target=${search.target}, sort=${search.sort})}">1</a>
+        <span th:if="${startPage > 2}" class="pagination-ellipsis">…</span>
+
+        <!-- 페이지 번호 (윈도우: startPage ~ endPage) -->
+        <a th:each="p : ${#numbers.sequence(startPage, endPage)}"
            class="pagination-btn"
            th:classappend="${p == currentPage} ? ' active' : ''"
            th:text="${p}"
@@ -193,14 +205,26 @@
                      keyword=${search.keyword}, languageId=${search.languageId},
                      category=${search.category}, target=${search.target}, sort=${search.sort})}">1</a>
 
-        <!-- 다음 페이지 -->
-        <a class="pagination-btn"
-           th:classappend="${currentPage >= totalPages} ? ' disabled' : ''"
+        <!-- 생략 표시 + 마지막 페이지 (윈도우가 끝보다 앞에서 끝날 때만) -->
+        <span th:if="${endPage < totalPages - 1}" class="pagination-ellipsis">…</span>
+        <a th:if="${endPage < totalPages}"
+           class="pagination-btn"
+           th:text="${totalPages}"
+           th:href="@{/questions/list(page=${totalPages}, size=${search.size},
+                     keyword=${search.keyword}, languageId=${search.languageId},
+                     category=${search.category}, target=${search.target}, sort=${search.sort})}">N</a>
+
+        <!-- 다음 페이지: 마지막 페이지에서는 링크 없이 비활성 span 으로 렌더 -->
+        <a th:if="${currentPage < totalPages}"
+           class="pagination-btn"
            th:href="@{/questions/list(page=${currentPage + 1}, size=${search.size},
                      keyword=${search.keyword}, languageId=${search.languageId},
                      category=${search.category}, target=${search.target}, sort=${search.sort})}">
           <span class="material-symbols-outlined">chevron_right</span>
         </a>
+        <span th:unless="${currentPage < totalPages}" class="pagination-btn disabled">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </span>
       </div>
     </main>
   <div th:replace="~{fragments/footer :: footer}"></div>

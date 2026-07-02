@@ -149,13 +149,24 @@ public class QuestionController {
             int totalCount = questionService.countQuestions(search);
             int totalPages = (int) Math.ceil((double) totalCount / search.getSize());
 
+            // currentPage를 [1, totalPages] 범위로 클램프 (범위 밖 page 요청 방어)
+            int currentPage = Math.min(search.getPage(), Math.max(totalPages, 1));
+
+            // 페이지 번호 윈도잉: 현재 페이지 주변 최대 PAGE_WINDOW개만 노출
+            final int PAGE_WINDOW = 5;
+            int startPage = Math.max(1, currentPage - PAGE_WINDOW / 2);
+            int endPage = Math.min(totalPages, startPage + PAGE_WINDOW - 1);
+            startPage = Math.max(1, endPage - PAGE_WINDOW + 1);
+
             model.addAttribute("questions", questions);
             model.addAttribute("languages", questionService.findAllLanguages());
             model.addAttribute("categories", Category.values());
             model.addAttribute("targets", Target.values());
             model.addAttribute("search", search);
             model.addAttribute("totalPages", totalPages);
-            model.addAttribute("currentPage", search.getPage());
+            model.addAttribute("currentPage", currentPage);
+            model.addAttribute("startPage", startPage);
+            model.addAttribute("endPage", endPage);
 
             return "question/list";
         }
