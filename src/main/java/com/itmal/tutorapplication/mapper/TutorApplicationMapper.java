@@ -15,4 +15,5 @@ public interface TutorApplicationMapper {
     List<TutorApplication> findAllPending();
     List<TutorApplicationResponse> findAllPendingWithUser();
     void updateStatus(TutorApplication application);
+    void rejectPendingByUserId(@Param("userId") Long userId);
 }

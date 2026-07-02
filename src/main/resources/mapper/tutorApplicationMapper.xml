@@ -52,4 +52,12 @@
         WHERE tutor_application_id = #{tutorApplicationId}
     </update>
 
+    <update id="rejectPendingByUserId">
+        UPDATE tutor_application
+        SET status       = 'REJECTED',
+            processed_at = NOW()
+        WHERE user_id = #{userId}
+          AND status = 'PENDING'
+    </update>
+
 </mapper>
