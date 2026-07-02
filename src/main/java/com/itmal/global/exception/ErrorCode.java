@@ -16,6 +16,7 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CM001", "댓글을 찾을 수 없습니다."),
     COMMENT_FORBIDDEN(HttpStatus.FORBIDDEN, "CM002", "본인 댓글만 수정/삭제할 수 있습니다."),
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "RP001", "신고를 찾을 수 없습니다."),
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "RP002", "이미 신고된 콘텐츠입니다. 관리자가 처리 중입니다."),
 
     // Auth
     SOCIAL_USER_NO_PASSWORD(HttpStatus.BAD_REQUEST, "A008", "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다."),
@@ -50,7 +51,10 @@ public enum ErrorCode {
     ALREADY_APPLIED(HttpStatus.CONFLICT, "TA002", "이미 튜터 신청 중입니다."),
     ALREADY_TUTOR(HttpStatus.CONFLICT, "TA003", "이미 튜터입니다."),
     INVALID_APPLICATION_STATUS(HttpStatus.BAD_REQUEST, "TA004", "이미 처리된 신청입니다."),
-    NOT_A_TUTOR(HttpStatus.BAD_REQUEST, "TA005", "튜터가 아닙니다.");
+    NOT_A_TUTOR(HttpStatus.BAD_REQUEST, "TA005", "튜터가 아닙니다."),
+    ANSWER_SELF_FORBIDDEN(HttpStatus.FORBIDDEN, "AN002", "본인이 작성한 질문에는 답변을 등록할 수 없습니다.")
+    ;
+
 
     private final HttpStatus status;
     private final String code;

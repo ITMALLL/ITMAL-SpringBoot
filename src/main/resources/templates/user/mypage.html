@@ -458,7 +458,12 @@
         })
       });
       if (res.ok) {
-        alert('채팅 신청을 보냈습니다.');
+        const data = await res.json();
+        if (data.chatRoomId) {
+          window.location.href = `/chat?roomId=${data.chatRoomId}`;
+        } else {
+          alert('채팅 신청을 보냈습니다.');
+        }
       } else {
         const error = await res.json();
         alert(error.message);

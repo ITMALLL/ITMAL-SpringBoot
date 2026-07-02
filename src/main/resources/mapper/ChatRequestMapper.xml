@@ -43,6 +43,11 @@
         ORDER BY created_at DESC
     </select>
 
+    <!-- 채팅 요청 삭제 -->
+    <delete id="deleteById">
+        DELETE FROM chat_request WHERE chat_request_id = #{chatRequestId}
+    </delete>
+
     <!-- 두 유저 간 PENDING 또는 ACCEPTED 요청 조회 -->
     <select id="selectActiveRequestBetweenUsers" resultType="ChatRequestDto">
         SELECT * FROM chat_request
