@@ -61,6 +61,9 @@ public class ChatRoomService {
             throw new IllegalArgumentException("필수 파라미터가 누락되었습니다.");
         }
         chatRoomMapper.leaveRoom(chatRoomId, isRequester);
+        if (chatRoomMapper.isBothLeft(chatRoomId)) {
+            chatRoomMapper.deleteRoom(chatRoomId);
+        }
     }
 
     // 숨겨진 채팅방 복구 (A)

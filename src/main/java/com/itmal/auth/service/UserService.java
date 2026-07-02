@@ -10,6 +10,7 @@ import com.itmal.auth.repository.UserMapper;
 import com.itmal.global.exception.ApiException;
 import com.itmal.global.exception.ErrorCode;
 import com.itmal.question.dto.LanguageDto;
+import com.itmal.tutorapplication.mapper.TutorApplicationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -28,6 +29,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final LearningLanguageMapper learningLanguageMapper;
     private final PasswordEncoder passwordEncoder;
+    private final TutorApplicationMapper tutorApplicationMapper;
     private final EmailVerificationService emailVerificationService;
     private final PasswordResetTokenStore passwordResetTokenStore;
 
@@ -134,6 +136,7 @@ public class UserService {
 
     @Transactional
     public void deleteAccount(Long userId) {
+        tutorApplicationMapper.rejectPendingByUserId(userId);
         userMapper.softDelete(userId);
     }
 
