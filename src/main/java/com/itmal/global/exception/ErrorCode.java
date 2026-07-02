@@ -16,6 +16,7 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CM001", "댓글을 찾을 수 없습니다."),
     COMMENT_FORBIDDEN(HttpStatus.FORBIDDEN, "CM002", "본인 댓글만 수정/삭제할 수 있습니다."),
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "RP001", "신고를 찾을 수 없습니다."),
+    DUPLICATE_REPORT(HttpStatus.CONFLICT, "RP002", "이미 신고된 콘텐츠입니다. 관리자가 처리 중입니다."),
 
     // Auth
     SOCIAL_USER_NO_PASSWORD(HttpStatus.BAD_REQUEST, "A008", "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다."),
