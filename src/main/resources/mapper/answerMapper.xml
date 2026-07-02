@@ -99,6 +99,7 @@
           AND user_id = #{userId}
     </delete>
 
+
     <!-- 좋아요 여부 확인 -->
     <select id="findAnswerLike" resultType="com.itmal.answer.domain.AnswerLike">
         SELECT *
@@ -106,6 +107,14 @@
         WHERE answer_id = #{answerId}
           AND user_id = #{userId}
     </select>
+
+    <!-- 좋아요 개수 조회 -->
+    <select id="countAnswerLikes" resultType="int">
+        SELECT COUNT(*)
+        FROM answer_like
+        WHERE answer_id = #{answerId}
+    </select>
+
 
     <!-- 채택 -->
     <update id="acceptAnswer">
