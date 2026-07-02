@@ -39,6 +39,9 @@ public interface AnswerMapper {
     //좋아요 여부 확인
     AnswerLike findAnswerLike(AnswerLike answerLike);
 
+    //좋아요 개수 조회
+    int countAnswerLikes(Long answerId);
+
     //채택
     void acceptAnswer(Long answerId);
 

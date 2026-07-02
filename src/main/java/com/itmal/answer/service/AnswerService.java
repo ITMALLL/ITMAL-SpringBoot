@@ -2,6 +2,7 @@ package com.itmal.answer.service;
 
 import com.itmal.answer.domain.Answer;
 import com.itmal.answer.dto.AnswerCreateRequest;
+import com.itmal.answer.dto.AnswerLikeResponseDto;
 import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 
@@ -14,7 +15,7 @@ public interface AnswerService {
     Answer getAnswer(Long answerId);
     void updateAnswer(Long answerId, AnswerUpdateRequest request, Long userId);
     void deleteAnswer(Long answerId, Long userId);
-    void toggleLike(Long answerId, Long userId);
+    AnswerLikeResponseDto toggleLike(Long answerId, Long userId);
     void adoptAnswer(Long answerId, Long userId);
     List<Answer> getAnswerByUserId(Long userId);
 }
