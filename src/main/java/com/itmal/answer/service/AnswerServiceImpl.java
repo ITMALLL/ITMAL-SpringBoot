@@ -31,7 +31,10 @@ public class AnswerServiceImpl implements AnswerService {
     @Override
     public void createAnswer(AnswerCreateRequest request, Long userId) {
         QuestionDto question = questionMapper.findQuestionDetailById(request.getQuestionId());
-        if (question != null && question.getUserId().equals(userId)) {
+        if (question == null) {
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if (question.getUserId().equals(userId)) {
             throw new ViewException(ErrorCode.ANSWER_SELF_FORBIDDEN);
         }
         // userId는 폼이 아닌 로그인 세션에서 가져와서 세팅

@@ -65,6 +65,7 @@
 
           <form class="answer-form" th:action="@{/answers/{id}/edit(id=${answer.answerId})}" method="post">
             <input type="hidden" name="questionId" th:value="${questionId}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <!-- Answer Content -->
             <div class="form-group">
               <label for="answer-content" class="form-label"
@@ -108,7 +109,7 @@
       updateCharCount();
 
       // 취소 버튼
-      document.querySelector(".btn-outline").addEventListener("click", () => {
+      document.querySelector(".form-actions .btn-outline").addEventListener("click", () => {
         location.href = "/questions/" + questionId;
       });
     </script>

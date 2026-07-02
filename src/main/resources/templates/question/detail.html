@@ -424,9 +424,7 @@
             </div>
             <div class="translation-body">
               <p>
-                While studying English grammar, I got confused about the
-                difference between <strong>Past Perfect</strong> and
-                <strong>Simple Past</strong>.
+                번역을 불러오는 중입니다.
               </p>
             </div>
           </div>
@@ -870,13 +868,11 @@
   document.addEventListener('click', closeProfileMenus);
 
   document.addEventListener('DOMContentLoaded', () => {
-    const rawHtml = /*[[${question.content}]]*/ '';        // 본문(HTML)
     const target = /*[[${question.languageCode}]]*/ '';   // 학습 언어 코드 (DB)
 
-    // HTML → 평문 변환: <p> 등 태그 제거 (DOM에 붙이지 않아 XSS 안전)
-    const tmp = document.createElement('div');
-    tmp.innerHTML = rawHtml;
-    const text = (tmp.textContent || '').trim();
+    // 이미 렌더링된 본문에서 평문만 추출 (innerHTML 재파싱 없이 XSS sink 제거)
+    const contentEl = document.querySelector('.detail-content-body');
+    const text = contentEl ? (contentEl.textContent || '').trim() : '';
 
     const box = document.querySelector('.translation-body');
     const label = document.querySelector('.translation-direction');
