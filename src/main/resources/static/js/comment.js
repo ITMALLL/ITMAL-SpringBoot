@@ -236,6 +236,13 @@ function initCommentSection(section) {
     const nickname = escapeHtml(comment.nickname ?? "익명");
     const content = escapeHtml(comment.content);
 
+    // 이 페이지에 currentUserId가 없는 경우(다른 페이지에서 재사용 등)를 대비한 안전장치
+    const myUserId = typeof currentUserId !== "undefined" ? currentUserId : null;
+    const isMine = myUserId != null && Number(comment.userId) === Number(myUserId);
+    const reportBtn = isMine
+      ? ""
+      : `<button class="comment-report" data-comment-id="${comment.commentId}">신고</button>`;
+
     return `
       <div class="comment-item">
         <div class="comment-avatar">${nickname[0]}</div>
@@ -248,7 +255,7 @@ function initCommentSection(section) {
           <div class="comment-actions">
             <button class="comment-edit" data-comment-id="${comment.commentId}">수정</button>
             <button class="comment-delete" data-comment-id="${comment.commentId}">삭제</button>
-            <button class="comment-report" data-comment-id="${comment.commentId}">신고</button>
+            ${reportBtn}
           </div>
         </div>
       </div>
