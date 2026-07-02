@@ -1,6 +1,7 @@
 package com.itmal.chat.service;
 
 import com.itmal.chat.dto.ChatRoomDto;
+import com.itmal.chat.mapper.ChatRequestMapper;
 import com.itmal.chat.mapper.ChatRoomMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import java.util.List;
 public class ChatRoomService {
 
     private final ChatRoomMapper chatRoomMapper;
+    private final ChatRequestMapper chatRequestMapper;
 
     // 채팅방 생성
     public Long createChatRoom(ChatRoomDto chatRoom) {
@@ -62,7 +64,9 @@ public class ChatRoomService {
         }
         chatRoomMapper.leaveRoom(chatRoomId, isRequester);
         if (chatRoomMapper.isBothLeft(chatRoomId)) {
+            ChatRoomDto chatRoom = chatRoomMapper.selectById(chatRoomId);
             chatRoomMapper.deleteRoom(chatRoomId);
+            chatRequestMapper.deleteById(chatRoom.getChatRequestId());
         }
     }
 
