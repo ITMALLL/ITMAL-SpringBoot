@@ -1,73 +1,116 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <title>답변 수정 - 잇말</title>
-  <link rel="stylesheet" href="/css/common.css">
-  <style>
-    .edit-wrap { max-width: 760px; margin: 0 auto; }
-    .edit-box { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
-    .edit-box h2 { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
-    .char-info { text-align: right; font-size: 12px; color: var(--text-sub); margin-top: 6px; }
-    .char-info.warn { color: var(--danger); }
-    .permission-notice { display: flex; align-items: center; gap: 10px; background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #92400E; }
-    .btn-wrap { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
-  </style>
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>잇말 - 답변 수정</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/answer-write.css" />
+    <style>
+      .permission-notice {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background-color: #FFF7ED;
+        border: 1px solid #FED7AA;
+        border-radius: var(--radius-xl);
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        font-size: 13px;
+        color: #92400E;
+      }
 
-<div class="container">
-  <div class="edit-wrap">
-    <div style="margin-bottom:16px;">
-      <a th:href="@{/questions/{id}(id=${questionId})}"
-         style="color:var(--text-sub); text-decoration:none; font-size:13px;">← 질문으로 돌아가기</a>
-    </div>
+      .field-error {
+        font-size: 13px;
+        color: var(--error);
+        margin-top: 4px;
+      }
+    </style>
+  </head>
+  <body>
+  <div th:replace="~{fragments/header :: header}"></div>
 
-    <div class="permission-notice">
-      🔒 본인이 작성한 답변만 수정할 수 있어요.
-    </div>
+  <!-- Main Content -->
+    <main class="answer-write-main">
+      <div class="answer-write-container">
+        <!-- Back Link -->
+        <a th:href="@{/questions/{id}(id=${questionId})}" class="back-link">
+          <span class="material-symbols-outlined">arrow_back</span>
+          질문으로 돌아가기
+        </a>
 
-    <div class="edit-box">
-      <h2>답변 수정</h2>
-
-      <form th:action="@{/answers/{id}/edit(id=${answer.answerId})}" method="post">
-        <input type="hidden" name="questionId" th:value="${questionId}">
-
-        <div class="form-group">
-          <label for="content">답변 내용</label>
-          <textarea
-            id="content"
-            name="content"
-            style="min-height:200px;"
-            maxlength="2000"
-            oninput="updateCharCount()"
-            th:text="${answer.content}"
-          ></textarea>
-          <div class="char-info" id="charInfo"><span id="charCount">0</span> / 2,000자</div>
-          <div class="char-info warn" th:if="${#fields.hasErrors('answerUpdateRequest.content')}" th:errors="answerUpdateRequest.content"></div>
+        <!-- Permission Notice -->
+        <div class="permission-notice">
+          🔒 본인이 작성한 답변만 수정할 수 있어요.
         </div>
 
-        <div class="btn-wrap">
-          <a th:href="@{/questions/{id}(id=${questionId})}" class="btn btn-outline">취소</a>
-          <button type="submit" class="btn btn-primary" id="submitBtn">수정 완료</button>
+        <!-- Answer Form -->
+        <div class="answer-form-card">
+          <div class="form-header">
+            <span class="form-icon">
+              <span class="material-symbols-outlined">edit</span>
+            </span>
+            <h3 class="form-title">답변 수정</h3>
+          </div>
+
+          <form class="answer-form" th:action="@{/answers/{id}/edit(id=${answer.answerId})}" method="post">
+            <input type="hidden" name="questionId" th:value="${questionId}">
+            <!-- Answer Content -->
+            <div class="form-group">
+              <label for="answer-content" class="form-label"
+                >답변 내용 <span class="required">*</span></label
+              >
+              <textarea
+                id="answer-content"
+                name="content"
+                class="answer-textarea"
+                maxlength="2000"
+                required
+                th:text="${answer.content}"
+              ></textarea>
+              <div class="char-counter">
+                <span id="char-count">0</span> / 2,000자
+              </div>
+              <div class="field-error" th:if="${#fields.hasErrors('answerUpdateRequest.content')}" th:errors="answerUpdateRequest.content"></div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline">취소</button>
+              <button type="submit" class="btn btn-primary">수정 완료</button>
+            </div>
+          </form>
         </div>
-      </form>
-    </div>
-  </div>
-</div>
+      </div>
+    </main>
+  <div th:replace="~{fragments/footer :: footer}"></div>
 
-<script>
-  const MAX = 2000;
+    <script th:inline="javascript">
+      const questionId = /*[[${questionId}]]*/ 0;
+      const textarea = document.getElementById("answer-content");
+      const charCount = document.getElementById("char-count");
 
-  function updateCharCount() {
-    const val = document.getElementById('content').value;
-    const count = val.length;
-    document.getElementById('charCount').textContent = count.toLocaleString();
-    document.getElementById('charInfo').classList.toggle('warn', count >= MAX * 0.9);
-  }
+      function updateCharCount() {
+        charCount.textContent = textarea.value.length;
+      }
 
-  updateCharCount();
-</script>
+      textarea.addEventListener("input", updateCharCount);
+      updateCharCount();
 
-</body>
+      // 취소 버튼
+      document.querySelector(".btn-outline").addEventListener("click", () => {
+        location.href = "/questions/" + questionId;
+      });
+    </script>
+  </body>
 </html>

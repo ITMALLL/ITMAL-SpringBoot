@@ -50,7 +50,10 @@ public enum ErrorCode {
     ALREADY_APPLIED(HttpStatus.CONFLICT, "TA002", "이미 튜터 신청 중입니다."),
     ALREADY_TUTOR(HttpStatus.CONFLICT, "TA003", "이미 튜터입니다."),
     INVALID_APPLICATION_STATUS(HttpStatus.BAD_REQUEST, "TA004", "이미 처리된 신청입니다."),
-    NOT_A_TUTOR(HttpStatus.BAD_REQUEST, "TA005", "튜터가 아닙니다.");
+    NOT_A_TUTOR(HttpStatus.BAD_REQUEST, "TA005", "튜터가 아닙니다."),
+    ANSWER_SELF_FORBIDDEN(HttpStatus.FORBIDDEN, "AN002", "본인이 작성한 질문에는 답변을 등록할 수 없습니다.")
+    ;
+
 
     private final HttpStatus status;
     private final String code;

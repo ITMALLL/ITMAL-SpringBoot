@@ -9,6 +9,7 @@ import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.mapper.AnswerMapper;
 import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
+import com.itmal.global.exception.ViewException;
 import com.itmal.notification.service.NotificationService;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
@@ -29,6 +30,10 @@ public class AnswerServiceImpl implements AnswerService {
     // 답변 등록
     @Override
     public void createAnswer(AnswerCreateRequest request, Long userId) {
+        QuestionDto question = questionMapper.findQuestionDetailById(request.getQuestionId());
+        if (question != null && question.getUserId().equals(userId)) {
+            throw new ViewException(ErrorCode.ANSWER_SELF_FORBIDDEN);
+        }
         // userId는 폼이 아닌 로그인 세션에서 가져와서 세팅
         request.setUserId(userId);
         answerMapper.insertAnswer(request);
