@@ -308,6 +308,11 @@
   background-color: rgba(0, 88, 190, 0.06);
 }
 
+.checkbox-group input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .checkbox-group input:checked {
   background-color: var(--primary);
   border-color: var(--primary);
