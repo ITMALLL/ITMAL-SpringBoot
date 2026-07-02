@@ -460,6 +460,13 @@
             <div class="answer-footer">
               <span>${formatDate(a.createdAt)}</span>
             </div>
+            <div class="comments-section" data-answer-id="${a.answerId}">
+              <div class="comments-list"></div>
+              <div class="comment-input">
+                <input type="text" class="comment-field" placeholder="댓글을 입력하세요">
+                <button>등록</button>
+              </div>
+            </div>
           </article>`;
       }
 

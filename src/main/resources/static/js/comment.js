@@ -1,5 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".comments-section").forEach(initCommentSection);
+
+  // 답변 카드가 나중에 동적으로(fetch 등으로) 추가돼도 자동으로 댓글 섹션 초기화
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType !== 1) return;
+        if (node.matches?.(".comments-section")) initCommentSection(node);
+        node.querySelectorAll?.(".comments-section").forEach(initCommentSection);
+      });
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 });
 
 function getCsrfHeaders() {
@@ -164,16 +176,16 @@ function initCommentSection(section) {
       overlay.className = "comment-modal-overlay";
       overlay.innerHTML = `
         <div class="comment-modal comment-report-modal">
-          <div class="report-modal-header">
-            <span class="report-modal-icon">🚨</span>
-            <strong class="report-modal-title">댓글 신고</strong>
+          <div class="comment-report-modal-header">
+            <span class="comment-report-modal-icon">🚨</span>
+            <strong class="comment-report-modal-title">댓글 신고</strong>
           </div>
-          <p class="report-modal-subtitle">신고 사유를 선택해주세요. 허위 신고 시 제재를 받을 수 있습니다.</p>
-          <div class="report-reason-options">
+          <p class="comment-report-modal-subtitle">신고 사유를 선택해주세요. 허위 신고 시 제재를 받을 수 있습니다.</p>
+          <div class="comment-report-reason-options">
             ${reasonOptions
               .map(
                 (option, i) => `
-              <label class="report-reason-option">
+              <label class="comment-report-reason-option">
                 <input type="radio" name="report-reason" value="${option}" ${i === 0 ? "checked" : ""}>
                 ${option}
               </label>`

@@ -166,42 +166,47 @@
   border-color: #ef4444;
 }
 
-/* 신고 모달 */
+/* 신고 모달 - question/detail.html의 .report-modal 디자인과 톤 맞춤 */
 .comment-report-modal {
   text-align: left;
-  min-width: 340px;
+  width: 90%;
+  max-width: 420px;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
-.report-modal-header {
+.comment-report-modal-header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
 
-.report-modal-icon {
+.comment-report-modal-icon {
   font-size: 20px;
 }
 
-.report-modal-title {
-  font-size: 16px;
-  color: #1f2937;
+.comment-report-modal-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
 }
 
-.report-modal-subtitle {
+.comment-report-modal-subtitle {
   margin: 0 0 16px;
   font-size: 13px;
   color: #9ca3af;
 }
 
-.report-reason-options {
+.comment-report-reason-options {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.report-reason-option {
+.comment-report-reason-option {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -213,11 +218,18 @@
 .comment-report-modal .comment-report-reason {
   width: 100%;
   box-sizing: border-box;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  resize: vertical;
+  min-height: 96px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
   font-size: 14px;
   font-family: inherit;
-  resize: vertical;
+  color: #374151;
   margin-bottom: 16px;
+}
+
+.comment-report-modal .comment-report-reason:focus {
+  outline: none;
+  border-color: #6b7280;
 }
