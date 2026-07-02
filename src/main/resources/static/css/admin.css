@@ -1,5 +1,20 @@
 /* ITMAL - 관리자 신고 관리 대시보드 스타일 */
 
+/* 콘텐츠가 적어도 footer가 화면 아래에 붙어있게 (sticky footer) */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body > main {
+  flex: 1;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 48px 32px 32px;
+}
+
 /* Dashboard Header */
 .admin-header {
   margin-bottom: 32px;
@@ -106,12 +121,26 @@
   padding-right: 32px;
 }
 
+/* 카드 그리드 + 통계 카드를 나란히 배치 (통계 카드는 아래쪽에 맞춤) */
+.admin-content-layout {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 900px) {
+  .admin-content-layout {
+    flex-direction: column;
+  }
+}
+
 /* Bento Grid Layout */
 .report-grid {
+  flex: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 24px;
-  margin-bottom: 32px;
 }
 
 @media (max-width: 768px) {
@@ -120,8 +149,22 @@
   }
 }
 
+/* 통계 카드가 옆에 붙는 신고 관리 화면은 3열 고정 (3개씩 2줄), 카드가 너무 안 넓어지게 폭 제한 */
+.admin-content-layout .report-grid {
+  grid-template-columns: repeat(3, minmax(0, 320px));
+  flex: none;
+}
+
+@media (max-width: 900px) {
+  .admin-content-layout .report-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
 /* Report Card */
 .report-card {
+  height: 340px;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(8px);
   border: 1px rgba(229, 231, 235, 0.5);
@@ -130,6 +173,11 @@
   display: flex;
   flex-direction: column;
   transition: all 0.2s ease;
+}
+
+/* 튜터 신청/관리 카드는 내용이 적어서 더 짧게 */
+.tutor-card-grid .report-card {
+  height: 220px;
 }
 
 .report-card:hover {
@@ -352,8 +400,10 @@
   pointer-events: none;
 }
 
-/* Stats Card */
+/* Stats Card - 오른쪽 아래에 위치 */
 .stats-card {
+  flex-shrink: 0;
+  width: 280px;
   background: linear-gradient(
     135deg,
     var(--primary-container) 0%,
@@ -367,12 +417,12 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  grid-column: auto / span 1;
 }
 
-@media (min-width: 1280px) {
+@media (max-width: 900px) {
   .stats-card {
-    grid-column: auto / span 2;
+    width: 100%;
+    position: static;
   }
 }
 
