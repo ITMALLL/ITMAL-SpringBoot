@@ -29,11 +29,12 @@ public class ChatRequestService {
             if ("PENDING".equals(existing.getStatus())) {
                 throw new ApiException(ErrorCode.DUPLICATE_CHAT_REQUEST);
             }
-            // ACCEPTED - 요청자가 나간 방이 있는지 확인
-            ChatRoomDto hiddenRoom = chatRoomMapper.findHiddenRoomByRequester(
+            // ACCEPTED - 한쪽만 나간 방이 있는지 확인
+            ChatRoomDto hiddenRoom = chatRoomMapper.findPartiallyHiddenRoom(
                     chatRequest.getRequesterId(), chatRequest.getResponderId());
             if (hiddenRoom != null) {
-                chatRoomMapper.restoreHiddenA(hiddenRoom.getId());
+                if (Boolean.TRUE.equals(hiddenRoom.getHiddenByA())) chatRoomMapper.restoreHiddenA(hiddenRoom.getId());
+                if (Boolean.TRUE.equals(hiddenRoom.getHiddenByB())) chatRoomMapper.restoreHiddenB(hiddenRoom.getId());
                 return hiddenRoom.getId();
             }
             throw new ApiException(ErrorCode.CHAT_ROOM_ALREADY_EXISTS);
@@ -44,7 +45,7 @@ public class ChatRequestService {
         return null;
     }
 
-    // ✅ 채팅 요청 조회
+    // 채팅 요청 조회
     public ChatRequestDto getChatRequest(Long chatRequestId) {
         return chatRequestMapper.selectById(chatRequestId);
     }
@@ -54,7 +55,7 @@ public class ChatRequestService {
         return chatRequestMapper.selectByResponderIdAndPending(responderId);
     }
 
-    // ✅ 상태 업데이트 (ACCEPTED, REJECTED)
+    // 상태 업데이트 (ACCEPTED, REJECTED)
     @Transactional
     public void updateStatus(Long chatRequestId, String status) {
         chatRequestMapper.updateStatus(chatRequestId, status);

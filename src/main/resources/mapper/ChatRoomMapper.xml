@@ -61,14 +61,14 @@
         WHERE id = #{chatRoomId}
     </update>
 
-    <select id="findHiddenRoomByRequester" resultType="ChatRoomDto">
+    <select id="findPartiallyHiddenRoom" resultType="ChatRoomDto">
         SELECT cr.*
         FROM chat_room cr
                  JOIN chat_request req ON cr.chat_request_id = req.chat_request_id
         WHERE req.requester_id = #{requesterId}
           AND req.responder_id = #{responderId}
-          AND cr.hidden_by_a = true
-          AND cr.hidden_by_b = false
+          AND (cr.hidden_by_a = true OR cr.hidden_by_b = true)
+          AND NOT (cr.hidden_by_a = true AND cr.hidden_by_b = true)
         LIMIT 1
     </select>
 

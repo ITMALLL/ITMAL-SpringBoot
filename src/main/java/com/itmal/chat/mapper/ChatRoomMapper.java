@@ -34,8 +34,8 @@ public interface ChatRoomMapper {
     void leaveRoom(@Param("chatRoomId") Long chatRoomId,
                    @Param("isRequester") Boolean isRequester);
 
-    ChatRoomDto findHiddenRoomByRequester(@Param("requesterId") Long requesterId,
-                                          @Param("responderId") Long responderId);
+    ChatRoomDto findPartiallyHiddenRoom(@Param("requesterId") Long requesterId,
+                                        @Param("responderId") Long responderId);
 
     boolean isBothLeft(@Param("chatRoomId") Long chatRoomId);
 
