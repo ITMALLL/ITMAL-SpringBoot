@@ -420,7 +420,7 @@
                 Papago 자동 번역
               </span>
               <span class="translation-direction"
-                    th:text="'AUTO → ' + ${#strings.toUpperCase(question.languageCode)}">AUTO → EN</span>
+                    th:text="'AUTO → ' + ${#strings.isEmpty(question.languageCode) ? '?' : #strings.toUpperCase(question.languageCode)}">AUTO → EN</span>
             </div>
             <div class="translation-body">
               <!-- 번역문 있음 -->
@@ -466,7 +466,7 @@
           </h3>
           <div class="author-card author-card-row" style="position:relative;">
             <div class="author-avatar-lg"
-                 th:text="${question.nickname != null ? question.nickname.substring(0,1) : '?'}">박
+                 th:text="${!#strings.isEmpty(question.nickname) ? question.nickname.substring(0,1) : '?'}">박
             </div>
             <div class="author-details" style="flex:1; min-width:0;">
               <div class="author-name-row"
