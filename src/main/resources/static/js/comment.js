@@ -84,7 +84,8 @@ function initCommentSection(section) {
       });
 
       if (!res.ok) {
-        alert(await res.text());
+        const error = await res.json();
+        alert(error.message);
         return;
       }
       alert("신고되었습니다.");
