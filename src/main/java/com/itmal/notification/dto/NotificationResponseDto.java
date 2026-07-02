@@ -17,4 +17,5 @@ public class NotificationResponseDto {
     // detail 페이지로 이동하려면 questionId가 필요하기에 따로 받는다.
     private String answerContent;   //답변 내용 표시
     private String comment; //댓글 내용 표시
+    private Boolean isDeleted;
 }

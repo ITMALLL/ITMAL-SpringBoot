@@ -20,6 +20,30 @@
         <result property="deletedAt" column="deleted_at"/>
     </resultMap>
 
+    <resultMap id="AnswerResponseResultMap" type="com.itmal.answer.dto.AnswerResponse">
+        <id property="answerId" column="answer_id"/>
+        <result property="questionId" column="question_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="nickname" column="nickname"/>
+        <result property="content" column="content"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="isAccepted" column="is_accepted"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 답변 목록 조회 (닉네임 포함, 질문 상세 페이지용) -->
+    <select id="findResponsesByQuestionId" resultMap="AnswerResponseResultMap">
+        SELECT a.answer_id, a.question_id, a.user_id,
+               COALESCE(u.nickname, '탈퇴한 회원') AS nickname,
+               a.content, a.is_accepted, a.created_at,
+               (SELECT COUNT(*) FROM answer_like WHERE answer_id = a.answer_id) AS like_count
+        FROM answer a
+        LEFT JOIN users u ON a.user_id = u.user_id AND u.deleted_at IS NULL
+        WHERE a.question_id = #{questionId}
+          AND a.deleted_at IS NULL
+        ORDER BY a.is_accepted DESC, a.created_at DESC
+    </select>
+
     <!-- 답변 등록 -->
     <!-- useGeneratedKeys: DB가 자동 생성한 PK를 answerId에 넣어줌 -->
     <insert id="insertAnswer" useGeneratedKeys="true" keyProperty="answerId">
@@ -75,6 +99,7 @@
           AND user_id = #{userId}
     </delete>
 
+
     <!-- 좋아요 여부 확인 -->
     <select id="findAnswerLike" resultType="com.itmal.answer.domain.AnswerLike">
         SELECT *
@@ -82,6 +107,14 @@
         WHERE answer_id = #{answerId}
           AND user_id = #{userId}
     </select>
+
+    <!-- 좋아요 개수 조회 -->
+    <select id="countAnswerLikes" resultType="int">
+        SELECT COUNT(*)
+        FROM answer_like
+        WHERE answer_id = #{answerId}
+    </select>
+
 
     <!-- 채택 -->
     <update id="acceptAnswer">

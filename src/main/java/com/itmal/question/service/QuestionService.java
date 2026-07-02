@@ -7,8 +7,11 @@ import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
 import com.itmal.question.util.HtmlSanitizer;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 import com.itmal.question.dto.QuestionAttachmentDto;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +25,7 @@ import java.util.UUID;
 import java.util.List;
 import java.util.Set;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QuestionService {
@@ -111,6 +114,7 @@ public class QuestionService {
             String storedName = UUID.randomUUID() + ext;
 
             Path target = dir.resolve(storedName);
+            registerRollbackCleanup(target); // 트랜잭션 롤백 시 디스크에 쓴 파일도 삭제(고아 파일 방지)
             file.transferTo(target);
 
             String relativePath = "questions/" + questionId + "/" + storedName;
@@ -127,6 +131,25 @@ public class QuestionService {
         } catch (IOException e) {
             throw new RuntimeException("파일 저장 실패: " + file.getOriginalFilename(), e);
         }
+    }
+
+    // 파일 기록 후 트랜잭션이 롤백되면, DB는 되돌아가도 디스크 파일은 남으므로 함께 삭제한다.
+    private void registerRollbackCleanup(Path target) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    try {
+                        Files.deleteIfExists(target);
+                    } catch (IOException e) {
+                        log.warn("롤백 시 첨부 파일 삭제 실패: {}", target, e);
+                    }
+                }
+            }
+        });
     }
 
     // 특정 유저의 질문 목록 (나경님 요청)
@@ -181,4 +204,94 @@ public class QuestionService {
                 question.getCategory()
         );
     }
+
+
+    //질문 삭제
+    @Transactional
+    public void deleteQuestion(Long questionId, Long loginUserId){
+        QuestionDto question = questionMapper.findQuestionDetailById(questionId);
+        if(question == null){
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if (!question.getUserId().equals(loginUserId)){
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
+        // 소유자 조건을 SQL 에 실어 영향 row 수로 최종 판정 (선조회와 무관한 이중 방어)
+        int deleted = questionMapper.softDeleteQuestion(questionId, loginUserId);
+        if (deleted == 0) {
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
+        questionMapper.softDeleteAttachmentsByQuestionId(questionId); // 질문 삭제 시 첨부도 함께 비활성화
+    }
+
+    //수정 폼에 기존에 있던 글 채우기
+    public QuestionDto getQuestionForEdit(Long questionId, Long loginUserId){
+        QuestionDto question = questionMapper.findQuestionDetailById(questionId);
+        if(question == null){
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if(!question.getUserId().equals(loginUserId)){
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
+        return question;
+    }
+
+    // 실제 수정 반영 (자기 글만)
+    @Transactional
+    public void updateQuestion(QuestionDto dto, Long loginUserId, List<MultipartFile> newFiles,
+                               List<Long> deleteAttachmentIds){
+        QuestionDto question = questionMapper.findQuestionDetailById(dto.getQuestionId());
+        if (question == null){
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if (!question.getUserId().equals(loginUserId)){
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
+
+        List<QuestionAttachmentDto> current = questionMapper.findAttachmentsByQuestionId(dto.getQuestionId());
+
+        List<QuestionAttachmentDto> toDelete = current.stream()
+                .filter(a->deleteAttachmentIds != null && deleteAttachmentIds.contains(a.getId())).toList();
+
+        validateFiles(newFiles);
+        List<MultipartFile> realNew = (newFiles == null) ? List.of() : newFiles
+                                                                       .stream()
+                                                                       .filter(f-> f != null && !f.isEmpty()).toList();
+
+        int finalCount = current.size() - toDelete.size() + realNew.size();
+        if (finalCount > MAX_FILE_COUNT) {
+            throw new IllegalArgumentException("파일은 최대 " + MAX_FILE_COUNT + "개까지 첨부할 수 있습니다.");
+        }
+
+        dto.setContent(HtmlSanitizer.clean(dto.getContent()));
+        int updated = questionMapper.updateQuestion(dto, loginUserId); // 소유자 조건을 SQL WHERE 절에 실어 판정
+        if (updated == 0) {
+            throw new ViewException(ErrorCode.QUESTION_FORBIDDEN);
+        }
+
+        for (QuestionAttachmentDto att : toDelete) {
+            // 첨부 삭제도 부모 질문 조건을 SQL 에 실어, 조작된 id 가 다른 질문 첨부를 건드리지 못하게 한다
+            questionMapper.softDeleteAttachment(att.getId(), dto.getQuestionId());
+        }
+
+        for (MultipartFile file : realNew) {
+            saveAttachment(dto.getQuestionId(),file);
+        }
+
+    }
+
+    // 파일첨부 삭제 스케쥴러용
+    public void purgeDetachedAttachments() {
+        List<QuestionAttachmentDto> targets = questionMapper.findAttachmentsToPurge();
+        for (QuestionAttachmentDto att : targets) {
+            try {
+                Files.deleteIfExists(Paths.get(uploadDir).resolve(att.getFilePath()));
+                questionMapper.deleteAttachment(att.getId());
+            } catch (Exception e) { // 파일 IO 예외 + DB 런타임 예외 모두 잡아 다음 대상으로 진행
+                log.warn("첨부 정리 실패(다음 배치 재시도): id={}, path={}", att.getId(), att.getFilePath(), e);
+            }
+        }
+    }
+
+
 }

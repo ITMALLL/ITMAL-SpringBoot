@@ -8,6 +8,7 @@ import com.itmal.auth.exception.DuplicateNicknameException;
 import com.itmal.auth.service.SecuritySessionService;
 import com.itmal.auth.service.UserService;
 import com.itmal.global.exception.ApiException;
+import com.itmal.tutorapplication.service.TutorApplicationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -32,11 +33,13 @@ public class MypageController {
 
     private final UserService userService;
     private final SecuritySessionService securitySessionService;
+    private final TutorApplicationService tutorApplicationService;
 
     @GetMapping
     public String mypage(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         model.addAttribute("user", userDetails);
         model.addAttribute("isMyPage", true);
+        model.addAttribute("hasPendingApplication", tutorApplicationService.hasPendingApplication(userDetails.getUserId()));
         if (!model.containsAttribute("profileUpdateRequest")) {
             loadProfileModel(userDetails, model);
         } else {

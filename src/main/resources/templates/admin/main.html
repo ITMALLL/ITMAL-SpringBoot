@@ -4,12 +4,15 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ITMAL - 신고 관리 대시보드</title>
-    <link rel="stylesheet" href="/css/footer.css" />
     <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
     <link rel="stylesheet" href="/css/admin.css" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
   </head>
   <body class="bg-background text-on-background">
-    <!-- Top Navigation Bar -->
+    <div th:replace="~{fragments/header :: header}"></div>
 
     <main class="max-w-7xl mx-auto px-6 py-8 md:py-12">
       <!-- Dashboard Header & Filters -->
@@ -25,174 +28,18 @@
         <div class="admin-controls">
           <div class="control-group">
             <div class="control-tabs">
-              <button class="tab-button active">전체</button>
-              <button class="tab-button">질문</button>
-              <button class="tab-button">답변</button>
-              <button class="tab-button">댓글</button>
+              <button class="tab-button active" data-type="QUESTION">질문</button>
+              <button class="tab-button" data-type="ANSWER">답변</button>
+              <button class="tab-button" data-type="COMMENT">댓글</button>
             </div>
-          </div>
-
-          <div class="control-filter">
-            <span class="control-label">상태</span>
-            <select class="form-select">
-              <option>모든 상태</option>
-              <option>대기 중</option>
-              <option>처리 완료</option>
-            </select>
           </div>
         </div>
       </section>
 
       <!-- Report Content Grid -->
       <section class="mb-12">
-        <div class="report-grid">
-          <!-- Report Card 1 -->
-          <div class="report-card">
-            <div class="report-header">
-              <span class="report-type-badge question">질문</span>
-              <span class="report-status pending"> 대기 중 </span>
-            </div>
-
-            <div class="report-info">
-              <div class="reporter-info">
-                <div class="reporter-avatar">K</div>
-                <span class="reporter-name">김철수 (신고자)</span>
-              </div>
-              <span class="report-time">신고 일시: 2024.11.20 14:30</span>
-            </div>
-
-            <div class="report-reason">
-              <h3 class="reason-title">신고 사유 요약</h3>
-              <p class="reason-text">
-                상대방에 대한 인신공격성 발언이 포함되어 있습니다. 게시물 하단에
-                부적절한 단어를 사용하여 불쾌감을 줍니다.
-              </p>
-            </div>
-
-            <div class="report-actions">
-              <button class="action-btn approve">승인 (삭제)</button>
-              <button class="action-btn reject">반려 (유지)</button>
-            </div>
-          </div>
-
-          <!-- Report Card 2 -->
-          <div class="report-card">
-            <div class="report-header">
-              <span class="report-type-badge answer">답변</span>
-              <span class="report-status resolved">
-                <span class="report-status-icon">✓</span>
-                처리 완료
-              </span>
-            </div>
-
-            <div class="report-info">
-              <div class="reporter-info">
-                <div class="reporter-avatar">L</div>
-                <span class="reporter-name">LeeHana</span>
-              </div>
-              <span class="report-time">신고 일시: 2024.11.19 10:15</span>
-            </div>
-
-            <div class="report-reason">
-              <h3 class="reason-title">신고 사유 요약</h3>
-              <p class="reason-text">
-                광고성 스팸 게시물입니다. 외부 링크를 유도하여 개인정보를
-                요구하는 정황이 보입니다.
-              </p>
-            </div>
-
-            <div class="report-actions">
-              <button class="action-btn approve disabled">승인됨</button>
-              <button class="action-btn reject disabled">반려됨</button>
-            </div>
-          </div>
-
-          <!-- Report Card 3 -->
-          <div class="report-card">
-            <div class="report-header">
-              <span class="report-type-badge comment">댓글</span>
-              <span class="report-status pending"> 대기 중 </span>
-            </div>
-
-            <div class="report-info">
-              <div class="reporter-info">
-                <div class="reporter-avatar">P</div>
-                <span class="reporter-name">ParkMaster</span>
-              </div>
-              <span class="report-time">신고 일시: 2024.11.20 16:55</span>
-            </div>
-
-            <div class="report-reason">
-              <h3 class="reason-title">신고 사유 요약</h3>
-              <p class="reason-text">
-                혐오 표현이 사용되었습니다. 특정 국가 사용자를 비하하는 단어를
-                사용하여 신고합니다.
-              </p>
-            </div>
-
-            <div class="report-actions">
-              <button class="action-btn approve">승인 (삭제)</button>
-              <button class="action-btn reject">반려 (유지)</button>
-            </div>
-          </div>
-
-          <!-- Report Card 4 -->
-          <div class="report-card">
-            <div class="report-header">
-              <span class="report-type-badge question">질문</span>
-              <span class="report-status pending"> 대기 중 </span>
-            </div>
-
-            <div class="report-info">
-              <div class="reporter-info">
-                <div class="reporter-avatar">W</div>
-                <span class="reporter-name">Wanderlust</span>
-              </div>
-              <span class="report-time">신고 일시: 2024.11.20 18:20</span>
-            </div>
-
-            <div class="report-reason">
-              <h3 class="reason-title">신고 사유 요약</h3>
-              <p class="reason-text">
-                저작권 침해 의심. 타 플랫폼의 유료 강의 내용을 그대로 복사하여
-                게시한 것으로 보입니다.
-              </p>
-            </div>
-
-            <div class="report-actions">
-              <button class="action-btn approve">승인 (삭제)</button>
-              <button class="action-btn reject">반려 (유지)</button>
-            </div>
-          </div>
-
-          <!-- Report Card 5 -->
-          <div class="report-card">
-            <div class="report-header">
-              <span class="report-type-badge comment">댓글</span>
-              <span class="report-status pending"> 대기 중 </span>
-            </div>
-
-            <div class="report-info">
-              <div class="reporter-info">
-                <div class="reporter-avatar">C</div>
-                <span class="reporter-name">Cookie99</span>
-              </div>
-              <span class="report-time">신고 일시: 2024.11.20 19:45</span>
-            </div>
-
-            <div class="report-reason">
-              <h3 class="reason-title">신고 사유 요약</h3>
-              <p class="reason-text">
-                도배 행위. 동일한 내용을 여러 번 반복해서 올려서 게시판 흐름을
-                방해합니다.
-              </p>
-            </div>
-
-            <div class="report-actions">
-              <button class="action-btn approve">승인 (삭제)</button>
-              <button class="action-btn reject">반려 (유지)</button>
-            </div>
-          </div>
+        <div class="report-grid" id="report-grid">
+          <!-- 카드는 admin.js가 /api/reports/pending/* 조회해서 채워넣음 -->
 
           <!-- Stats Card -->
           <div class="stats-card">
@@ -202,74 +49,19 @@
             <div class="stats-values">
               <div class="stat-value">
                 <p class="stat-label">미처리</p>
-                <p class="stat-number">12</p>
-              </div>
-              <div class="stats-divider"></div>
-              <div class="stat-value">
-                <p class="stat-label">완료</p>
-                <p class="stat-number">48</p>
+                <p class="stat-number" id="pending-count">-</p>
+                <p class="stat-breakdown" id="pending-breakdown"></p>
               </div>
             </div>
-
-            <button class="stats-button">리포트 전체 보기</button>
           </div>
         </div>
-      </section>
-
-      <!-- Pagination -->
-      <section class="pagination">
-        <button class="pagination-button">
-          <span>‹</span>
-        </button>
-        <button class="pagination-button active">1</button>
-        <button class="pagination-button">2</button>
-        <button class="pagination-button">3</button>
-        <button class="pagination-button">4</button>
-        <button class="pagination-button">
-          <span>›</span>
-        </button>
+        <p class="report-empty" id="report-empty" style="display: none;">
+          처리할 신고가 없습니다.
+        </p>
       </section>
     </main>
     <div th:replace="~{fragments/footer :: footer}"></div>
 
-    <script>
-      // Simple interaction for report cards
-      document.querySelectorAll(".action-btn:not(.disabled)").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          const card = this.closest(".report-card");
-          const approveBtn = card.querySelector(".action-btn.approve");
-          const rejectBtn = card.querySelector(".action-btn.reject");
-
-          // Mark as disabled
-          approveBtn.classList.add("disabled");
-          rejectBtn.classList.add("disabled");
-
-          // Update status
-          const status = card.querySelector(".report-status");
-          if (this.classList.contains("approve")) {
-            status.className = "report-status resolved";
-            status.innerHTML =
-              '<span class="report-status-icon">✓</span>처리 완료';
-            approveBtn.textContent = "승인됨";
-            rejectBtn.textContent = "반려됨";
-          } else if (this.classList.contains("reject")) {
-            status.className = "report-status resolved";
-            status.innerHTML =
-              '<span class="report-status-icon">✓</span>처리 완료';
-            rejectBtn.textContent = "반려됨";
-          }
-        });
-      });
-
-      // Tab switching
-      document.querySelectorAll(".tab-button").forEach((tab) => {
-        tab.addEventListener("click", function () {
-          document
-            .querySelectorAll(".tab-button")
-            .forEach((t) => t.classList.remove("active"));
-          this.classList.add("active");
-        });
-      });
-    </script>
+    <script src="/js/admin.js"></script>
   </body>
 </html>
