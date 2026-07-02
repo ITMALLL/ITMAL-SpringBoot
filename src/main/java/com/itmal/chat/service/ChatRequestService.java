@@ -1,7 +1,9 @@
 package com.itmal.chat.service;
 
 import com.itmal.chat.dto.ChatRequestDto;
+import com.itmal.chat.dto.ChatRoomDto;
 import com.itmal.chat.mapper.ChatRequestMapper;
+import com.itmal.chat.mapper.ChatRoomMapper;
 import com.itmal.global.exception.ApiException;
 import com.itmal.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +18,30 @@ import java.util.List;
 public class ChatRequestService {
 
     private final ChatRequestMapper chatRequestMapper;
+    private final ChatRoomMapper chatRoomMapper;
 
-    // ✅ 채팅 요청 생성
-    public void createChatRequest(ChatRequestDto chatRequest) {
+    // 채팅 요청 생성. 반환값: 기존 방으로 복구된 경우 chatRoomId, 새 요청이면 null
+    @Transactional
+    public Long createChatRequest(ChatRequestDto chatRequest) {
         ChatRequestDto existing = chatRequestMapper.selectActiveRequestBetweenUsers(
                 chatRequest.getRequesterId(), chatRequest.getResponderId());
         if (existing != null) {
-            throw new ApiException("PENDING".equals(existing.getStatus())
-                    ? ErrorCode.DUPLICATE_CHAT_REQUEST
-                    : ErrorCode.CHAT_ROOM_ALREADY_EXISTS);
+            if ("PENDING".equals(existing.getStatus())) {
+                throw new ApiException(ErrorCode.DUPLICATE_CHAT_REQUEST);
+            }
+            // ACCEPTED - 요청자가 나간 방이 있는지 확인
+            ChatRoomDto hiddenRoom = chatRoomMapper.findHiddenRoomByRequester(
+                    chatRequest.getRequesterId(), chatRequest.getResponderId());
+            if (hiddenRoom != null) {
+                chatRoomMapper.restoreHiddenA(hiddenRoom.getId());
+                return hiddenRoom.getId();
+            }
+            throw new ApiException(ErrorCode.CHAT_ROOM_ALREADY_EXISTS);
         }
         chatRequest.setStatus("PENDING");
         chatRequest.setCreatedAt(LocalDateTime.now());
         chatRequestMapper.insertChatRequest(chatRequest);
+        return null;
     }
 
     // ✅ 채팅 요청 조회
