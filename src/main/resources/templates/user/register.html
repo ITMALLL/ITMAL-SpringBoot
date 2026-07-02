@@ -139,6 +139,7 @@
                 <span class="material-symbols-outlined">visibility</span>
               </button>
             </div>
+            <p id="passwordHint" style="margin-top: 4px; font-size: 12px; color: var(--on-surface-variant, #666);">영문, 숫자, 특수문자(!@#$%^&amp;*)를 포함한 8자 이상</p>
           </div>
 
           <!-- Password Confirm Field -->
@@ -266,6 +267,23 @@
         chip.addEventListener("click", () => {
           chip.classList.toggle("selected");
         });
+      });
+
+      // 비밀번호 실시간 패턴 검증
+      document.getElementById("password").addEventListener("input", () => {
+        const password = document.getElementById("password").value;
+        const hint = document.getElementById("passwordHint");
+        const pattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+        if (password.length === 0) {
+          hint.textContent = "영문, 숫자, 특수문자(!@#$%^&*)를 포함한 8자 이상";
+          hint.style.color = "var(--on-surface-variant, #666)";
+        } else if (pattern.test(password)) {
+          hint.textContent = "비밀번호 사용 가능";
+          hint.style.color = "var(--primary, #0058be)";
+        } else {
+          hint.textContent = "비밀번호 양식에 맞지 않습니다";
+          hint.style.color = "var(--error, #d32f2f)";
+        }
       });
 
       // Toggle password visibility
@@ -478,6 +496,13 @@
 
         const password = document.getElementById("password").value;
         const passwordConfirm = document.getElementById("password-confirm").value;
+
+        const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+        if (!passwordPattern.test(password)) {
+          event.preventDefault();
+          alert("비밀번호는 영문, 숫자, 특수문자(!@#$%^&*)를 포함한 8자 이상이어야 합니다.");
+          return;
+        }
 
         if (password !== passwordConfirm) {
           event.preventDefault();
