@@ -83,6 +83,7 @@ public class NotificationService {
             dto.setCreatedAt(notification.getCreatedAt());
             dto.setQuestionTitle(notification.getQuestionTitle());
             dto.setQuestionId(notification.getQuestionId());
+            dto.setIsDeleted(notification.getIsDeleted());
 
             if ("ANSWER_CREATED".equals(notification.getType())) {
                 dto.setAnswerContent(notification.getAnswerContent());

@@ -20,5 +20,6 @@ public class Notification {
     private Long questionId;
     private String answerContent;
     private String comment;
+    private Boolean isDeleted;
 
 }

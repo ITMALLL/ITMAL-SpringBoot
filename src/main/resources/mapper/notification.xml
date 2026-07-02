@@ -20,6 +20,7 @@
             n.created_at,
             COALESCE(q1.title, q2.title) AS question_title,
             COALESCE(q1.question_id, q2.question_id) AS question_id,
+            COALESCE(q1.deleted_at, q2.deleted_at) IS NOT NULL AS is_deleted,
             a1.content AS answer_content,
             c.content AS comment
         FROM notification n
