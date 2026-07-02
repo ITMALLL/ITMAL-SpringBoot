@@ -34,7 +34,11 @@
               <span th:text="${#strings.substring(user.nickname, 0, 1)}">닉</span>
             </div>
             <div class="profile-info">
-              <h1 class="profile-name" th:text="${user.nickname}">닉네임</h1>
+              <h1 class="profile-name">
+                <span th:text="${user.nickname}">닉네임</span>
+                <span class="tutor-badge" th:if="${isMyPage}" sec:authorize="hasRole('TUTOR')">튜터</span>
+                <span class="tutor-badge" th:if="${!isMyPage and user.role != null and user.role.name() == 'ROLE_TUTOR'}">튜터</span>
+              </h1>
               <p class="profile-email" th:text="${user.email != null ? user.email : user.username}">이메일</p>
             </div>
             <div class="profile-actions" th:if="${isMyPage}">
@@ -50,7 +54,7 @@
                         style="opacity:0.6; cursor:not-allowed;">튜터 신청 완료</button>
               </th:block>
             </div>
-            <div class="profile-actions" th:if="${!isMyPage}">
+            <div class="profile-actions" th:if="${!isMyPage and user.role != null and user.role.name() == 'ROLE_TUTOR'}">
               <button type="button" class="btn btn-primary" onclick="requestChat()">1:1 채팅 신청</button>
             </div>
           </div>
