@@ -3,6 +3,8 @@ package com.itmal.answer.service;
 import com.itmal.answer.domain.Answer;
 import com.itmal.answer.domain.AnswerLike;
 import com.itmal.answer.dto.AnswerCreateRequest;
+import com.itmal.answer.dto.AnswerLikeResponseDto;
+import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.mapper.AnswerMapper;
 import com.itmal.global.exception.BusinessException;
@@ -11,7 +13,7 @@ import com.itmal.notification.service.NotificationService;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +39,12 @@ public class AnswerServiceImpl implements AnswerService {
     @Override
     public List<Answer> getAnswerByQuestionId(Long questionId) {
         return answerMapper.findByQuestionId(questionId);
+    }
+
+    // 답변 목록 조회 (닉네임 포함)
+    @Override
+    public List<AnswerResponse> getAnswerResponsesByQuestionId(Long questionId) {
+        return answerMapper.findResponsesByQuestionId(questionId);
     }
 
     // 답변 단건 조회
@@ -72,22 +80,28 @@ public class AnswerServiceImpl implements AnswerService {
 
     // 좋아요 토글 (있으면 취소, 없으면 추가)
     @Override
-    public void toggleLike(Long answerId, Long userId) {
+    public AnswerLikeResponseDto toggleLike(Long answerId, Long userId) {
         getAnswer(answerId); // 삭제된 답변 체크
         AnswerLike answerLike = new AnswerLike();
         answerLike.setAnswerId(answerId);
         answerLike.setUserId(userId);
 
         AnswerLike existing = answerMapper.findAnswerLike(answerLike);
+        boolean liked;
         if (existing != null) {
             answerMapper.deleteAnswerLike(answerLike);
+            liked = false;
         } else {
             try {
                 answerMapper.insertAnswerLike(answerLike);
-            } catch (DataIntegrityViolationException e) {
-                // 동시 요청으로 중복 insert 시 무시
+                liked = true;
+            } catch (DuplicateKeyException e) {
+                // 동시 요청으로 중복 좋아요 insert 시 무시
+                liked = true;
             }
         }
+        int likeCount = answerMapper.countAnswerLikes(answerId);
+        return new AnswerLikeResponseDto(liked, likeCount);
     }
 
     // 마이페이지 내 답변 목록 조회

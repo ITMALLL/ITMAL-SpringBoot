@@ -20,6 +20,7 @@ public class QuestionDto {
     private String target;
     private String nickname;
     private String languageName;
+    private String languageCode;
     private LocalDateTime authorJoinedAt;
     private String nativeLanguage;
     private String role;

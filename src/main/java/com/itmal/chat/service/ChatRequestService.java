@@ -2,6 +2,8 @@ package com.itmal.chat.service;
 
 import com.itmal.chat.dto.ChatRequestDto;
 import com.itmal.chat.mapper.ChatRequestMapper;
+import com.itmal.global.exception.ApiException;
+import com.itmal.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,10 +22,9 @@ public class ChatRequestService {
         ChatRequestDto existing = chatRequestMapper.selectActiveRequestBetweenUsers(
                 chatRequest.getRequesterId(), chatRequest.getResponderId());
         if (existing != null) {
-            String msg = "PENDING".equals(existing.getStatus())
-                    ? "이미 채팅 요청을 보냈습니다."
-                    : "이미 채팅방이 존재합니다.";
-            throw new IllegalStateException(msg);
+            throw new ApiException("PENDING".equals(existing.getStatus())
+                    ? ErrorCode.DUPLICATE_CHAT_REQUEST
+                    : ErrorCode.CHAT_ROOM_ALREADY_EXISTS);
         }
         chatRequest.setStatus("PENDING");
         chatRequest.setCreatedAt(LocalDateTime.now());

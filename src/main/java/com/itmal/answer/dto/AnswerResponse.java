@@ -10,12 +10,13 @@ import java.time.LocalDateTime;
 @Setter
 public class AnswerResponse {
 
-    private Long answerId; //답변아이디
-    private String content; //답변내용
-    private Long questionId; //어떤질문의 답변인지
-    private Long userId; //작성자아이디
-    private int likeCount; //좋아요 수
-    private boolean isAccepted; //채택여부
+    private Long answerId;
+    private String content;
+    private Long questionId;
+    private Long userId;
+    private String nickname;
+    private int likeCount;
+    private boolean isAccepted;
     private LocalDateTime createdAt;
 
 }

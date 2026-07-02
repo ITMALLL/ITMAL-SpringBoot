@@ -47,9 +47,14 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/forgot-password", "/forgot-password/reset").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/tutor-applications").authenticated()
                 .requestMatchers("/mypage/**", "/register/social").authenticated()
                 .requestMatchers(HttpMethod.GET,  "/questions/write").authenticated()
                 .requestMatchers(HttpMethod.POST, "/questions/write").authenticated()
+                .requestMatchers(HttpMethod.POST, "/questions/*/delete").authenticated()
+                .requestMatchers(HttpMethod.GET,  "/questions/*/edit").authenticated()
+                .requestMatchers(HttpMethod.POST, "/questions/*/edit").authenticated()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
@@ -77,7 +82,12 @@ public class SecurityConfig {
                 .successHandler(oAuth2LoginSuccessHandler)
                 .failureHandler((request, response, exception) -> {
                     log.error("[OAuth] 로그인 실패: {}", exception.getMessage(), exception);
-                    response.sendRedirect("/login?error");
+                    if (exception instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthEx
+                            && "reregistration_blocked".equals(oauthEx.getError().getErrorCode())) {
+                        response.sendRedirect("/login?reregistration_blocked");
+                    } else {
+                        response.sendRedirect("/login?error");
+                    }
                 })
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)       // GitHub 등 non-OIDC

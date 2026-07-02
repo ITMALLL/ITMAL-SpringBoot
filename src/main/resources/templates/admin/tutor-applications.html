@@ -1,0 +1,62 @@
+<!doctype html>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ITMAL - 튜터 신청 관리</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+  </head>
+  <body class="bg-background text-on-background">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="max-w-7xl mx-auto px-6 py-8 md:py-12">
+      <section>
+        <div class="admin-header">
+          <h1 class="admin-title">튜터 신청 관리</h1>
+          <p class="admin-subtitle">튜터 신청 목록을 검토하고 승인 또는 거절합니다.</p>
+        </div>
+      </section>
+
+      <section>
+        <div th:if="${#lists.isEmpty(applications)}" class="report-empty">
+          처리할 튜터 신청이 없습니다.
+        </div>
+
+        <div class="report-grid" th:unless="${#lists.isEmpty(applications)}">
+          <div class="report-card" th:each="app : ${applications}">
+            <div class="report-header">
+              <span class="report-type-badge question">튜터 신청</span>
+              <span class="report-status pending">대기 중</span>
+            </div>
+
+            <div class="report-info">
+              <div class="reporter-info">
+                <div class="reporter-avatar" th:text="${#strings.substring(app.nickname, 0, 1)}"></div>
+                <span class="reporter-name" th:text="${app.nickname}"></span>
+              </div>
+              <span class="report-time" th:text="${app.email}"></span>
+              <span class="report-time"
+                    th:text="${#temporals.format(app.appliedAt, 'yyyy.MM.dd HH:mm')}"></span>
+            </div>
+
+            <div class="report-actions">
+              <form th:action="@{/admin/tutor-applications/{id}/approve(id=${app.tutorApplicationId})}"
+                    method="post">
+                <button type="submit" class="action-btn approve" style="width:100%">승인</button>
+              </form>
+              <form th:action="@{/admin/tutor-applications/{id}/reject(id=${app.tutorApplicationId})}"
+                    method="post">
+                <button type="submit" class="action-btn reject" style="width:100%">거절</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+  </body>
+</html>

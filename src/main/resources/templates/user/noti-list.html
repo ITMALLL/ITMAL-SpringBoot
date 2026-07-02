@@ -64,14 +64,11 @@
             알림이 없습니다.
           </p>
 
-          <th:block th:if="${notifications == null or #lists.isEmpty(notifications)}">
-            <p style="text-align:center; padding: 2rem; color: #888;">알림이 없습니다.</p>
-          </th:block>
-
           <article th:each="n : ${notifications}"
                    th:class="${n.isRead} ? 'notification-item read' : 'notification-item unread'"
                    th:data-id="${n.notificationId}"
-                   th:data-question-id="${n.questionId}">
+                   th:data-question-id="${n.questionId}"
+                   th:data-deleted="${n.isDeleted}">
             <div th:class="${n.targetType == 'COMMENT'} ? 'notification-avatar secondary' : 'notification-avatar'">
               <span class="material-symbols-outlined"
                     th:text="${n.targetType == 'COMMENT'} ? 'chat_bubble' : 'check_circle'"></span>
@@ -184,11 +181,17 @@
       item.addEventListener('click', e => {
         if (e.target.closest('.btn-read')) return;
         const questionId = item.dataset.questionId;
+        if (item.dataset.deleted === 'true') {
+          alert('삭제된 게시글입니다.');
+          return;
+        }
         if (questionId) {
           window.location.href = `/questions/${questionId}`;
         }
       });
     });
+
+    updateEmptyState();
   </script>
   </body>
 </html>

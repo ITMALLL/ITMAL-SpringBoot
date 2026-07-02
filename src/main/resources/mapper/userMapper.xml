@@ -36,6 +36,7 @@
         FROM users
         WHERE provider = #{provider}
           AND provider_id = #{providerId}
+          AND deleted_at IS NULL
     </select>
 
     <update id="updateProvider">
@@ -47,8 +48,8 @@
     <select id="existsByEmail" resultType="boolean">
         SELECT COUNT(*) > 0
         FROM users
-        WHERE email = #{email}
-        AND deleted_at IS NULL
+        WHERE (email = #{email} AND deleted_at IS NULL)
+           OR (original_email = #{email} AND deleted_at IS NOT NULL AND deleted_at > NOW() - INTERVAL 15 DAY)
     </select>
 
     <select id="existsByNickname" resultType="boolean">
@@ -71,9 +72,25 @@
 
     <update id="softDelete">
         UPDATE users
-        SET deleted_at = NOW(),
+        SET original_email = COALESCE(original_email, email),
+            deleted_at = NOW(),
             email = CONCAT('deleted_', user_id, '@deleted.com')
         WHERE user_id = #{userId}
+          AND deleted_at IS NULL
     </update>
+
+    <update id="updateRole">
+        UPDATE users
+        SET role = #{role}
+        WHERE user_id = #{userId}
+    </update>
+
+    <select id="findAllTutors" resultType="com.itmal.auth.domain.User">
+        SELECT *
+        FROM users
+        WHERE role = 'ROLE_TUTOR'
+          AND deleted_at IS NULL
+        ORDER BY user_id ASC
+    </select>
 
 </mapper>
