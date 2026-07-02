@@ -65,6 +65,7 @@ public class ChatRoomService {
         chatRoomMapper.leaveRoom(chatRoomId, isRequester);
         if (chatRoomMapper.isBothLeft(chatRoomId)) {
             ChatRoomDto chatRoom = chatRoomMapper.selectById(chatRoomId);
+            if (chatRoom == null) return;
             chatRoomMapper.deleteRoom(chatRoomId);
             chatRequestMapper.deleteById(chatRoom.getChatRequestId());
         }
