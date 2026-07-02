@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -68,7 +69,8 @@ class SecurityConfigTest {
     @WithMockUser(roles = "USER")
     void chatAccept_user_forbidden() throws Exception {
         mockMvc.perform(put("/api/chat-request/1/accept")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
                 .andExpect(status().isForbidden());
     }
 
@@ -77,7 +79,8 @@ class SecurityConfigTest {
     @WithMockUser(roles = "USER")
     void chatReject_user_forbidden() throws Exception {
         mockMvc.perform(put("/api/chat-request/1/reject")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()))
                 .andExpect(status().isForbidden());
     }
 }
