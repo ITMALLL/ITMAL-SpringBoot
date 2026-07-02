@@ -45,6 +45,7 @@ public class SecurityConfig {
                     request -> request.getServletPath().startsWith("/api/")
                 )
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
                     request.setAttribute("status", 403);
                     request.setAttribute("message", "접근 권한이 없습니다.");
                     request.getRequestDispatcher("/error/403").forward(request, response);
