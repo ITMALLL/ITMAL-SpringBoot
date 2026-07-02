@@ -28,7 +28,7 @@ public class ReportService {
         Report existing = reportMapper.findPendingByTarget(
                 createReportDto.getTargetType(), createReportDto.getTargetId());
         if(existing != null){
-            return; //이미 신고가 된 글일 경우 db저장은 안하지만 사용자에게는 "신고되었습니다" 로 응답
+            throw new ApiException(ErrorCode.DUPLICATE_REPORT);
         }
 
         Report report = new Report();
