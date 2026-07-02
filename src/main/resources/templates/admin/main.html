@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ITMAL - 신고 관리 대시보드</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/header.css" />
     <link rel="stylesheet" href="/css/footer.css" />
@@ -14,7 +18,7 @@
   <body class="bg-background text-on-background">
     <div th:replace="~{fragments/header :: header}"></div>
 
-    <main class="max-w-7xl mx-auto px-6 py-8 md:py-12">
+    <main>
       <!-- Dashboard Header & Filters -->
       <section>
         <div class="admin-header">
@@ -38,8 +42,10 @@
 
       <!-- Report Content Grid -->
       <section class="mb-12">
-        <div class="report-grid" id="report-grid">
-          <!-- 카드는 admin.js가 /api/reports/pending/* 조회해서 채워넣음 -->
+        <div class="admin-content-layout">
+          <div class="report-grid" id="report-grid">
+            <!-- 카드는 admin.js가 /api/reports/pending/* 조회해서 채워넣음 -->
+          </div>
 
           <!-- Stats Card -->
           <div class="stats-card">

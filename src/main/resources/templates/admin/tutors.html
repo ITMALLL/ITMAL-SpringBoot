@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ITMAL - 튜터 관리</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/css/common.css" />
     <link rel="stylesheet" href="/css/header.css" />
     <link rel="stylesheet" href="/css/footer.css" />
@@ -12,7 +16,7 @@
   <body class="bg-background text-on-background">
     <div th:replace="~{fragments/header :: header}"></div>
 
-    <main class="max-w-7xl mx-auto px-6 py-8 md:py-12">
+    <main>
       <section>
         <div class="admin-header">
           <h1 class="admin-title">튜터 관리</h1>
@@ -25,7 +29,7 @@
           현재 활동 중인 튜터가 없습니다.
         </div>
 
-        <div class="report-grid" th:unless="${#lists.isEmpty(tutors)}">
+        <div class="report-grid tutor-card-grid" th:unless="${#lists.isEmpty(tutors)}">
           <div class="report-card" th:each="tutor : ${tutors}">
             <div class="report-header">
               <span class="report-type-badge answer">튜터</span>
