@@ -63,6 +63,65 @@
         ORDER BY q.created_at DESC
     </select>
 
+    <select id="findQuestions" resultType="QuestionDto">
+        SELECT q.question_id, q.title, q.category, q.target,
+        q.view_count, q.created_at,
+        CASE WHEN u.deleted_at IS NOT NULL THEN '탈퇴한 회원' ELSE u.nickname END AS nickname,
+        l.language_name,
+        CASE
+        WHEN EXISTS (SELECT 1 FROM answer a WHERE a.question_id = q.question_id
+        AND a.is_accepted = 1 AND a.deleted_at IS NULL) THEN 'ADOPTED'
+        WHEN EXISTS (SELECT 1 FROM answer a WHERE a.question_id = q.question_id
+        AND a.deleted_at IS NULL) THEN 'ANSWERED'
+        ELSE 'PENDING'
+        END AS status
+        FROM question q
+        LEFT JOIN users u    ON q.user_id = u.user_id
+        LEFT JOIN language l ON q.language_id = l.language_id
+        <where>
+            q.deleted_at IS NULL
+            <if test="keyword != null and keyword != ''">
+                AND q.title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="languageId != null">
+                AND q.language_id = #{languageId}
+            </if>
+            <if test="category != null and category != ''">
+                AND q.category = #{category}
+            </if>
+            <if test="target != null and target != ''">
+                AND q.target = #{target}
+            </if>
+        </where>
+        <choose>
+            <when test="sort == 'views'">ORDER BY q.view_count DESC</when>
+            <otherwise>ORDER BY q.created_at DESC</otherwise>
+        </choose>
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countQuestions" resultType="int">
+        SELECT COUNT(*)
+        FROM question q
+        LEFT JOIN users u    ON q.user_id = u.user_id
+        LEFT JOIN language l ON q.language_id = l.language_id
+        <where>
+            q.deleted_at IS NULL
+            <if test="keyword != null and keyword != ''">
+                AND q.title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="languageId != null">
+                AND q.language_id = #{languageId}
+            </if>
+            <if test="category != null and category != ''">
+                AND q.category = #{category}
+            </if>
+            <if test="target != null and target != ''">
+                AND q.target = #{target}
+            </if>
+        </where>
+    </select>
+
     <insert id="insertAttachment">
         INSERT INTO question_attachment (
             original_name,
@@ -93,6 +152,8 @@
         SELECT q.question_id,
         q.title,
         q.content,
+        q.translated_content,
+        q.translated_target,
         q.view_count,
         q.created_at,
         q.category,
@@ -177,11 +238,26 @@
         category    = #{question.category},
         target      = #{question.target},
         language_id = #{question.languageId},
+        translated_content = NULL,
+        translated_target  = NULL,
         updated_at  = NOW()
         WHERE question_id = #{question.questionId}
         AND user_id = #{userId}
         AND deleted_at IS NULL
     </update>
+
+    <update id="updateTranslation">
+        UPDATE question
+        SET translated_content = #{translatedContent},
+            translated_target  = #{translatedTarget}
+        WHERE question_id = #{questionId}
+    </update>
+
+    <select id="findLanguageCodeById" parameterType="Long" resultType="String">
+        SELECT language_code
+        FROM language
+        WHERE language_id = #{languageId}
+    </select>
 
     <delete id="deleteAttachment" parameterType="Long">
         DELETE FROM question_attachment WHERE id = #{id}
@@ -216,6 +292,60 @@
         SELECT * FROM question_attachment
         WHERE deleted_at IS NOT NULL
         AND deleted_at &lt; NOW() - INTERVAL 1 DAY
+    </select>
+
+    <!-- ── 홈 화면 통계 ───────────────────────────────────────── -->
+
+    <select id="countAllQuestions" resultType="long">
+        SELECT COUNT(*) FROM question WHERE deleted_at IS NULL
+    </select>
+
+    <select id="countAllAnswers" resultType="long">
+        SELECT COUNT(*) FROM answer WHERE deleted_at IS NULL
+    </select>
+
+    <select id="countActiveUsers" resultType="long">
+        SELECT COUNT(*) FROM users WHERE deleted_at IS NULL
+    </select>
+
+    <select id="countLanguages" resultType="long">
+        SELECT COUNT(*) FROM language
+    </select>
+
+    <!-- 최근 질문 5건: 본문 미리보기와 답변 수까지 함께 조회 -->
+    <select id="findRecentQuestions" resultType="QuestionDto">
+        SELECT q.question_id,
+               q.title,
+               q.content,
+               q.category,
+               q.target,
+               q.view_count,
+               q.created_at,
+               q.language_id,
+               CASE WHEN u.deleted_at IS NOT NULL THEN '탈퇴한 회원' ELSE u.nickname END AS nickname,
+               l.language_name,
+               (SELECT COUNT(*) FROM answer a
+                 WHERE a.question_id = q.question_id
+                   AND a.deleted_at IS NULL) AS answerCount
+        FROM question q
+        LEFT JOIN users u    ON q.user_id = u.user_id
+        LEFT JOIN language l ON q.language_id = l.language_id
+        WHERE q.deleted_at IS NULL
+        ORDER BY q.created_at DESC
+        LIMIT 5
+    </select>
+
+    <!-- 언어별 질문 현황: 질문이 0건인 언어도 포함(LEFT JOIN) -->
+    <select id="countQuestionsByLanguage" resultType="LanguageStatDto">
+        SELECT l.language_name AS languageName,
+               l.language_code AS languageCode,
+               COUNT(q.question_id) AS questionCount
+        FROM language l
+        LEFT JOIN question q
+          ON q.language_id = l.language_id
+         AND q.deleted_at IS NULL
+        GROUP BY l.language_id, l.language_name, l.language_code
+        ORDER BY questionCount DESC, l.language_id
     </select>
 
 </mapper>

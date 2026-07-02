@@ -1,27 +1,22 @@
 package com.itmal.question.controller;
 
 import com.itmal.auth.domain.CustomUserDetails;
-import com.itmal.question.dto.QuestionDto;
+import com.itmal.question.dto.*;
 import com.itmal.question.service.QuestionService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.itmal.question.dto.QuestionAttachmentDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ExceptionHandler;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -46,6 +41,8 @@ public class QuestionController {
         @GetMapping("/write")
         public String writeForm(Model model) {
             model.addAttribute("languages", questionService.findAllLanguages());
+            model.addAttribute("categories", Category.values());
+            model.addAttribute("targets", Target.values());
             return "question/write";
         }
 
@@ -53,7 +50,7 @@ public class QuestionController {
         @GetMapping("/{id}")
         public String detail(@PathVariable Long id, Model model, HttpSession session,
                              @AuthenticationPrincipal CustomUserDetails userDetails) {
-            // 1. 질문 상세 조회 (없으면 예외 → 400)
+            // 1. 질문 상세 조회
             QuestionDto question = questionService.findQuestionDetail(id);
 
             // 2. 세션 기반 조회수 중복 방지 (세션당 1회 보장)
@@ -122,6 +119,8 @@ public class QuestionController {
 
             model.addAttribute("question",questionService.getQuestionForEdit(id,userDetails.getUserId()));
             model.addAttribute("languages",questionService.findAllLanguages());
+            model.addAttribute("categories", Category.values());
+            model.addAttribute("targets", Target.values());
             model.addAttribute("attachments", questionService.findAttachments(id));
 
             return "question/edit";
@@ -144,9 +143,20 @@ public class QuestionController {
 
         //질문 목록 조회페이지
         @GetMapping("/list")
-        public String questionList(Model model) {
-            List<QuestionDto> questions = questionService.findAllQuestions();
+        public String questionList(@ModelAttribute QuestionSearchDto search, Model model) {
+            
+            List<QuestionDto> questions = questionService.findQuestions(search);
+            int totalCount = questionService.countQuestions(search);
+            int totalPages = (int) Math.ceil((double) totalCount / search.getSize());
+
             model.addAttribute("questions", questions);
+            model.addAttribute("languages", questionService.findAllLanguages());
+            model.addAttribute("categories", Category.values());
+            model.addAttribute("targets", Target.values());
+            model.addAttribute("search", search);
+            model.addAttribute("totalPages", totalPages);
+            model.addAttribute("currentPage", search.getPage());
+
             return "question/list";
         }
 

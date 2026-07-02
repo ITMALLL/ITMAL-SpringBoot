@@ -68,10 +68,10 @@
               <label class="form-label required">카테고리</label>
               <select class="form-select" name="category" required>
                 <option value="">카테고리를 선택하세요</option>
-                <option value="grammar"       th:selected="${question.category == 'grammar'}">문법 (Grammar)</option>
-                <option value="expression"    th:selected="${question.category == 'expression'}">표현 (Expression)</option>
-                <option value="pronunciation" th:selected="${question.category == 'pronunciation'}">발음 (Pronunciation)</option>
-                <option value="culture"       th:selected="${question.category == 'culture'}">문화 (Culture)</option>
+                <option th:each="c : ${categories}"
+                        th:value="${c.code}"
+                        th:text="${c.label}"
+                        th:selected="${question.category == c.code}"></option>
               </select>
             </div>
 
@@ -80,9 +80,10 @@
               <label class="form-label required">질문 대상</label>
               <select class="form-select" name="target" required>
                 <option value="">대상을 선택하세요</option>
-                <option value="tutor"     th:selected="${question.target == 'tutor'}">튜터 (답변 비용)</option>
-                <option value="community" th:selected="${question.target == 'community'}">전체 사용자</option>
-                <option value="native"    th:selected="${question.target == 'native'}">원어민만</option>
+                <option th:each="t : ${targets}"
+                        th:value="${t.code}"
+                        th:text="${t.label}"
+                        th:selected="${question.target == t.code}"></option>
               </select>
             </div>
           </div>

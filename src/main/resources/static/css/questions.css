@@ -42,9 +42,10 @@
 
 .search-container {
   display: flex;
-  gap: 24px;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 16px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 .search-input-group {
@@ -112,20 +113,25 @@
 .filter-groups {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 32px;
+  align-items: flex-end;
+  gap: 20px;
 }
 
 .filter-group {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
+/* 라벨은 셀렉트 위에 띄워서 셀렉트 박스를 검색창과 같은 중앙선에 정렬 */
 .filter-label {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 2px;
   font-size: 12px;
   font-weight: 600;
   color: var(--on-surface-variant);
+  white-space: nowrap;
 }
 
 .filter-buttons {
@@ -236,9 +242,12 @@
 }
 
 .card-tag {
-  padding: 4px 12px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.7em;
   border-radius: 6px;
   font-size: 12px;
+  line-height: 1.5;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -249,6 +258,17 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* 질문 대상 뱃지 색상 (목록 카드) */
+.tag-target-tutor {
+  background-color: #fef9c3; /* 연한 노랑 */
+  color: #854d0e;
+}
+
+.tag-target-community {
+  background-color: #dcf5c6; /* 연두 */
+  color: #3f6212;
 }
 
 .tag-language {
@@ -262,9 +282,25 @@
 }
 
 .tag-status {
-  margin-left: auto;
-  background-color: var(--tertiary-container);
-  color: var(--on-tertiary-container);
+  flex-shrink: 0;
+}
+
+/* 답변 대기 중 - 파란 파스텔 */
+.tag-status.status-waiting {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* 채택 중 - 앰버 파스텔 */
+.tag-status.status-answered {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+/* 해결 완료 - 초록 파스텔 */
+.tag-status.status-adopted {
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .card-title {
@@ -320,10 +356,18 @@
   gap: 4px;
 }
 
+/* 오른쪽 열: 상태 뱃지 + 화살표 (세로 중앙) */
+.card-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+}
+
 .card-chevron {
   display: none;
   color: var(--on-surface-variant);
-  align-self: center;
 }
 
 @media (min-width: 768px) {
@@ -382,9 +426,10 @@
   border-color: var(--primary);
 }
 
-.pagination-btn:disabled {
+.pagination-btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* ============================================
@@ -447,11 +492,27 @@
 
   .search-container {
     flex-direction: column;
+    align-items: stretch;
     gap: 16px;
   }
 
   .search-input-group {
     min-width: 100%;
+  }
+
+  /* 모바일: 라벨을 다시 셀렉트 위 일반 흐름으로, 셀렉트는 전체 너비 */
+  .search-container .filter-group {
+    position: static;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .search-container .filter-label {
+    position: static;
+  }
+
+  .search-container .filter-group .sort-select {
+    width: 100%;
   }
 
   .sort-container {
@@ -477,8 +538,10 @@
     flex-wrap: wrap;
   }
 
-  .tag-status {
-    margin-left: 0;
+  .card-side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
   }
 
   .write-question-section {

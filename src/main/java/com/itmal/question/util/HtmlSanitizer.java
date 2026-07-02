@@ -4,10 +4,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
 
-/**
- * CKEditor로 작성된 question 본문 HTML을 저장 전에 정제(sanitize)한다.
- * 허용 태그/속성만 남기고 script 등 위험 요소를 제거하여 저장형 XSS를 방지한다.
- */
 public final class HtmlSanitizer {
 
     private HtmlSanitizer() {
@@ -31,5 +27,13 @@ public final class HtmlSanitizer {
             return unsafeHtml;
         }
         return Jsoup.clean(unsafeHtml, "", SAFELIST, OUTPUT_SETTINGS);
+    }
+
+    // HTML 본문에서 태그를 제거한 평문 추출 (Papago 번역 입력용)
+    public static String toPlainText(String html) {
+        if (html == null || html.isBlank()) {
+            return html;
+        }
+        return Jsoup.parse(html).text();
     }
 }
