@@ -1,9 +1,14 @@
 package com.itmal.question.service;
 
+import com.itmal.global.exception.ApiException;
 import com.itmal.global.exception.ErrorCode;
 import com.itmal.global.exception.ViewException;
+import com.itmal.papago.dto.PapagoRequestDto;
+import com.itmal.papago.service.PapagoService;
 import com.itmal.question.dto.LanguageDto;
+import com.itmal.question.dto.LanguageStatDto;
 import com.itmal.question.dto.QuestionDto;
+import com.itmal.question.dto.QuestionSearchDto;
 import com.itmal.question.mapper.QuestionMapper;
 import com.itmal.question.util.HtmlSanitizer;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -31,12 +37,14 @@ import java.util.Set;
 public class QuestionService {
 
     private final QuestionMapper questionMapper;
+    private final PapagoService papagoService;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
 
     private static final int MAX_FILE_COUNT = 3;
     private static final long MAX_FILE_SIZE = 50L * 1024 * 1024; // 50MB
+    private static final int TRANSLATION_MAX_CHARS = 5000; // translated_content 컬럼 및 Papago 입력 상한
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
             "mp3", "m4a", "wav", "ogg", "aac",                                // 음성
             "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt", "zip"  // 문서
@@ -59,6 +67,9 @@ public class QuestionService {
                 saveAttachment(questionDto.getQuestionId(), file);
             }
         }
+
+        // 커밋 후 번역 캐시 워밍 (첫 조회자가 지연을 안 겪도록). 실패해도 조회 시 재시도됨
+        registerTranslationWarmup(questionDto.getQuestionId(), questionDto.getContent(), questionDto.getLanguageId());
     }
 
     private void validateFiles(List<MultipartFile> files) {
@@ -162,9 +173,56 @@ public class QuestionService {
         return questionMapper.findAllQuestions();
     }
 
+    // 질문 검색필터용
+    public List<QuestionDto> findQuestions(QuestionSearchDto search) {
+        return questionMapper.findQuestions(search);
+    }
+
+    public int countQuestions(QuestionSearchDto search){
+        return questionMapper.countQuestions(search);
+    }
+
     // 언어 목록
     public List<LanguageDto> findAllLanguages() {
         return questionMapper.findAllLanguages();
+    }
+
+    // ── 홈 화면 데이터 ───────────────────────────────────────
+
+    // 상단 통계 4개
+    public long countAllQuestions() {
+        return questionMapper.countAllQuestions();
+    }
+
+    public long countAllAnswers() {
+        return questionMapper.countAllAnswers();
+    }
+
+    public long countActiveUsers() {
+        return questionMapper.countActiveUsers();
+    }
+
+    public long countLanguages() {
+        return questionMapper.countLanguages();
+    }
+
+    // 최근 질문 5건 (본문은 HTML 태그를 제거해 미리보기용 평문으로 변환)
+    public List<QuestionDto> findRecentQuestions() {
+        List<QuestionDto> questions = questionMapper.findRecentQuestions();
+        for (QuestionDto q : questions) {
+            q.setContent(HtmlSanitizer.toPlainText(q.getContent()));
+        }
+        return questions;
+    }
+
+    // 언어별 질문 현황 (진행률 바 너비를 가장 많은 언어 대비 상대값으로 계산)
+    public List<LanguageStatDto> findLanguageStats() {
+        List<LanguageStatDto> stats = questionMapper.countQuestionsByLanguage();
+        long max = stats.stream().mapToLong(LanguageStatDto::getQuestionCount).max().orElse(0);
+        for (LanguageStatDto stat : stats) {
+            stat.setPercent(max == 0 ? 0 : (int) (stat.getQuestionCount() * 100 / max));
+        }
+        return stats;
     }
 
     // 첨부파일
@@ -177,6 +235,15 @@ public class QuestionService {
         QuestionDto question = questionMapper.findQuestionDetailById(id);
         if (question == null) {
             throw new ViewException(ErrorCode.QUESTION_NOT_FOUND); // 페이지 → 404 HTML
+        }
+        // 저장된 번역이 현재 대상 언어와 다르면(미번역/언어 변경/워밍 실패) 지금 번역해 캐시
+        if (!Objects.equals(question.getLanguageCode(), question.getTranslatedTarget())) {
+            String result = translateAndStore(
+                    question.getQuestionId(), question.getContent(), question.getLanguageCode());
+            if (result != null) { // null=실패/대상없음 → 캐시 미갱신, 다음 조회 재시도
+                question.setTranslatedContent(result);
+                question.setTranslatedTarget(question.getLanguageCode());
+            }
         }
         return question;
     }
@@ -278,6 +345,8 @@ public class QuestionService {
             saveAttachment(dto.getQuestionId(),file);
         }
 
+        // 본문이 바뀌었으므로 기존 번역 캐시는 위 update 에서 NULL 로 초기화됨 → 커밋 후 재번역 워밍
+        registerTranslationWarmup(dto.getQuestionId(), dto.getContent(), dto.getLanguageId());
     }
 
     // 파일첨부 삭제 스케쥴러용
@@ -293,5 +362,60 @@ public class QuestionService {
         }
     }
 
+    // ── 번역 캐시 ─────────────────────────────────────────────
+    // 본문을 languageCode 로 번역해 DB에 저장. best-effort.
+    // 반환: 번역문 / "" (원문=대상 동일 언어) / null (대상 없음·본문 없음·실패)
+    private String translateAndStore(Long questionId, String content, String languageCode) {
+        if (languageCode == null || languageCode.isBlank()) {
+            return null;
+        }
+        String plain = HtmlSanitizer.toPlainText(content);
+        if (plain == null || plain.isBlank()) {
+            return null;
+        }
+        if (plain.length() > TRANSLATION_MAX_CHARS) {
+            plain = plain.substring(0, TRANSLATION_MAX_CHARS);
+        }
+        try {
+            String translated = papagoService.translate(new PapagoRequestDto("auto", languageCode, plain));
+            if (translated != null && translated.length() > TRANSLATION_MAX_CHARS) {
+                translated = translated.substring(0, TRANSLATION_MAX_CHARS); // 컬럼 상한 보호
+            }
+            questionMapper.updateTranslation(questionId, translated, languageCode);
+            return translated;
+        } catch (ApiException e) {
+            if (ErrorCode.N2MT05 == e.getErrorCode()) {
+                // 원문 언어 == 대상 언어 → 번역 불필요. 빈 문자열로 캐싱해 재호출 방지
+                questionMapper.updateTranslation(questionId, "", languageCode);
+                return "";
+            }
+            log.warn("질문 번역 실패(다음 조회 시 재시도): questionId={}, code={}", questionId, e.getErrorCode());
+            return null;
+        } catch (Exception e) {
+            log.warn("질문 번역 실패(다음 조회 시 재시도): questionId={}", questionId, e);
+            return null;
+        }
+    }
+
+    // 쓰기/수정 커밋 후 번역 캐시를 채운다. 트랜잭션 밖(afterCommit)에서 실행해 HTTP 호출이 DB 트랜잭션을 잡지 않게 한다.
+    private void registerTranslationWarmup(Long questionId, String content, Long languageId) {
+        if (questionId == null || languageId == null) {
+            return;
+        }
+        String languageCode = questionMapper.findLanguageCodeById(languageId);
+        if (languageCode == null || languageCode.isBlank()) {
+            return;
+        }
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            translateAndStore(questionId, content, languageCode); // 트랜잭션 없으면 즉시 실행
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                translateAndStore(questionId, content, languageCode);
+            }
+        });
+    }
 
 }

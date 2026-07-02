@@ -412,19 +412,27 @@
             </ul>
           </div>
 
-          <!-- [번역 박스] 백엔드 연결 필요: Papago 번역 API 결과 바인딩 -->
-          <!-- TODO(data): 번역 API 연동 시 토글/번역문 바인딩 -->
+          <!-- [번역 박스] 서버에서 Papago 번역본을 캐시해 렌더 (question.translatedContent) -->
           <div class="translation-box">
             <div class="translation-header">
-                <span class="translation-label">
-                  <span class="translation-logo">P</span>
-                  Papago 자동 번역
-                </span>
-              <span class="translation-direction">KO → EN</span>
+              <span class="translation-label">
+                <span class="translation-logo">P</span>
+                Papago 자동 번역
+              </span>
+              <span class="translation-direction"
+                    th:text="'AUTO → ' + ${#strings.isEmpty(question.languageCode) ? '?' : #strings.toUpperCase(question.languageCode)}">AUTO → EN</span>
             </div>
             <div class="translation-body">
-              <p>
-                번역을 불러오는 중입니다.
+              <!-- 번역문 있음 -->
+              <p th:if="${!#strings.isEmpty(question.translatedContent)}"
+                 th:text="${question.translatedContent}">번역문</p>
+              <!-- 원문 언어 == 대상 언어 (빈 문자열로 캐싱된 상태) -->
+              <p th:if="${question.translatedContent != null and #strings.isEmpty(question.translatedContent)}">
+                본문 언어가 번역 언어와 같아 번역하지 않습니다.
+              </p>
+              <!-- 미번역/실패 (null): 다음 조회 시 자동 재시도 -->
+              <p th:if="${question.translatedContent == null}">
+                번역을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.
               </p>
             </div>
           </div>
@@ -458,7 +466,7 @@
           </h3>
           <div class="author-card author-card-row" style="position:relative;">
             <div class="author-avatar-lg"
-                 th:text="${question.nickname != null ? question.nickname.substring(0,1) : '?'}">박
+                 th:text="${!#strings.isEmpty(question.nickname) ? question.nickname.substring(0,1) : '?'}">박
             </div>
             <div class="author-details" style="flex:1; min-width:0;">
               <div class="author-name-row"
@@ -817,14 +825,6 @@
 </script>
 
 <script th:inline="javascript">
-  // 외부 응답 값은 HTML로 해석하지 않고 텍스트 노드로 렌더링 (XSS 방지)
-  function renderTranslation(box, message) {
-    box.replaceChildren();
-    const p = document.createElement('p');
-    p.textContent = message;
-    box.appendChild(p);
-  }
-
   // ── 작성자 프로필 이동 UI ──────────────────────────────
   function closeProfileMenus() {
     const btn = document.getElementById('headerProfileBtn');
@@ -866,52 +866,6 @@
 
   // 바깥 클릭 시 닫기
   document.addEventListener('click', closeProfileMenus);
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const target = /*[[${question.languageCode}]]*/ '';   // 학습 언어 코드 (DB)
-
-    // 이미 렌더링된 본문에서 평문만 추출 (innerHTML 재파싱 없이 XSS sink 제거)
-    const contentEl = document.querySelector('.detail-content-body');
-    const text = contentEl ? (contentEl.textContent || '').trim() : '';
-
-    const box = document.querySelector('.translation-body');
-    const label = document.querySelector('.translation-direction');
-    if (label) label.textContent = 'AUTO → ' + (target || '').toUpperCase();
-
-    if (!text) {
-      renderTranslation(box, '번역할 본문이 없습니다.');
-      return;
-    }
-    if (!target) {
-      renderTranslation(box, '번역 대상 언어 정보가 없습니다.');
-      return;
-    }
-
-    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-    fetch('/api/papago/translate', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', [csrfHeader]: csrfToken},
-      body: JSON.stringify({source: 'auto', target, text})   // source=auto → 본문 언어 자동 감지
-    })
-            .then(async (res) => {
-              const json = await res.json();
-              if (!res.ok) {
-                // N2MT05 = 감지된 원문 언어 == target → 번역 불필요
-                if (json.code === 'N2MT05') {
-                  renderTranslation(box, '본문 언어가 번역 언어와 같아 번역하지 않습니다.');
-                } else {
-                  renderTranslation(box, json.message || '번역을 불러오지 못했습니다.');
-                }
-                return;
-              }
-              renderTranslation(box, json.data.translatedText);
-            })
-            .catch(() => {
-              renderTranslation(box, '번역을 불러오지 못했습니다.');
-            });
-  });
 </script>
 
 <script src="/js/comment.js"></script>
