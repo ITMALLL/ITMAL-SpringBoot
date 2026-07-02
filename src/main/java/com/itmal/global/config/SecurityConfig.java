@@ -57,6 +57,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/questions/*/edit").authenticated()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/chat-request/*/accept", "/api/chat-request/*/reject").hasRole("TUTOR")
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/email/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/**").authenticated()

@@ -43,6 +43,7 @@ public enum ErrorCode {
     //채팅
     DUPLICATE_CHAT_REQUEST(HttpStatus.CONFLICT, "CH001", "이미 채팅 요청을 보냈습니다."),
     CHAT_ROOM_ALREADY_EXISTS(HttpStatus.CONFLICT, "CH002", "이미 채팅방이 존재합니다."),
+    CHAT_INVALID_TARGET(HttpStatus.FORBIDDEN, "CH003", "튜터에게만 채팅 요청을 보낼 수 있습니다."),
 
     // 튜터 신청
     TUTOR_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "TA001", "튜터 신청을 찾을 수 없습니다."),
