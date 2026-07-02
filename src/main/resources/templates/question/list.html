@@ -36,16 +36,17 @@
             여러분의 학습을 도와드립니다.
           </p>
         </div>
-        <button class="btn-write-question">
+        <a class="btn-write-question" th:href="@{/questions/write}">
           <span class="material-symbols-outlined">edit</span>
           질문 작성
-        </button>
+        </a>
       </div>
 
-      <!-- Search & Filter Section -->
-      <div class="search-filter-section">
+      <!-- Search & Filter Section (GET form) -->
+      <form method="get" th:action="@{/questions/list}" class="search-filter-section">
+        <!-- 검색창 + 검색 + 정렬/필터 한 줄 -->
         <div class="search-container">
-          <div class="search-input-group">
+          <div class="search-input-group" style="flex: 0 1 400px; min-width: 240px;">
             <svg
               class="search-icon"
               fill="none"
@@ -61,285 +62,171 @@
             </svg>
             <input
               type="text"
+              name="keyword"
               class="search-input"
-              placeholder="궁금한 키워드를 입력하세요 (예: 문법, 회화 표현...)"
+              th:value="${search.keyword}"
+              placeholder="궁금한 키워드를 입력하세요 (예: 문법, 표현...)"
             />
           </div>
-          <div class="sort-container">
-            <span class="sort-label">정렬 기준</span>
-            <select class="sort-select">
-              <option>최신순</option>
-              <option>조회수순</option>
-              <option>답변 많은 순</option>
+          <button type="submit" class="filter-btn active">검색</button>
+
+          <div class="filter-group">
+            <span class="filter-label">정렬 기준</span>
+            <select name="sort" class="sort-select" onchange="this.form.submit()">
+              <option value="latest" th:selected="${search.sort == 'latest'}">최신순</option>
+              <option value="views"  th:selected="${search.sort == 'views'}">조회수순</option>
+              <!-- 추후: 답변 많은 순 / 좋아요 순 -->
             </select>
           </div>
-        </div>
 
-        <!-- Filter Groups -->
-        <div class="filter-groups">
           <div class="filter-group">
             <span class="filter-label">학습 언어</span>
-            <div class="filter-buttons">
-              <button class="filter-btn active">전체</button>
-              <button class="filter-btn">한국어</button>
-              <button class="filter-btn">영어</button>
-              <button class="filter-btn">일본어</button>
-              <button class="filter-btn">중국어</button>
-            </div>
+            <select name="languageId" class="sort-select" onchange="this.form.submit()">
+              <option value="">전체</option>
+              <option th:each="l : ${languages}"
+                      th:value="${l.languageId}"
+                      th:text="${l.languageName}"
+                      th:selected="${search.languageId != null and search.languageId == l.languageId}"></option>
+            </select>
           </div>
-
-          <div class="divider"></div>
 
           <div class="filter-group">
             <span class="filter-label">카테고리</span>
-            <div class="filter-buttons">
-              <button class="filter-btn active">전체</button>
-              <button class="filter-btn">문법</button>
-              <button class="filter-btn">회화</button>
-              <button class="filter-btn">발음</button>
-              <button class="filter-btn">작문</button>
-              <button class="filter-btn">기타</button>
-            </div>
+            <select name="category" class="sort-select" onchange="this.form.submit()">
+              <option value="">전체</option>
+              <option th:each="c : ${categories}"
+                      th:value="${c.code}"
+                      th:text="${c.label}"
+                      th:selected="${search.category == c.code}"></option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">질문 대상</span>
+            <select name="target" class="sort-select" onchange="this.form.submit()">
+              <option value="">전체</option>
+              <option th:each="t : ${targets}"
+                      th:value="${t.code}"
+                      th:text="${t.label}"
+                      th:selected="${search.target == t.code}"></option>
+            </select>
           </div>
         </div>
-      </div>
+      </form>
 
       <!-- Questions Grid -->
       <div class="questions-grid">
-        <!-- Card 1 - Tutor Only -->
-        <div class="question-list-card">
-          <div class="card-content">
-            <div class="card-tags">
-              <span class="card-tag tag-tutor-only">
-                <span class="material-symbols-outlined" style="font-size: 14px"
-                  >school</span
-                >
-                Tutor Only
-              </span>
-              <span class="card-tag tag-language">한국어</span>
-              <span class="card-tag tag-category">문법</span>
-              <span class="card-tag tag-status">답변 대기 중</span>
-            </div>
-            <h3 class="card-title">
-              '-데'와 '-대'의 구체적인 차이점이 궁금합니다.
-            </h3>
-            <div class="card-meta">
-              <div class="meta-author">
-                <div class="meta-avatar">
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHrsvxsiD18PztsMIbgF0XtXYxFjhtW-6245dF6tagyRqdZBd8xrD_m2M9jGO9KPH_n6W6FOe_ZP51NMfj5qekI0a81JLqFvVKJgthN8TyLkqeKEL1KXawUXPSDMIxrx_A-hezUBZ92ippUHKKqMhoUwR5GiGJ_Xf-MkKZbf_deeybm4DcTiQEfwf3yf0fmns845FktxvE13aoNzOl4BQktNsW33OCY7VIlRpiqKqEvNTKBzTtMpwUd24YyjQ8ftoVBynL3vfX3qY"
-                    alt="김지우"
-                  />
-                </div>
-                <span>김지우</span>
-              </div>
-              <div class="meta-separator"></div>
-              <div class="meta-stat">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >visibility</span
-                >
-                128
-              </div>
-              <div class="meta-stat">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >calendar_today</span
-                >
-                2024.05.20
-              </div>
-            </div>
-          </div>
-          <div class="card-chevron">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </div>
-        </div>
 
-        <!-- Card 2 - Adopting -->
-        <div class="question-list-card">
-          <div class="card-content">
-            <div class="card-tags">
-              <span class="card-tag tag-language">영어</span>
-              <span class="card-tag tag-category">회화</span>
-              <span
-                class="card-tag tag-status"
-                style="
-                  background-color: var(--secondary-container);
-                  color: var(--on-secondary-container);
-                "
-                >채택 중</span
-              >
-            </div>
-            <h3 class="card-title">
-              How to use "get used to" vs "be used to"?
-            </h3>
-            <div class="card-meta">
-              <div class="meta-author">
-                <div class="meta-avatar">
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDYyooZMyG6K110Ys4wN1eJJr6_KDSBAUkHouW9If6OZ07AMSlUK87oJ9cVOq4eG7XFaZMu5ZW08aXbr8jvn8MKd-DJJm-5u9d82CfyouSt0UI4MpsOYcdcP79SmjXH4MNzJ7_9WnoMoshz39yfyfxAaHSGd8N2f-L5oFwk_ctvhtwQmqBKrZJVQU9dSeTPdJMO634JkjtPpWxfKQOIPWrUyizZFn0YFIYVw2yU0x9xTuB6ARNzu99boozLSLYAX95buvkYUAvfQ4"
-                    alt="JunHo_Park"
-                  />
-                </div>
-                <span>JunHo_Park</span>
-              </div>
-              <div class="meta-separator"></div>
-              <div class="meta-stat">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >visibility</span
-                >
-                342
-              </div>
-              <div class="meta-stat">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >calendar_today</span
-                >
-                2024.05.19
-              </div>
-            </div>
-          </div>
-          <div class="card-chevron">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </div>
-        </div>
+        <!-- 질문이 하나도 없을 때 -->
+        <p th:if="${#lists.isEmpty(questions)}"
+           style="grid-column: 1 / -1; text-align: center; color: var(--on-surface-variant); padding: 48px 0;">
+          아직 등록된 질문이 없습니다.
+        </p>
 
-        <!-- Card 3 - Completed -->
-        <div class="question-list-card resolved">
+        <!-- 질문 목록 반복 (실제 DB 데이터) -->
+        <a th:each="q : ${questions}"
+           th:href="@{'/questions/' + ${q.questionId}}"
+           class="question-list-card"
+           th:classappend="${q.status == 'ADOPTED'} ? ' resolved' : ''">
           <div class="card-content">
             <div class="card-tags">
-              <span
-                class="card-tag tag-language"
-                style="
-                  background-color: var(--tertiary-fixed);
-                  color: var(--on-tertiary-fixed-variant);
-                "
-                >일본어</span
-              >
-              <span class="card-tag tag-category">발음</span>
-              <span
-                class="card-tag tag-status"
-                style="
-                  background-color: var(--outline-variant);
-                  color: var(--on-surface-variant);
-                "
-                >해결 완료</span
-              >
+              <!-- 대상 뱃지: 대상별 색상 (tutor=연노랑 / community=연두) -->
+              <span th:if="${q.target != null and q.target != ''}"
+                    class="card-tag"
+                    th:classappend="'tag-target-' + ${q.target}"
+                    th:text="${T(com.itmal.question.dto.Target).labelOf(q.target)}">대상</span>
+              <!-- 언어 (DB 값) -->
+              <span class="card-tag tag-language" th:text="${q.languageName}">언어</span>
+              <!-- 카테고리: 코드 → 한글 (Category enum 단일 소스) -->
+              <span class="card-tag tag-category"
+                    th:text="${T(com.itmal.question.dto.Category).labelOf(q.category)}">카테고리</span>
             </div>
-            <h3 class="card-title">
-              「つ」의 발음이 너무 어려워요. 팁이 있을까요?
-            </h3>
+            <h3 class="card-title" th:text="${q.title}">제목</h3>
             <div class="card-meta">
               <div class="meta-author">
-                <div class="meta-avatar">
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBarhL34Ia2EWZ4krjFgBepFxzFmWSjllUZ7gUFmi-1ltJk6utCf7De-YOAHzTjIxqYGhRCHZpNOkFQuNaj2U07A35OFRuyGVL_gnZlKrBUr3uSB7Hm8MALultXSQ5i6Z1xAiS0lBME2g0eu-X9Jpvb38LvUV5ALdhmT6gu9DnHZ3YwqbUXJWALMXJxfq9-pJsTjnk87WpIC2GsOquwjlRCgDRA5qSK5aCpgQIf4OdNIx76uKHxpwRYwN3GgtNCCuH4RStE7oFjVrw"
-                    alt="Sora_Chan"
-                  />
-                </div>
-                <span>Sora_Chan</span>
+                <span th:text="${q.nickname}">작성자</span>
               </div>
               <div class="meta-separator"></div>
               <div class="meta-stat">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >visibility</span
-                >
-                891
+                <span class="material-symbols-outlined" style="font-size: 18px">visibility</span>
+                <span th:text="${q.viewCount}">0</span>
               </div>
               <div class="meta-stat">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >calendar_today</span
-                >
-                2024.05.18
+                <span class="material-symbols-outlined" style="font-size: 18px">calendar_today</span>
+                <span th:text="${#temporals.format(q.createdAt, 'yyyy.MM.dd')}">2024.01.01</span>
               </div>
             </div>
           </div>
-          <div class="card-chevron">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </div>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="question-list-card">
-          <div class="card-content">
-            <div class="card-tags">
-              <span
-                class="card-tag tag-language"
-                style="
-                  background-color: var(--primary-fixed);
-                  color: var(--on-primary-fixed-variant);
-                "
-                >중국어</span
-              >
-              <span class="card-tag tag-category">작문</span>
-              <span class="card-tag tag-status">답변 대기 중</span>
-            </div>
-            <h3 class="card-title">HSK 5급 작문 부분 첨삭 부탁드립니다.</h3>
-            <div class="card-meta">
-              <div class="meta-author">
-                <div class="meta-avatar">
-                  <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrkbHH3f2SSCr_rOVeywjSYQfIBYvV_nJzKU1LRgQDmM1rp8o5jJoodlzLxpBW3WhgV6nUjeTlTk0yvMfclN1aVAnfeQcbxgfYCg8Zfu8r8yDNSAVLeOrYuSVhv7izmOHOKy_6La3ECXFdHFQ7ogVwSgBizd8-cPzPlvb97jCsB8Zj3BIyzKp26k96pg11TgYbFQ2e3qKEW5e5B14fBf0WCV60QEsCN2PF0r-tFqtE7aCgJ-tHVlokz8Rlmgb6TUDNBkIo4kLbwGA"
-                    alt="StudyMaster"
-                  />
-                </div>
-                <span>StudyMaster</span>
-              </div>
-              <div class="meta-separator"></div>
-              <div class="meta-stat">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >visibility</span
-                >
-                56
-              </div>
-              <div class="meta-stat">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >calendar_today</span
-                >
-                2024.05.18
-              </div>
+          <div class="card-side">
+            <!-- 답변 상태 -->
+            <span class="card-tag tag-status"
+                  th:classappend="${q.status == 'ADOPTED'} ? ' status-adopted' : (${q.status == 'ANSWERED'} ? ' status-answered' : ' status-waiting')"
+                  th:switch="${q.status}">
+              <span th:case="'ADOPTED'">해결 완료</span>
+              <span th:case="'ANSWERED'">채택 중</span>
+              <span th:case="*">답변 대기 중</span>
+            </span>
+            <div class="card-chevron">
+              <span class="material-symbols-outlined">chevron_right</span>
             </div>
           </div>
-          <div class="card-chevron">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </div>
-        </div>
+        </a>
       </div>
 
       <!-- Pagination -->
-      <div class="pagination">
-        <button class="pagination-btn">
+      <div class="pagination" th:if="${totalPages > 0}">
+        <!-- 이전 페이지: 첫 페이지에서는 링크 없이 비활성 span 으로 렌더 -->
+        <a th:if="${currentPage > 1}"
+           class="pagination-btn"
+           th:href="@{/questions/list(page=${currentPage - 1}, size=${search.size},
+                     keyword=${search.keyword}, languageId=${search.languageId},
+                     category=${search.category}, target=${search.target}, sort=${search.sort})}">
           <span class="material-symbols-outlined">chevron_left</span>
-        </button>
-        <button class="pagination-btn active">1</button>
-        <button class="pagination-btn">2</button>
-        <button class="pagination-btn">3</button>
-        <button class="pagination-btn">4</button>
-        <button class="pagination-btn">5</button>
-        <button class="pagination-btn">
+        </a>
+        <span th:unless="${currentPage > 1}" class="pagination-btn disabled">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </span>
+
+        <!-- 첫 페이지 + 생략 표시 (윈도우가 1보다 뒤에서 시작할 때만) -->
+        <a th:if="${startPage > 1}"
+           class="pagination-btn"
+           th:text="1"
+           th:href="@{/questions/list(page=1, size=${search.size},
+                     keyword=${search.keyword}, languageId=${search.languageId},
+                     category=${search.category}, target=${search.target}, sort=${search.sort})}">1</a>
+        <span th:if="${startPage > 2}" class="pagination-ellipsis">…</span>
+
+        <!-- 페이지 번호 (윈도우: startPage ~ endPage) -->
+        <a th:each="p : ${#numbers.sequence(startPage, endPage)}"
+           class="pagination-btn"
+           th:classappend="${p == currentPage} ? ' active' : ''"
+           th:text="${p}"
+           th:href="@{/questions/list(page=${p}, size=${search.size},
+                     keyword=${search.keyword}, languageId=${search.languageId},
+                     category=${search.category}, target=${search.target}, sort=${search.sort})}">1</a>
+
+        <!-- 생략 표시 + 마지막 페이지 (윈도우가 끝보다 앞에서 끝날 때만) -->
+        <span th:if="${endPage < totalPages - 1}" class="pagination-ellipsis">…</span>
+        <a th:if="${endPage < totalPages}"
+           class="pagination-btn"
+           th:text="${totalPages}"
+           th:href="@{/questions/list(page=${totalPages}, size=${search.size},
+                     keyword=${search.keyword}, languageId=${search.languageId},
+                     category=${search.category}, target=${search.target}, sort=${search.sort})}">N</a>
+
+        <!-- 다음 페이지: 마지막 페이지에서는 링크 없이 비활성 span 으로 렌더 -->
+        <a th:if="${currentPage < totalPages}"
+           class="pagination-btn"
+           th:href="@{/questions/list(page=${currentPage + 1}, size=${search.size},
+                     keyword=${search.keyword}, languageId=${search.languageId},
+                     category=${search.category}, target=${search.target}, sort=${search.sort})}">
           <span class="material-symbols-outlined">chevron_right</span>
-        </button>
+        </a>
+        <span th:unless="${currentPage < totalPages}" class="pagination-btn disabled">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </span>
       </div>
     </main>
   <div th:replace="~{fragments/footer :: footer}"></div>
-
-    <script>
-      // Filter button functionality
-      const filterBtns = document.querySelectorAll(".filter-btn");
-      filterBtns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const parent = btn.parentElement;
-          parent
-            .querySelectorAll(".filter-btn")
-            .forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
-        });
-      });
-
-      // Question card click
-      const cards = document.querySelectorAll(".question-list-card");
-      cards.forEach((card) => {
-        card.addEventListener("click", () => {
-          console.log("Card clicked");
-        });
-      });
-    </script>
   </body>
 </html>
