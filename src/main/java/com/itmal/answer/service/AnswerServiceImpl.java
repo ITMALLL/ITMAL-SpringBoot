@@ -3,11 +3,13 @@ package com.itmal.answer.service;
 import com.itmal.answer.domain.Answer;
 import com.itmal.answer.domain.AnswerLike;
 import com.itmal.answer.dto.AnswerCreateRequest;
+import com.itmal.answer.dto.AnswerLikeResponseDto;
 import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.mapper.AnswerMapper;
 import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
+import com.itmal.global.exception.ViewException;
 import com.itmal.notification.service.NotificationService;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
@@ -28,6 +30,13 @@ public class AnswerServiceImpl implements AnswerService {
     // 답변 등록
     @Override
     public void createAnswer(AnswerCreateRequest request, Long userId) {
+        QuestionDto question = questionMapper.findQuestionDetailById(request.getQuestionId());
+        if (question == null) {
+            throw new ViewException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if (question.getUserId().equals(userId)) {
+            throw new ViewException(ErrorCode.ANSWER_SELF_FORBIDDEN);
+        }
         // userId는 폼이 아닌 로그인 세션에서 가져와서 세팅
         request.setUserId(userId);
         answerMapper.insertAnswer(request);
@@ -79,22 +88,28 @@ public class AnswerServiceImpl implements AnswerService {
 
     // 좋아요 토글 (있으면 취소, 없으면 추가)
     @Override
-    public void toggleLike(Long answerId, Long userId) {
+    public AnswerLikeResponseDto toggleLike(Long answerId, Long userId) {
         getAnswer(answerId); // 삭제된 답변 체크
         AnswerLike answerLike = new AnswerLike();
         answerLike.setAnswerId(answerId);
         answerLike.setUserId(userId);
 
         AnswerLike existing = answerMapper.findAnswerLike(answerLike);
+        boolean liked;
         if (existing != null) {
             answerMapper.deleteAnswerLike(answerLike);
+            liked = false;
         } else {
             try {
                 answerMapper.insertAnswerLike(answerLike);
+                liked = true;
             } catch (DuplicateKeyException e) {
                 // 동시 요청으로 중복 좋아요 insert 시 무시
+                liked = true;
             }
         }
+        int likeCount = answerMapper.countAnswerLikes(answerId);
+        return new AnswerLikeResponseDto(liked, likeCount);
     }
 
     // 마이페이지 내 답변 목록 조회

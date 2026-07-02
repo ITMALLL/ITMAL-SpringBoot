@@ -1,0 +1,59 @@
+<!doctype html>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ITMAL - 튜터 관리</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+  </head>
+  <body class="bg-background text-on-background">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main>
+      <section>
+        <div class="admin-header">
+          <h1 class="admin-title">튜터 관리</h1>
+          <p class="admin-subtitle">현재 활동 중인 튜터 목록입니다. 튜터 권한을 박탈할 수 있습니다.</p>
+        </div>
+      </section>
+
+      <section>
+        <div th:if="${#lists.isEmpty(tutors)}" class="report-empty">
+          현재 활동 중인 튜터가 없습니다.
+        </div>
+
+        <div class="report-grid tutor-card-grid" th:unless="${#lists.isEmpty(tutors)}">
+          <div class="report-card" th:each="tutor : ${tutors}">
+            <div class="report-header">
+              <span class="report-type-badge answer">튜터</span>
+            </div>
+
+            <div class="report-info">
+              <div class="reporter-info">
+                <div class="reporter-avatar" th:text="${#strings.substring(tutor.nickname, 0, 1)}"></div>
+                <span class="reporter-name" th:text="${tutor.nickname}"></span>
+              </div>
+              <span class="report-time" th:text="${tutor.email}"></span>
+            </div>
+
+            <div class="report-actions" style="grid-template-columns: 1fr;">
+              <form th:action="@{/admin/tutors/{id}/revoke(id=${tutor.userId})}" method="post"
+                    onsubmit="return confirm('정말 튜터 권한을 박탈하시겠습니까?')">
+                <button type="submit" class="action-btn approve" style="width:100%;">권한 박탈</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+  </body>
+</html>

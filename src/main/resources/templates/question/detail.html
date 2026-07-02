@@ -1,180 +1,358 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title>잇말 - 질문 상세</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="/css/common.css" />
-    <link rel="stylesheet" href="/css/header.css" />
-    <link rel="stylesheet" href="/css/footer.css" />
-    <link rel="stylesheet" href="/css/questions-detail.css" />
-    <link rel="stylesheet" href="/css/comment.css" />
-    <style>
-      /* 작성자용 케밥(⋮) 메뉴 */
-      .question-header { position: relative; }
-      /* 파파고 번역 칸 오른쪽 끝(카드 안쪽 여백 기준)에 완전히 붙임.
-         버튼 안 아이콘이 가운데 정렬이라 음수 offset으로 끝까지 밀어줌 */
-      .question-menu { position: absolute; top: 0; right: -8px; }
-      .question-menu-btn {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 36px; height: 36px; padding: 0;
-        border: none; border-radius: 8px;
-        background: transparent; color: #6b7280; cursor: pointer;
-      }
-      .question-menu-btn:hover { background: #f3f4f6; color: #111827; }
-      .question-menu-dropdown {
-        position: absolute; top: 42px; left: 0; min-width: 140px;
-        background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, .12); padding: 6px; z-index: 20;
-      }
-      .question-menu-dropdown[hidden] { display: none; }
-      .question-menu-dropdown form { margin: 0; }
-      .question-menu-item {
-        display: flex; align-items: center; gap: 8px; width: 100%;
-        padding: 8px 10px; border: none; background: transparent;
-        border-radius: 8px; font-size: 14px; color: #374151;
-        text-decoration: none; cursor: pointer; text-align: left;
-      }
-      .question-menu-item:hover { background: #f3f4f6; }
-      .question-menu-item.danger { color: #dc2626; }
-      .question-menu-item.danger:hover { background: #fef2f2; }
-      .question-menu-item .material-symbols-outlined { font-size: 18px; }
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title>잇말 - 질문 상세</title>
+  <link
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+  />
+  <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/css/common.css"/>
+  <link rel="stylesheet" href="/css/header.css"/>
+  <link rel="stylesheet" href="/css/footer.css"/>
+  <link rel="stylesheet" href="/css/questions-detail.css"/>
+  <link rel="stylesheet" href="/css/comment.css"/>
+  <style>
+    /* 작성자용 케밥(⋮) 메뉴 */
+    .question-header {
+      position: relative;
+    }
 
-      /* 첨부파일 텍스트 목록 + 다운로드 아이콘 */
-      .att-file-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-      .att-file-row {
-        display: flex; align-items: center; gap: 10px;
-        padding: 10px 14px; border: 1px solid var(--outline-variant, #e5e7eb);
-        border-radius: 10px; background: var(--surface-container-lowest, #fff);
-      }
-      .att-file-ic { font-size: 20px; color: #6b7280; flex-shrink: 0; }
-      .att-file-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-      .att-file-name { font-size: 14px; color: #374151; word-break: break-all; }
-      .att-file-audio { width: 100%; height: 36px; }
-      .att-file-download {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 34px; height: 34px; border-radius: 8px;
-        color: #6b7280; text-decoration: none; flex-shrink: 0;
-      }
-      .att-file-download:hover { background: #f3f4f6; color: #111827; }
-      .att-file-download .material-symbols-outlined { font-size: 20px; }
+    /* 파파고 번역 칸 오른쪽 끝(카드 안쪽 여백 기준)에 완전히 붙임.
+       버튼 안 아이콘이 가운데 정렬이라 음수 offset으로 끝까지 밀어줌 */
+    .question-menu {
+      position: absolute;
+      top: 0;
+      right: -8px;
+    }
 
-      /* 신고 사유 입력 모달 */
-      .report-modal-overlay {
-        position: fixed; inset: 0; background: rgba(0, 0, 0, .45);
-        display: flex; align-items: center; justify-content: center; z-index: 100;
-      }
-      .report-modal-overlay[hidden] { display: none; }
-      .report-modal {
-        background: #fff; border-radius: 14px; padding: 24px;
-        width: 90%; max-width: 420px; box-shadow: 0 12px 40px rgba(0, 0, 0, .2);
-      }
-      .report-modal-title { margin: 0 0 14px; font-size: 17px; font-weight: 700; color: #111827; }
-      .report-modal-textarea {
-        width: 100%; box-sizing: border-box; resize: vertical; min-height: 96px;
-        border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px;
-        font-size: 14px; font-family: inherit; color: #374151;
-      }
-      .report-modal-textarea:focus { outline: none; border-color: #6b7280; }
-      .report-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .question-menu-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #6b7280;
+      cursor: pointer;
+    }
 
-      /* 간단 토스트 (모달이 뜨던 화면 중앙에 표시) */
-      .app-toast {
-        position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
-        background: #111827; color: #fff; padding: 14px 22px; border-radius: 12px;
-        font-size: 15px; z-index: 120; box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
-      }
-    </style>
-  </head>
-  <body>
-  <div th:replace="~{fragments/header :: header}"></div>
+    .question-menu-btn:hover {
+      background: #f3f4f6;
+      color: #111827;
+    }
 
-  <!-- Main Content -->
-    <main class="question-detail-main">
-      <div class="question-detail-container">
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb" aria-label="breadcrumb">
-          <a href="/" class="breadcrumb-item">홈</a>
-          <span class="breadcrumb-sep">/</span>
-          <a href="/questions/list" class="breadcrumb-item">질문 게시판</a>
-          <span class="breadcrumb-sep">/</span>
-          <span class="breadcrumb-current">질문 상세</span>
-        </nav>
+    .question-menu-dropdown {
+      position: absolute;
+      top: 42px;
+      left: 0;
+      min-width: 140px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+      padding: 6px;
+      z-index: 20;
+    }
 
-        <div class="detail-grid">
-          <!-- Main Content -->
-          <div class="detail-content">
-            <!-- Question Card -->
-            <div class="question-card">
-            <!-- Question Header -->
-            <div class="question-header">
-              <!-- 케밥(⋮) 메뉴: 로그인 유저에게 노출. 작성자=수정/삭제, 그 외=신고 -->
-              <div class="question-menu" th:if="${currentUserId != null}">
-                <button type="button" class="question-menu-btn" id="question-menu-btn"
-                        aria-label="더보기" aria-haspopup="true" aria-expanded="false">
-                  <span class="material-symbols-outlined">more_vert</span>
+    .question-menu-dropdown[hidden] {
+      display: none;
+    }
+
+    .question-menu-dropdown form {
+      margin: 0;
+    }
+
+    .question-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 10px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #374151;
+      text-decoration: none;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .question-menu-item:hover {
+      background: #f3f4f6;
+    }
+
+    .question-menu-item.danger {
+      color: #dc2626;
+    }
+
+    .question-menu-item.danger:hover {
+      background: #fef2f2;
+    }
+
+    .question-menu-item .material-symbols-outlined {
+      font-size: 18px;
+    }
+
+    /* 첨부파일 텍스트 목록 + 다운로드 아이콘 */
+    .att-file-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .att-file-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--outline-variant, #e5e7eb);
+      border-radius: 10px;
+      background: var(--surface-container-lowest, #fff);
+    }
+
+    .att-file-ic {
+      font-size: 20px;
+      color: #6b7280;
+      flex-shrink: 0;
+    }
+
+    .att-file-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .att-file-name {
+      font-size: 14px;
+      color: #374151;
+      word-break: break-all;
+    }
+
+    .att-file-audio {
+      width: 100%;
+      height: 36px;
+    }
+
+    .att-file-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      color: #6b7280;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .att-file-download:hover {
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    .att-file-download .material-symbols-outlined {
+      font-size: 20px;
+    }
+
+    /* 신고 사유 입력 모달 */
+    .report-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .report-modal-overlay[hidden] {
+      display: none;
+    }
+
+    .report-modal {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .2);
+    }
+
+    .report-modal-title {
+      margin: 0 0 14px;
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .report-modal-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      resize: vertical;
+      min-height: 96px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #374151;
+    }
+
+    .report-modal-textarea:focus {
+      outline: none;
+      border-color: #6b7280;
+    }
+
+    .report-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    /* 간단 토스트 (모달이 뜨던 화면 중앙에 표시) */
+    .app-toast {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: #111827;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-size: 15px;
+      z-index: 120;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .25);
+    }
+    .like-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border: 1px solid var(--outline-variant, #e5e7eb);
+      border-radius: 999px;
+      background: #fff;
+      color: #6b7280;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .like-btn:hover {
+      background: #f9fafb;
+    }
+
+    .like-btn.liked {
+      color: #dc2626;
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    .heart-icon {
+      font-size: 16px;
+    }
+
+  </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Main Content -->
+<main class="question-detail-main">
+  <div class="question-detail-container">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <a href="/" class="breadcrumb-item">홈</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="/questions/list" class="breadcrumb-item">질문 게시판</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">질문 상세</span>
+    </nav>
+
+    <div class="detail-grid">
+      <!-- Main Content -->
+      <div class="detail-content">
+        <!-- Question Card -->
+        <div class="question-card">
+          <!-- Question Header -->
+          <div class="question-header">
+            <!-- 케밥(⋮) 메뉴: 로그인 유저에게 노출. 작성자=수정/삭제, 그 외=신고 -->
+            <div class="question-menu" th:if="${currentUserId != null}">
+              <button type="button" class="question-menu-btn" id="question-menu-btn"
+                      aria-label="더보기" aria-haspopup="true" aria-expanded="false">
+                <span class="material-symbols-outlined">more_vert</span>
+              </button>
+              <div class="question-menu-dropdown" id="question-menu-dropdown" hidden>
+
+                <!-- 작성자 본인: 수정 / 삭제 -->
+                <th:block th:if="${isOwner}">
+                  <a th:href="@{/questions/{id}/edit(id=${question.questionId})}"
+                     class="question-menu-item">
+                    <span class="material-symbols-outlined">edit</span>
+                    수정
+                  </a>
+                  <form th:action="@{/questions/{id}/delete(id=${question.questionId})}"
+                        method="post"
+                        onsubmit="return confirm('정말 삭제하시겠어요? 삭제 후에는 복구할 수 없습니다.');">
+                    <button type="submit" class="question-menu-item danger">
+                      <span class="material-symbols-outlined">delete</span>
+                      삭제
+                    </button>
+                  </form>
+                </th:block>
+
+                <!-- 작성자가 아닌 로그인 유저: 신고 -->
+                <button type="button" th:unless="${isOwner}"
+                        class="question-menu-item"
+                        id="question-report-btn"
+                        th:attr="data-question-id=${question.questionId}">
+                  <span class="material-symbols-outlined">flag</span>
+                  신고
                 </button>
-                <div class="question-menu-dropdown" id="question-menu-dropdown" hidden>
-
-                  <!-- 작성자 본인: 수정 / 삭제 -->
-                  <th:block th:if="${isOwner}">
-                    <a th:href="@{/questions/{id}/edit(id=${question.questionId})}"
-                       class="question-menu-item">
-                      <span class="material-symbols-outlined">edit</span>
-                      수정
-                    </a>
-                    <form th:action="@{/questions/{id}/delete(id=${question.questionId})}"
-                          method="post"
-                          onsubmit="return confirm('정말 삭제하시겠어요? 삭제 후에는 복구할 수 없습니다.');">
-                      <button type="submit" class="question-menu-item danger">
-                        <span class="material-symbols-outlined">delete</span>
-                        삭제
-                      </button>
-                    </form>
-                  </th:block>
-
-                  <!-- 작성자가 아닌 로그인 유저: 신고 -->
-                  <button type="button" th:unless="${isOwner}"
-                          class="question-menu-item"
-                          id="question-report-btn"
-                          th:attr="data-question-id=${question.questionId}">
-                    <span class="material-symbols-outlined">flag</span>
-                    신고
-                  </button>
-                </div>
               </div>
-              <!-- [질문 메타 영역] 백엔드 연결 필요: 질문 상태/언어/카테고리/튜터전용 값에 따라 배지·태그 렌더링 -->
-              <div class="question-meta">
-                <!-- ⭐ 상태 배지: status 값으로 3분기 -->
-                <span th:if="${question.status == 'PENDING'}"  class="badge badge-pending">답변대기</span>
-                <span th:if="${question.status == 'ANSWERED'}" class="badge badge-progress">채택대기</span>
-                <span th:if="${question.status == 'ADOPTED'}"  class="badge badge-adopted">채택됨</span>
-                <!-- 언어 -->
-                <span class="tag primary" th:text="${question.languageName}">영어</span>
-                <!-- 카테고리 -->
-                <span class="tag secondary"
-                      th:text="${T(com.itmal.question.dto.Category).labelOf(question.category)}">카테고리</span>
-                <!-- 질문 대상: 라벨은 Target enum (labelOf) -->
-                <span class="badge badge-tutor" th:if="${question.target == 'tutor'}"
-                      th:text="${T(com.itmal.question.dto.Target).labelOf(question.target)}">튜터 전용</span>
-                <span class="tag secondary" th:if="${question.target == 'community'}"
-                      th:text="${T(com.itmal.question.dto.Target).labelOf(question.target)}">전체 사용자</span>
-              </div>
+            </div>
+            <!-- [질문 메타 영역] 백엔드 연결 필요: 질문 상태/언어/카테고리/튜터전용 값에 따라 배지·태그 렌더링 -->
+            <div class="question-meta">
+              <!-- ⭐ 상태 배지: status 값으로 3분기 -->
+              <span th:if="${question.status == 'PENDING'}" class="badge badge-pending">답변대기</span>
+              <span th:if="${question.status == 'ANSWERED'}" class="badge badge-progress">채택대기</span>
+              <span th:if="${question.status == 'ADOPTED'}" class="badge badge-adopted">채택됨</span>
+              <!-- 언어 -->
+              <span class="tag primary" th:text="${question.languageName}">영어</span>
+              <!-- 카테고리 -->
+              <span class="tag secondary" th:text="${question.category}">문법</span>
+              <!-- 질문 대상: target 값으로 3분기 -->
+              <span class="badge badge-tutor" th:if="${question.target == 'tutor'}">
+                  <span class="material-symbols-outlined">verified_user</span>
+                  튜터 전용
+                </span>
+              <span class="badge badge-tutor" th:if="${question.target == 'native'}">
+                  <span class="material-symbols-outlined">record_voice_over</span>
+                  원어민만
+                </span>
+              <span class="tag secondary" th:if="${question.target == 'community'}">전체 사용자</span>
+            </div>
 
-              <!-- 제목 -->
-              <h1 class="question-title" th:text="${question.title}">제목</h1>
+            <!-- 제목 -->
+            <h1 class="question-title" th:text="${question.title}">제목</h1>
 
-              <div class="question-info">
+            <div class="question-info">
                 <span class="info-item author"
                       th:attr="onclick=${question.nickname != null} ? 'toggleHeaderProfile(event)' : null"
                       th:style="${question.nickname != null} ? 'position:relative; cursor:pointer;' : 'position:relative;'">
@@ -188,30 +366,30 @@
                      style="display:none; position:absolute; top:28px; left:0; z-index:20; white-space:nowrap;"
                      th:text="${isOwner} ? '마이페이지로 이동' : '프로필로 이동'">프로필로 이동</a>
                 </span>
-                <span class="info-item">
+              <span class="info-item">
                   <span class="material-symbols-outlined">calendar_today</span>
                   <span th:text="${#temporals.format(question.createdAt, 'yyyy.MM.dd HH:mm')}">2025.06.22 14:37</span>
                 </span>
-                <span class="info-item">
+              <span class="info-item">
                   <span class="material-symbols-outlined">visibility</span>
                   <span th:text="'조회 ' + ${question.viewCount}">조회 284</span>
                 </span>
-              </div>
             </div>
-            <!-- /Question Header -->
+          </div>
+          <!-- /Question Header -->
 
-            <div class="question-body">
-              <div th:utext="${question.content}" class="detail-content-body">본문 미리보기</div>
-            </div>
+          <div class="question-body">
+            <div th:utext="${question.content}" class="detail-content-body">본문 미리보기</div>
+          </div>
 
-              <div class="attachment-section" th:if="${not #lists.isEmpty(attachments)}">
-                <h3 class="attachment-title">
-                  <span class="material-symbols-outlined">attach_file</span>
-                  첨부파일
-                </h3>
-                <ul class="att-file-list">
-                  <li th:each="att : ${attachments}" class="att-file-row"
-                      th:with="lowerName=${#strings.toLowerCase(att.originalName)},
+          <div class="attachment-section" th:if="${not #lists.isEmpty(attachments)}">
+            <h3 class="attachment-title">
+              <span class="material-symbols-outlined">attach_file</span>
+              첨부파일
+            </h3>
+            <ul class="att-file-list">
+              <li th:each="att : ${attachments}" class="att-file-row"
+                  th:with="lowerName=${#strings.toLowerCase(att.originalName)},
                                isAudio=${(att.fileType != null and #strings.startsWith(att.fileType, 'audio/'))
                                          or #strings.endsWith(lowerName, '.mp3')
                                          or #strings.endsWith(lowerName, '.m4a')
@@ -220,414 +398,476 @@
                                          or #strings.endsWith(lowerName, '.aac')}">
                     <span class="material-symbols-outlined att-file-ic"
                           th:text="${isAudio} ? 'mic' : 'description'">description</span>
-                    <div class="att-file-main">
-                      <span class="att-file-name" th:text="${att.originalName}">파일명</span>
-                      <audio th:if="${isAudio}" class="att-file-audio" controls preload="none"
-                             th:src="@{'/questions/attachments/' + ${att.id} + '/stream'}"></audio>
-                    </div>
-                    <a th:href="@{'/questions/attachments/' + ${att.id} + '/download'}"
-                       th:attr="download=${att.originalName}"
-                       class="att-file-download" aria-label="다운로드" title="다운로드">
-                      <span class="material-symbols-outlined">download</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-            <!-- [번역 박스] 서버에서 Papago 번역본을 캐시해 렌더 (question.translatedContent) -->
-            <div class="translation-box">
-              <div class="translation-header">
-                <span class="translation-label">
-                  <span class="translation-logo">P</span>
-                  Papago 자동 번역
-                </span>
-                <span class="translation-direction"
-                      th:text="'AUTO → ' + ${#strings.toUpperCase(question.languageCode)}">AUTO → EN</span>
-              </div>
-              <div class="translation-body">
-                <!-- 번역문 있음 -->
-                <p th:if="${!#strings.isEmpty(question.translatedContent)}"
-                   th:text="${question.translatedContent}">번역문</p>
-                <!-- 원문 언어 == 대상 언어 (빈 문자열로 캐싱된 상태) -->
-                <p th:if="${question.translatedContent != null and #strings.isEmpty(question.translatedContent)}">
-                  본문 언어가 번역 언어와 같아 번역하지 않습니다.
-                </p>
-                <!-- 미번역/실패 (null): 다음 조회 시 자동 재시도 -->
-                <p th:if="${question.translatedContent == null}">
-                  번역을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.
-                </p>
-              </div>
-            </div>
-            </div>
-            <!-- /Question Card -->
-
-            <!-- Answer Button -->
-            <button class="btn btn-primary btn-lg answer-btn">
-              <span class="material-symbols-outlined">edit</span>
-              답변 등록
-            </button>
-
-            <!-- Answers Section -->
-            <section class="answers-section">
-              <div class="answers-header">
-                <h2 class="answers-title" id="answers-title">답변 불러오는 중...</h2>
-              </div>
-
-              <!-- Answer Items (JS로 렌더링) -->
-              <div class="answers-list" id="answers-list"></div>
-            </section>
+                <div class="att-file-main">
+                  <span class="att-file-name" th:text="${att.originalName}">파일명</span>
+                  <audio th:if="${isAudio}" class="att-file-audio" controls preload="none"
+                         th:src="@{'/questions/attachments/' + ${att.id} + '/stream'}"></audio>
+                </div>
+                <a th:href="@{'/questions/attachments/' + ${att.id} + '/download'}"
+                   th:attr="download=${att.originalName}"
+                   class="att-file-download" aria-label="다운로드" title="다운로드">
+                  <span class="material-symbols-outlined">download</span>
+                </a>
+              </li>
+            </ul>
           </div>
 
-          <!-- Sidebar -->
-          <aside class="detail-sidebar">
-            <!-- [사이드바: 작성자 정보] 백엔드 연결 필요: 닉네임/아바타, 작성 질문 수, 가입일 -->
-            <div class="card">
-              <h3 class="card-title">
-                <span class="material-symbols-outlined">account_circle</span>
-                작성자 정보
-              </h3>
-              <div class="author-card author-card-row" style="position:relative;">
-                <div class="author-avatar-lg"
-                     th:text="${question.nickname != null ? question.nickname.substring(0,1) : '?'}">박</div>
-                <div class="author-details" style="flex:1; min-width:0;">
-                  <div class="author-name-row"
-                       style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <!-- [번역 박스] 서버에서 Papago 번역본을 캐시해 렌더 (question.translatedContent) -->
+          <div class="translation-box">
+            <div class="translation-header">
+              <span class="translation-label">
+                <span class="translation-logo">P</span>
+                Papago 자동 번역
+              </span>
+              <span class="translation-direction"
+                    th:text="'AUTO → ' + ${#strings.toUpperCase(question.languageCode)}">AUTO → EN</span>
+            </div>
+            <div class="translation-body">
+              <!-- 번역문 있음 -->
+              <p th:if="${!#strings.isEmpty(question.translatedContent)}"
+                 th:text="${question.translatedContent}">번역문</p>
+              <!-- 원문 언어 == 대상 언어 (빈 문자열로 캐싱된 상태) -->
+              <p th:if="${question.translatedContent != null and #strings.isEmpty(question.translatedContent)}">
+                본문 언어가 번역 언어와 같아 번역하지 않습니다.
+              </p>
+              <!-- 미번역/실패 (null): 다음 조회 시 자동 재시도 -->
+              <p th:if="${question.translatedContent == null}">
+                번역을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- /Question Card -->
+
+        <!-- Answer Button -->
+        <button th:if="${!isOwner}" class="btn btn-primary btn-lg answer-btn">
+          <span class="material-symbols-outlined">edit</span>
+          답변 등록
+        </button>
+
+        <!-- Answers Section -->
+        <section class="answers-section">
+          <div class="answers-header">
+            <h2 class="answers-title" id="answers-title">답변 불러오는 중...</h2>
+          </div>
+
+          <!-- Answer Items (JS로 렌더링) -->
+          <div class="answers-list" id="answers-list"></div>
+        </section>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="detail-sidebar">
+        <!-- [사이드바: 작성자 정보] 백엔드 연결 필요: 닉네임/아바타, 작성 질문 수, 가입일 -->
+        <div class="card">
+          <h3 class="card-title">
+            <span class="material-symbols-outlined">account_circle</span>
+            작성자 정보
+          </h3>
+          <div class="author-card author-card-row" style="position:relative;">
+            <div class="author-avatar-lg"
+                 th:text="${question.nickname != null ? question.nickname.substring(0,1) : '?'}">박
+            </div>
+            <div class="author-details" style="flex:1; min-width:0;">
+              <div class="author-name-row"
+                   style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
                     <span class="author-name"
                           th:text="${question.nickname != null ? question.nickname : '탈퇴한 회원'}">박민준</span>
-                    <!-- 케밥 메뉴 (유효 회원만) -->
-                    <button th:if="${question.nickname != null}" type="button"
-                            class="author-kebab-btn" onclick="toggleAuthorMenu(event)"
-                            aria-label="작성자 메뉴"
-                            style="background:none; border:none; cursor:pointer; padding:2px 6px; font-size:18px; line-height:1; color:#666; border-radius:6px;">⋮</button>
-                  </div>
-                  <div class="author-role"
-                       th:text="${(question.nativeLanguage != null ? question.nativeLanguage : '-') + ' 원어민 · ' + question.languageName + ' 학습 중'}">
-                    한국어 원어민 · 영어 학습 중
-                  </div>
-                </div>
-                <!-- 드롭다운 -->
-                <div th:if="${question.nickname != null}" id="authorMenu"
-                     style="display:none; position:absolute; top:36px; right:8px; z-index:20; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); min-width:140px; overflow:hidden;">
-                  <a th:href="@{${isOwner ? '/mypage' : '/users/' + question.userId}}"
-                     style="display:block; padding:10px 14px; text-decoration:none; color:#333; font-size:14px;"
-                     th:text="${isOwner} ? '마이페이지로 이동' : '프로필로 이동'">프로필로 이동</a>
-                </div>
+                <!-- 케밥 메뉴 (유효 회원만) -->
+                <button th:if="${question.nickname != null}" type="button"
+                        class="author-kebab-btn" onclick="toggleAuthorMenu(event)"
+                        aria-label="작성자 메뉴"
+                        style="background:none; border:none; cursor:pointer; padding:2px 6px; font-size:18px; line-height:1; color:#666; border-radius:6px;">
+                  ⋮
+                </button>
               </div>
-              <div class="author-stats">
-                <div class="stat-item">
-                  <div class="stat-value" th:text="${questionCount}">12</div>
-                  <div class="stat-label">작성 질문</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-value"
-                       th:text="${question.authorJoinedAt != null ? #temporals.format(question.authorJoinedAt, 'yyyy.MM') : '-'}">2024.03</div>
-                  <div class="stat-label">가입일</div>
-                </div>
+              <div class="author-role"
+                   th:text="${(question.nativeLanguage != null ? question.nativeLanguage : '-') + ' 원어민 · ' + question.languageName + ' 학습 중'}">
+                한국어 원어민 · 영어 학습 중
               </div>
             </div>
-
-            <!-- [사이드바: 관련 질문] 백엔드 연결 필요: 관련 질문 목록 반복 렌더링 -->
-            <div class="card">
-              <h3 class="card-title">
-                <span class="material-symbols-outlined">link</span>
-                관련 질문
-              </h3>
-              <div class="related-questions">
-                <!-- 관련 질문이 있을 때: 최대 3개 반복 -->
-                <a th:each="rel : ${relatedQuestions}"
-                   th:href="@{/questions/{id}(id=${rel.questionId})}"
-                   class="related-item">
-                  <span class="related-title" th:text="${rel.title}">관련 질문 제목</span>
-                  <span class="related-tags">
-                  <!-- 상태배지: 본문과 동일한 3분기 -->
-                  <span th:if="${rel.status == 'PENDING'}"  class="badge badge-pending">답변대기</span>
-                  <span th:if="${rel.status == 'ANSWERED'}" class="badge badge-progress">채택대기</span>
-                  <span th:if="${rel.status == 'ADOPTED'}"  class="badge badge-adopted">채택됨</span>
-                                <!-- 언어 태그 / 카테고리 태그 -->
-                  <span class="tag primary"   th:text="${rel.languageName}">언어</span>
-                  <span class="tag secondary"
-                        th:text="${T(com.itmal.question.dto.Category).labelOf(rel.category)}">카테고리</span>
-                    <!-- 질문 대상 배지: 본문과 동일 (라벨은 Target enum) -->
-                  <span class="badge badge-tutor" th:if="${rel.target == 'tutor'}"
-                        th:text="${T(com.itmal.question.dto.Target).labelOf(rel.target)}">튜터 전용</span>
-                  <span class="tag secondary" th:if="${rel.target == 'community'}"
-                        th:text="${T(com.itmal.question.dto.Target).labelOf(rel.target)}">전체 사용자</span>
-                </span>
-                </a>
-
-                <!-- 관련 질문이 하나도 없을 때 -->
-                <p th:if="${#lists.isEmpty(relatedQuestions)}" class="related-empty">
-                  관련 질문이 없습니다.
-                </p>
-              </div>
+            <!-- 드롭다운 -->
+            <div th:if="${question.nickname != null}" id="authorMenu"
+                 style="display:none; position:absolute; top:36px; right:8px; z-index:20; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); min-width:140px; overflow:hidden;">
+              <a th:href="@{${isOwner ? '/mypage' : '/users/' + question.userId}}"
+                 style="display:block; padding:10px 14px; text-decoration:none; color:#333; font-size:14px;"
+                 th:text="${isOwner} ? '마이페이지로 이동' : '프로필로 이동'">프로필로 이동</a>
             </div>
-          </aside>
+          </div>
+          <div class="author-stats">
+            <div class="stat-item">
+              <div class="stat-value" th:text="${questionCount}">12</div>
+              <div class="stat-label">작성 질문</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value"
+                   th:text="${question.authorJoinedAt != null ? #temporals.format(question.authorJoinedAt, 'yyyy.MM') : '-'}">
+                2024.03
+              </div>
+              <div class="stat-label">가입일</div>
+            </div>
+          </div>
         </div>
-      </div>
-    </main>
 
-  <!-- 신고 사유 입력 모달 (작성자 아닌 로그인 유저) -->
-  <div class="report-modal-overlay" id="report-modal" hidden>
-    <div class="report-modal">
-      <h3 class="report-modal-title">신고 사유</h3>
-      <textarea id="report-reason" class="report-modal-textarea"
-                placeholder="신고 사유를 입력해주세요." maxlength="500"></textarea>
-      <div class="report-modal-actions">
-        <button type="button" class="btn btn-outline" id="report-cancel">취소</button>
-        <button type="button" class="btn btn-primary" id="report-submit">신고</button>
-      </div>
+        <!-- [사이드바: 관련 질문] 백엔드 연결 필요: 관련 질문 목록 반복 렌더링 -->
+        <div class="card">
+          <h3 class="card-title">
+            <span class="material-symbols-outlined">link</span>
+            관련 질문
+          </h3>
+          <div class="related-questions">
+            <!-- 관련 질문이 있을 때: 최대 3개 반복 -->
+            <a th:each="rel : ${relatedQuestions}"
+               th:href="@{/questions/{id}(id=${rel.questionId})}"
+               class="related-item">
+              <span class="related-title" th:text="${rel.title}">관련 질문 제목</span>
+              <span class="related-tags">
+                  <!-- 상태배지: 본문과 동일한 3분기 -->
+                  <span th:if="${rel.status == 'PENDING'}" class="badge badge-pending">답변대기</span>
+                  <span th:if="${rel.status == 'ANSWERED'}" class="badge badge-progress">채택대기</span>
+                  <span th:if="${rel.status == 'ADOPTED'}" class="badge badge-adopted">채택됨</span>
+                <!-- 언어 태그 / 카테고리 태그 -->
+                  <span class="tag primary" th:text="${rel.languageName}">언어</span>
+                  <span class="tag secondary" th:text="${rel.category}">카테고리</span>
+                <!-- 질문 대상 배지: 본문과 동일한 3분기 -->
+                  <span class="badge badge-tutor" th:if="${rel.target == 'tutor'}">
+                  <span class="material-symbols-outlined">verified_user</span>
+                  튜터 전용
+                  </span>
+                  <span class="badge badge-tutor" th:if="${rel.target == 'native'}">
+                  <span class="material-symbols-outlined">record_voice_over</span>
+                  원어민만
+                  </span>
+                  <span class="tag secondary" th:if="${rel.target == 'community'}">전체 사용자</span>
+                </span>
+            </a>
+
+            <!-- 관련 질문이 하나도 없을 때 -->
+            <p th:if="${#lists.isEmpty(relatedQuestions)}" class="related-empty">
+              관련 질문이 없습니다.
+            </p>
+          </div>
+        </div>
+      </aside>
     </div>
   </div>
+</main>
 
-  <div th:replace="~{fragments/footer :: footer}"></div>
+<!-- 신고 사유 입력 모달 (작성자 아닌 로그인 유저) -->
+<div class="report-modal-overlay" id="report-modal" hidden>
+  <div class="report-modal">
+    <h3 class="report-modal-title">신고 사유</h3>
+    <textarea id="report-reason" class="report-modal-textarea"
+              placeholder="신고 사유를 입력해주세요." maxlength="500"></textarea>
+    <div class="report-modal-actions">
+      <button type="button" class="btn btn-outline" id="report-cancel">취소</button>
+      <button type="button" class="btn btn-primary" id="report-submit">신고</button>
+    </div>
+  </div>
+</div>
+<!--  <button class="like-btn" data-target-type="QUESTION" th:attr="data-target-id=${question.questionId}">-->
+<!--    <span class="heart-icon">♡</span>-->
+<!--    <span class="like-count" th:text="${question.likeCount}">0</span>-->
+<!--  </button>-->
 
-    <script th:inline="javascript">
-      const questionId   = /*[[${question.questionId}]]*/ 0;
-      const questionUserId = /*[[${question.userId}]]*/ null;
-      const currentUserId  = /*[[${currentUserId}]]*/ null;
-      const csrfToken      = document.querySelector('meta[name="_csrf"]').content;
-      const csrfHeader     = document.querySelector('meta[name="_csrf_header"]').content;
+<script src="/js/like.js"></script>
+<div th:replace="~{fragments/footer :: footer}"></div>
 
-      // 답변 등록 버튼
-      document.querySelector(".answer-btn").addEventListener("click", () => {
-        window.location.href = "/answers/write?questionId=" + questionId;
-      });
+<script th:inline="javascript">
+  const questionId = /*[[${question.questionId}]]*/ 0;
+  const questionUserId = /*[[${question.userId}]]*/ null;
+  const currentUserId = /*[[${currentUserId}]]*/ null;
+  const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+  const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-      // 시간 포맷 (yyyy.MM.dd HH:mm)
-      function formatDate(isoStr) {
-        const d = new Date(isoStr);
-        const pad = n => String(n).padStart(2, '0');
-        return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      }
+  // 답변 등록 버튼 (본인 질문이면 버튼 자체가 없음)
+  const answerBtn = document.querySelector(".answer-btn");
+  if (answerBtn) {
+    answerBtn.addEventListener("click", () => {
+      window.location.href = "/answers/write?questionId=" + questionId;
+    });
+  }
 
-      // 텍스트를 HTML-safe 텍스트 노드로
-      function esc(str) {
-        const d = document.createElement('div');
-        d.textContent = str || '';
-        return d.innerHTML;
-      }
+  // 시간 포맷 (yyyy.MM.dd HH:mm)
+  function formatDate(isoStr) {
+    const d = new Date(isoStr);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
 
-      function buildAnswerCard(a) {
-        const initial  = (a.nickname || '?')[0].toUpperCase();
-        const adopted  = a.accepted ? 'adopted' : '';
-        const isAuthor = currentUserId && currentUserId === a.userId;
-        const isQAuthor = currentUserId && currentUserId === questionUserId;
+  // 텍스트를 HTML-safe 텍스트 노드로
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
 
-        const adoptBtn = (isQAuthor && !a.accepted) ? `
+  function buildAnswerCard(a) {
+    const initial = (a.nickname || '?')[0].toUpperCase();
+    const adopted = a.accepted ? 'adopted' : '';
+    const isAuthor = currentUserId && currentUserId === a.userId;
+    const isQAuthor = currentUserId && currentUserId === questionUserId;
+
+    const adoptBtn = (isQAuthor && !a.accepted) ? `
           <form action="/answers/${a.answerId}/adopt?questionId=${questionId}" method="post" style="display:inline">
             <input type="hidden" name="_csrf" value="${csrfToken}">
             <button type="submit" class="action-btn">채택</button>
           </form>` : '';
 
-        const editDeleteBtns = isAuthor ? `
+    const editDeleteBtns = isAuthor ? `
           <a href="/answers/${a.answerId}/edit?questionId=${questionId}" class="action-btn">수정</a>
-          <form action="/answers/${a.answerId}/delete?questionId=${questionId}" method="post" style="display:inline">
+          <form action="/answers/${a.answerId}/delete?questionId=${questionId}" method="post" style="display:inline" onsubmit="return confirm('정말 삭제하시겠어요? 삭제 후에는 복구할 수 없습니다.');">
             <input type="hidden" name="_csrf" value="${csrfToken}">
             <button type="submit" class="action-btn">삭제</button>
           </form>` : '';
 
-        const adoptedBadge = a.accepted ? `
+    const reportBtnHtml = (!isAuthor && currentUserId) ? `
+          <button type="button" class="action-btn" onclick="openReportModal('ANSWER', ${a.answerId})">
+            <span class="material-symbols-outlined">flag</span>
+            신고
+          </button>` : '';
+
+    const adoptedBadge = a.accepted ? `
           <div class="answer-badge">
             <span class="material-symbols-outlined">check_circle</span>
             채택된 답변
           </div>` : '';
 
-        return `
+    return `
           <article class="answer-card ${adopted}">
             ${adoptedBadge}
             <div class="answer-author">
-              <div class="author-avatar">${esc(initial)}</div>
-              <div class="author-info">
-                <div class="author-name">${esc(a.nickname || '탈퇴한 회원')}</div>
-              </div>
+              <span class="author-clickable"
+                    ${a.nickname ? 'onclick="toggleAnswerProfile(event)"' : ''}
+                    style="position:relative; display:inline-flex; align-items:center; gap:10px; ${a.nickname ? 'cursor:pointer;' : ''}">
+                <div class="author-avatar">${esc(initial)}</div>
+                <div class="author-info">
+                  <div class="author-name">${esc(a.nickname || '탈퇴한 회원')}</div>
+                </div>
+                ${a.nickname ? `
+                <a class="answer-profile-btn btn btn-sm btn-outline"
+                   href="${isAuthor ? '/mypage' : '/users/' + a.userId}"
+                   style="display:none; position:absolute; top:44px; left:0; z-index:20; white-space:nowrap;">
+                  ${isAuthor ? '마이페이지로 이동' : '프로필로 이동'}
+                </a>` : ''}
+              </span>
             </div>
             <div class="answer-content">
               <p>${esc(a.content)}</p>
             </div>
             <div class="answer-actions">
-              <form action="/answers/${a.answerId}/like?questionId=${questionId}" method="post" style="display:inline">
-                <input type="hidden" name="_csrf" value="${csrfToken}">
-                <button type="submit" class="action-btn">
-                  <span class="material-symbols-outlined">thumb_up</span>
-                  도움이 돼요 ${a.likeCount}
-                </button>
-              </form>
+              <button class="like-btn" data-target-type="ANSWER" data-target-id="${a.answerId}">
+                <span class="heart-icon">♡</span>
+                <span class="like-count">${a.likeCount}</span>
+              </button>
               ${adoptBtn}
               ${editDeleteBtns}
+              ${reportBtnHtml}
             </div>
             <div class="answer-footer">
-              <span>${formatDate(a.createdAt)}</span>
+              <span class="info-item">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <span>${formatDate(a.createdAt)}</span>
+              </span>
             </div>
           </article>`;
+  }
+
+  // 답변 로드
+  fetch(`/answers?questionId=${questionId}`, {
+    headers: {[csrfHeader]: csrfToken}
+  })
+          .then(res => res.json())
+          .then(answers => {
+            document.getElementById('answers-title').textContent = `답변 ${answers.length}개`;
+            const list = document.getElementById('answers-list');
+            if (answers.length === 0) {
+              list.innerHTML = '<p style="color:#888;padding:1rem 0">아직 답변이 없습니다.</p>';
+              return;
+            }
+            list.innerHTML = answers.map(buildAnswerCard).join('');
+            list.querySelectorAll('.like-btn').forEach(initLikeButton);
+          })
+          .catch(() => {
+            document.getElementById('answers-title').textContent = '답변';
+            document.getElementById('answers-list').innerHTML =
+                    '<p style="color:#888;padding:1rem 0">답변을 불러오지 못했습니다.</p>';
+          });
+</script>
+
+<script>
+  // Answer tab switching
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      document
+              .querySelectorAll(".tab-btn")
+              .forEach((b) => b.classList.remove("active"));
+      e.currentTarget.classList.add("active");
+    });
+  });
+
+  // 작성자 케밥(⋮) 메뉴 열고 닫기
+  (function () {
+    const menuBtn = document.getElementById("question-menu-btn");
+    const dropdown = document.getElementById("question-menu-dropdown");
+    if (!menuBtn || !dropdown) return; // 작성자가 아니면 메뉴 자체가 없음
+
+    function closeMenu() {
+      dropdown.setAttribute("hidden", "");
+      menuBtn.setAttribute("aria-expanded", "false");
+    }
+
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const willOpen = dropdown.hasAttribute("hidden");
+      if (willOpen) {
+        dropdown.removeAttribute("hidden");
+        menuBtn.setAttribute("aria-expanded", "true");
+      } else {
+        closeMenu();
+      }
+    });
+
+    // 바깥 클릭 / ESC 로 닫기
+    document.addEventListener("click", (e) => {
+      if (!dropdown.hasAttribute("hidden") && !e.target.closest(".question-menu")) {
+        closeMenu();
+      }
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMenu();
+    });
+
+    // 간단 토스트 (네이티브 alert 대신)
+    function showToast(message) {
+      const t = document.createElement("div");
+      t.className = "app-toast";
+      t.textContent = message;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2500);
+    }
+
+    // 신고: 로그인 유저에게만 버튼이 있음 → 커스텀 모달로 사유 입력 (질문/답변 공용)
+    const questionReportBtn = document.getElementById("question-report-btn");
+    const reportModal = document.getElementById("report-modal");
+    const reportReason = document.getElementById("report-reason");
+    const reportCancel = document.getElementById("report-cancel");
+    const reportSubmit = document.getElementById("report-submit");
+    let reportTarget = null; // { type: "QUESTION" | "ANSWER", id: number }
+
+    function closeReportModal() {
+      if (reportModal) reportModal.setAttribute("hidden", "");
+    }
+
+    // 답변 카드의 신고 버튼(onclick="openReportModal(...)")에서 호출 → 전역 스코프에 노출
+    window.openReportModal = function (type, id) {
+      if (!reportModal) return;
+      closeMenu();
+      reportTarget = { type, id };
+      reportReason.value = "";
+      reportModal.removeAttribute("hidden");
+      reportReason.focus();
+    };
+
+    if (reportModal) {
+      if (questionReportBtn) {
+        questionReportBtn.addEventListener("click", () => {
+          openReportModal("QUESTION", Number(questionReportBtn.dataset.questionId));
+        });
       }
 
-      // 답변 로드
-      fetch(`/answers?questionId=${questionId}`, {
-        headers: { [csrfHeader]: csrfToken }
-      })
-        .then(res => res.json())
-        .then(answers => {
-          document.getElementById('answers-title').textContent = `답변 ${answers.length}개`;
-          const list = document.getElementById('answers-list');
-          if (answers.length === 0) {
-            list.innerHTML = '<p style="color:#888;padding:1rem 0">아직 답변이 없습니다.</p>';
-            return;
-          }
-          list.innerHTML = answers.map(buildAnswerCard).join('');
-        })
-        .catch(() => {
-          document.getElementById('answers-title').textContent = '답변';
-          document.getElementById('answers-list').innerHTML =
-            '<p style="color:#888;padding:1rem 0">답변을 불러오지 못했습니다.</p>';
-        });
-    </script>
-
-    <script>
-      // Answer tab switching
-      document.querySelectorAll(".tab-btn").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          document
-            .querySelectorAll(".tab-btn")
-            .forEach((b) => b.classList.remove("active"));
-          e.currentTarget.classList.add("active");
-        });
+      reportCancel.addEventListener("click", closeReportModal);
+      reportModal.addEventListener("click", (e) => {   // 오버레이 바깥 클릭 시 닫기
+        if (e.target === reportModal) closeReportModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeReportModal();
       });
 
-      // 작성자 케밥(⋮) 메뉴 열고 닫기
-      (function () {
-        const menuBtn = document.getElementById("question-menu-btn");
-        const dropdown = document.getElementById("question-menu-dropdown");
-        if (!menuBtn || !dropdown) return; // 작성자가 아니면 메뉴 자체가 없음
+      // 모달의 신고 버튼 → 실제 전송
+      reportSubmit.addEventListener("click", async () => {
+        if (!reportTarget) return;
+        const reason = reportReason.value.trim();
+        if (!reason) {
+          reportReason.focus();
+          return;
+        } // 빈 값이면 포커스만
 
-        function closeMenu() {
-          dropdown.setAttribute("hidden", "");
-          menuBtn.setAttribute("aria-expanded", "false");
-        }
-
-        menuBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const willOpen = dropdown.hasAttribute("hidden");
-          if (willOpen) {
-            dropdown.removeAttribute("hidden");
-            menuBtn.setAttribute("aria-expanded", "true");
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        try {
+          const res = await fetch('/api/reports', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', [csrfHeader]: csrfToken},
+            body: JSON.stringify({
+              targetType: reportTarget.type,
+              targetId: reportTarget.id,
+              reason
+            })
+          });
+          if (res.ok) {
+            const msg = await res.text();
+            closeReportModal();
+            showToast(msg || "신고되었습니다.");
+          } else if (res.status === 401) {
+            showToast("로그인이 필요합니다.");
           } else {
-            closeMenu();
+            const msg = await res.text();
+            showToast(msg || ('신고에 실패했습니다. (' + res.status + ')'));
           }
-        });
-
-        // 바깥 클릭 / ESC 로 닫기
-        document.addEventListener("click", (e) => {
-          if (!dropdown.hasAttribute("hidden") && !e.target.closest(".question-menu")) {
-            closeMenu();
-          }
-        });
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape") closeMenu();
-        });
-
-        // 간단 토스트 (네이티브 alert 대신)
-        function showToast(message) {
-          const t = document.createElement("div");
-          t.className = "app-toast";
-          t.textContent = message;
-          document.body.appendChild(t);
-          setTimeout(() => t.remove(), 2500);
+        } catch (e) {
+          console.error(e);
+          showToast("네트워크 오류가 발생했습니다.");
         }
+      });
+    }
+  })();
+</script>
 
-        // 신고: 작성자가 아닌 로그인 유저에게만 버튼이 있음 → 커스텀 모달로 사유 입력
-        const reportBtn    = document.getElementById("question-report-btn");
-        const reportModal  = document.getElementById("report-modal");
-        const reportReason = document.getElementById("report-reason");
-        const reportCancel = document.getElementById("report-cancel");
-        const reportSubmit = document.getElementById("report-submit");
+<script th:inline="javascript">
+  // ── 작성자 프로필 이동 UI ──────────────────────────────
+  function closeProfileMenus() {
+    const btn = document.getElementById('headerProfileBtn');
+    const menu = document.getElementById('authorMenu');
+    if (btn) btn.style.display = 'none';
+    if (menu) menu.style.display = 'none';
+    document.querySelectorAll('.answer-profile-btn').forEach(b => b.style.display = 'none');
+  }
 
-        function closeReportModal() {
-          if (reportModal) reportModal.setAttribute("hidden", "");
-        }
+  // 답변 작성자 클릭 → "프로필로 이동" 버튼 토글
+  function toggleAnswerProfile(e) {
+    e.stopPropagation();
+    const btn = e.currentTarget.querySelector('.answer-profile-btn');
+    if (!btn) return;
+    const wasOpen = btn.style.display !== 'none';
+    closeProfileMenus();
+    btn.style.display = wasOpen ? 'none' : 'inline-block';
+  }
 
-        if (reportBtn && reportModal) {
-          // 신고 클릭 → 케밥 닫고 모달 열기
-          reportBtn.addEventListener("click", () => {
-            closeMenu();
-            reportReason.value = "";
-            reportModal.removeAttribute("hidden");
-            reportReason.focus();
-          });
+  // 헤더 닉네임 클릭 → "프로필로 이동" 버튼 토글
+  function toggleHeaderProfile(e) {
+    e.stopPropagation();
+    const btn = document.getElementById('headerProfileBtn');
+    if (!btn) return;
+    const menu = document.getElementById('authorMenu');
+    if (menu) menu.style.display = 'none';
+    btn.style.display = (btn.style.display === 'none') ? 'inline-block' : 'none';
+  }
 
-          reportCancel.addEventListener("click", closeReportModal);
-          reportModal.addEventListener("click", (e) => {   // 오버레이 바깥 클릭 시 닫기
-            if (e.target === reportModal) closeReportModal();
-          });
-          document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") closeReportModal();
-          });
+  // 사이드바 케밥(⋮) 클릭 → 드롭다운 토글
+  function toggleAuthorMenu(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('authorMenu');
+    if (!menu) return;
+    const btn = document.getElementById('headerProfileBtn');
+    if (btn) btn.style.display = 'none';
+    menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+  }
 
-          // 모달의 신고 버튼 → 실제 전송
-          reportSubmit.addEventListener("click", async () => {
-            const reason = reportReason.value.trim();
-            if (!reason) { reportReason.focus(); return; } // 빈 값이면 포커스만
+  // 바깥 클릭 시 닫기
+  document.addEventListener('click', closeProfileMenus);
+</script>
 
-            const csrfToken  = document.querySelector('meta[name="_csrf"]').content;
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-            try {
-              const res = await fetch('/api/reports', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
-                body: JSON.stringify({
-                  targetType: "QUESTION",
-                  targetId: Number(reportBtn.dataset.questionId),
-                  reason
-                })
-              });
-              if (res.ok) {
-                const msg = await res.text();
-                closeReportModal();
-                showToast(msg || "신고되었습니다.");
-              } else if (res.status === 401) {
-                showToast("로그인이 필요합니다.");
-              } else {
-                const msg = await res.text();
-                showToast(msg || ('신고에 실패했습니다. (' + res.status + ')'));
-              }
-            } catch (e) {
-              console.error(e);
-              showToast("네트워크 오류가 발생했습니다.");
-            }
-          });
-        }
-      })();
-    </script>
-
-    <script th:inline="javascript">
-      // ── 작성자 프로필 이동 UI ──────────────────────────────
-      function closeProfileMenus() {
-        const btn = document.getElementById('headerProfileBtn');
-        const menu = document.getElementById('authorMenu');
-        if (btn)  btn.style.display = 'none';
-        if (menu) menu.style.display = 'none';
-      }
-      // 헤더 닉네임 클릭 → "프로필로 이동" 버튼 토글
-      function toggleHeaderProfile(e) {
-        e.stopPropagation();
-        const btn = document.getElementById('headerProfileBtn');
-        if (!btn) return;
-        const menu = document.getElementById('authorMenu');
-        if (menu) menu.style.display = 'none';
-        btn.style.display = (btn.style.display === 'none') ? 'inline-block' : 'none';
-      }
-      // 사이드바 케밥(⋮) 클릭 → 드롭다운 토글
-      function toggleAuthorMenu(e) {
-        e.stopPropagation();
-        const menu = document.getElementById('authorMenu');
-        if (!menu) return;
-        const btn = document.getElementById('headerProfileBtn');
-        if (btn) btn.style.display = 'none';
-        menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
-      }
-      // 바깥 클릭 시 닫기
-      document.addEventListener('click', closeProfileMenus);
-    </script>
-
-    <script src="/js/comment.js"></script>
-  </body>
+<script src="/js/comment.js"></script>
+</body>
 </html>

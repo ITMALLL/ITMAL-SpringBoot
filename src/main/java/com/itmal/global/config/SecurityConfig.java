@@ -44,9 +44,17 @@ public class SecurityConfig {
                     new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                     request -> request.getServletPath().startsWith("/api/")
                 )
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    request.setAttribute("status", 403);
+                    request.setAttribute("message", "접근 권한이 없습니다.");
+                    request.getRequestDispatcher("/error/403").forward(request, response);
+                })
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/forgot-password", "/forgot-password/reset").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/tutor-applications").authenticated()
                 .requestMatchers("/mypage/**", "/register/social").authenticated()
                 .requestMatchers(HttpMethod.GET,  "/questions/write").authenticated()
                 .requestMatchers(HttpMethod.POST, "/questions/write").authenticated()
@@ -55,6 +63,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/questions/*/edit").authenticated()
                 .requestMatchers("/questions", "/questions/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/error/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/chat-request/*/accept", "/api/chat-request/*/reject").hasRole("TUTOR")
                 .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/email/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/**").authenticated()
