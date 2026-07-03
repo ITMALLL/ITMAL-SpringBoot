@@ -145,6 +145,25 @@
       document.getElementById('empty-msg').style.display = visible.length === 0 ? 'block' : 'none';
     }
 
+    function showNotiModal(message) {
+      return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.className = 'noti-modal-overlay';
+        overlay.innerHTML = `
+          <div class="noti-modal">
+            <p></p>
+            <button>확인</button>
+          </div>
+        `;
+        overlay.querySelector('p').textContent = message;
+        document.body.appendChild(overlay);
+        overlay.querySelector('button').addEventListener('click', () => {
+          overlay.remove();
+          resolve();
+        });
+      });
+    }
+
     function refreshBadge() {
       fetch('/api/notifications/unread-count')
         .then(res => res.json())
@@ -182,7 +201,7 @@
         if (e.target.closest('.btn-read')) return;
         const questionId = item.dataset.questionId;
         if (item.dataset.deleted === 'true') {
-          alert('삭제된 게시글입니다.');
+          await showNotiModal('삭제된 게시글입니다.');
           return;
         }
         if (item.classList.contains('unread')) {

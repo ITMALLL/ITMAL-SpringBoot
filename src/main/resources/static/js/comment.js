@@ -21,6 +21,16 @@ function getCsrfHeaders() {
   return { [headerEl.content]: tokenEl.content };
 }
 
+// 로그인 안 된 상태로 요청했을 때(401) 로그인 페이지로 보냄. 처리했으면 true 반환
+function redirectIfUnauthenticated(res) {
+  if (res.status === 401) {
+    alert("로그인이 필요합니다.");
+    window.location.href = "/login";
+    return true;
+  }
+  return false;
+}
+
 // HTML에서 필요한 요소들 변수에 담기
 function initCommentSection(section) {
   const answerId = section.dataset.answerId;
@@ -40,6 +50,7 @@ function initCommentSection(section) {
       body: JSON.stringify({ content }),
     });
 
+    if (redirectIfUnauthenticated(res)) return;
     if (!res.ok) {
       alert(await res.text());
       return;
@@ -62,6 +73,7 @@ function initCommentSection(section) {
         headers: { ...getCsrfHeaders() },
       });
 
+      if (redirectIfUnauthenticated(res)) return;
       if (!res.ok) {
         alert(await res.text());
         return;
@@ -83,6 +95,7 @@ function initCommentSection(section) {
         body: JSON.stringify({ targetType: "COMMENT", targetId: Number(commentId), reason }),
       });
 
+      if (redirectIfUnauthenticated(res)) return;
       if (!res.ok) {
         let message = "신고에 실패했습니다.";
         try {
@@ -91,10 +104,10 @@ function initCommentSection(section) {
         } catch (e) {
           // 서버가 JSON이 아닌 응답(에러 페이지 등)을 준 경우 - 기본 메시지 사용
         }
-        alert(message);
+        await showInfoModal(message);
         return;
       }
-      alert("신고되었습니다.");
+      await showInfoModal("신고되었습니다.");
     }
   });
 
@@ -136,6 +149,7 @@ function initCommentSection(section) {
         body: JSON.stringify({ content: newContent }),
       });
 
+      if (redirectIfUnauthenticated(res)) return;
       if (!res.ok) {
         alert(await res.text());
         return;
@@ -145,6 +159,28 @@ function initCommentSection(section) {
 
     cancelBtn.addEventListener("click", () => {
       loadComments();
+    });
+  }
+
+  function showInfoModal(message) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.className = "comment-modal-overlay";
+      overlay.innerHTML = `
+        <div class="comment-modal">
+          <p></p>
+          <div class="comment-modal-actions">
+            <button class="comment-modal-ok">확인</button>
+          </div>
+        </div>
+      `;
+      overlay.querySelector("p").textContent = message;
+      document.body.appendChild(overlay);
+
+      overlay.querySelector(".comment-modal-ok").addEventListener("click", () => {
+        overlay.remove();
+        resolve();
+      });
     });
   }
 
@@ -246,8 +282,9 @@ function initCommentSection(section) {
     // 이 페이지에 currentUserId가 없는 경우(다른 페이지에서 재사용 등)를 대비한 안전장치
     const myUserId = typeof currentUserId !== "undefined" ? currentUserId : null;
     const isMine = myUserId != null && Number(comment.userId) === Number(myUserId);
-    const reportBtn = isMine
-      ? ""
+    const actionsBtns = isMine
+      ? `<button class="comment-edit" data-comment-id="${comment.commentId}">수정</button>
+         <button class="comment-delete" data-comment-id="${comment.commentId}">삭제</button>`
       : `<button class="comment-report" data-comment-id="${comment.commentId}">신고</button>`;
 
     return `
@@ -260,9 +297,7 @@ function initCommentSection(section) {
           </div>
           <div class="comment-text">${content}</div>
           <div class="comment-actions">
-            <button class="comment-edit" data-comment-id="${comment.commentId}">수정</button>
-            <button class="comment-delete" data-comment-id="${comment.commentId}">삭제</button>
-            ${reportBtn}
+            ${actionsBtns}
           </div>
         </div>
       </div>
