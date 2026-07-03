@@ -1,5 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".comments-section").forEach(initCommentSection);
+
+  // 답변 카드가 나중에 동적으로(fetch 등으로) 추가돼도 자동으로 댓글 섹션 초기화
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType !== 1) return;
+        if (node.matches?.(".comments-section")) initCommentSection(node);
+        node.querySelectorAll?.(".comments-section").forEach(initCommentSection);
+      });
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 });
 
 function getCsrfHeaders() {
@@ -59,6 +71,30 @@ function initCommentSection(section) {
 
     if (e.target.classList.contains("comment-edit")) {
       startEdit(e.target.closest(".comment-item"), commentId);
+    }
+
+    if (e.target.classList.contains("comment-report")) {
+      const reason = await showReportModal();
+      if (!reason) return;
+
+      const res = await fetch(`/api/reports`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...getCsrfHeaders() },
+        body: JSON.stringify({ targetType: "COMMENT", targetId: Number(commentId), reason }),
+      });
+
+      if (!res.ok) {
+        let message = "신고에 실패했습니다.";
+        try {
+          const error = await res.json();
+          message = error.message;
+        } catch (e) {
+          // 서버가 JSON이 아닌 응답(에러 페이지 등)을 준 경우 - 기본 메시지 사용
+        }
+        alert(message);
+        return;
+      }
+      alert("신고되었습니다.");
     }
   });
 
@@ -139,6 +175,55 @@ function initCommentSection(section) {
     });
   }
 
+  function showReportModal() {
+    return new Promise((resolve) => {
+      const reasonOptions = ["욕설/비하", "스팸", "광고", "허위정보", "부적절한 내용", "기타"];
+
+      const overlay = document.createElement("div");
+      overlay.className = "comment-modal-overlay";
+      overlay.innerHTML = `
+        <div class="comment-modal comment-report-modal">
+          <div class="comment-report-modal-header">
+            <span class="comment-report-modal-icon">🚨</span>
+            <strong class="comment-report-modal-title">댓글 신고</strong>
+          </div>
+          <p class="comment-report-modal-subtitle">신고 사유를 선택해주세요. 허위 신고 시 제재를 받을 수 있습니다.</p>
+          <div class="comment-report-reason-options">
+            ${reasonOptions
+              .map(
+                (option, i) => `
+              <label class="comment-report-reason-option">
+                <input type="radio" name="report-reason" value="${option}" ${i === 0 ? "checked" : ""}>
+                ${option}
+              </label>`
+              )
+              .join("")}
+          </div>
+          <textarea class="comment-report-reason" rows="3" maxlength="200" placeholder="추가 설명 (선택, 최대 200자)"></textarea>
+          <div class="comment-modal-actions">
+            <button class="comment-modal-cancel">취소</button>
+            <button class="comment-modal-confirm">신고하기</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      const reasonInput = overlay.querySelector(".comment-report-reason");
+
+      overlay.querySelector(".comment-modal-cancel").addEventListener("click", () => {
+        overlay.remove();
+        resolve(null);
+      });
+      overlay.querySelector(".comment-modal-confirm").addEventListener("click", () => {
+        const selected = overlay.querySelector('input[name="report-reason"]:checked');
+        const detail = reasonInput.value.trim();
+        const reason = detail ? `${selected.value}: ${detail}` : selected.value;
+        overlay.remove();
+        resolve(reason);
+      });
+    });
+  }
+
   //댓글 목록 불러오기
   async function loadComments() {
     const res = await fetch(`/api/answers/${answerId}/comments`);
@@ -158,6 +243,13 @@ function initCommentSection(section) {
     const nickname = escapeHtml(comment.nickname ?? "익명");
     const content = escapeHtml(comment.content);
 
+    // 이 페이지에 currentUserId가 없는 경우(다른 페이지에서 재사용 등)를 대비한 안전장치
+    const myUserId = typeof currentUserId !== "undefined" ? currentUserId : null;
+    const isMine = myUserId != null && Number(comment.userId) === Number(myUserId);
+    const reportBtn = isMine
+      ? ""
+      : `<button class="comment-report" data-comment-id="${comment.commentId}">신고</button>`;
+
     return `
       <div class="comment-item">
         <div class="comment-avatar">${nickname[0]}</div>
@@ -170,7 +262,7 @@ function initCommentSection(section) {
           <div class="comment-actions">
             <button class="comment-edit" data-comment-id="${comment.commentId}">수정</button>
             <button class="comment-delete" data-comment-id="${comment.commentId}">삭제</button>
-            <button class="comment-report" data-comment-id="${comment.commentId}">신고</button>
+            ${reportBtn}
           </div>
         </div>
       </div>
