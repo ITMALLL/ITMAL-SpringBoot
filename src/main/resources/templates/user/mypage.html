@@ -303,6 +303,12 @@
         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
+    function stripHtml(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || '';
+    }
+
     function formatDate(dateStr) {
       if (!dateStr) return '';
       return new Date(dateStr).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -315,7 +321,10 @@
     function renderQuestions(list) {
       const el = document.getElementById('questions-list');
       if (!list.length) { el.innerHTML = emptyState('작성한 질문이 없습니다.'); return; }
-      el.innerHTML = list.map(q => `
+      el.innerHTML = list.map(q => {
+        const plain = q.content ? stripHtml(q.content) : '';
+        const preview = plain ? escapeHtml(plain.slice(0, 80)) + (plain.length > 80 ? '...' : '') : '';
+        return `
         <article class="activity-item" onclick="location.href='/questions/${q.questionId}'" style="cursor:pointer;">
           <div class="activity-header">
             <h3 class="activity-title">${escapeHtml(q.title)}</h3>
@@ -323,7 +332,7 @@
               ${q.languageName ? `<span class="badge badge-primary">${escapeHtml(q.languageName)}</span>` : ''}
             </div>
           </div>
-          <p class="activity-preview">${q.content ? escapeHtml(q.content.slice(0, 80)) + (q.content.length > 80 ? '...' : '') : ''}</p>
+          <p class="activity-preview">${preview}</p>
           <div class="activity-meta">
             <span class="material-symbols-outlined">calendar_today</span>
             <span>${formatDate(q.createdAt)}</span>
@@ -331,7 +340,8 @@
             <span>${q.viewCount ?? 0}회 조회</span>
           </div>
         </article>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function renderAnswers(list) {
