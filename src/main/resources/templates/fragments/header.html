@@ -86,6 +86,12 @@
 
       <!-- Notification + Auth -->
       <div class="flex items-center gap-4">
+        <!-- User Name -->
+        <span sec:authorize="isAuthenticated()"
+              th:text="${#authentication.principal.nickname} + '님'"
+              class="text-label-md text-on-surface-variant"
+              style="white-space:nowrap; padding:6px 12px; border-radius:var(--radius-full); background:var(--surface-container-low);"></span>
+
         <!-- Notification -->
         <a th:href="@{/notifications}" class="relative p-2 hover:bg-primary-fixed rounded-lg text-on-surface-variant inline-flex" style="position:relative;">
           <span class="material-symbols-outlined">notifications</span>
@@ -94,7 +100,7 @@
         </a>
 
         <!-- Auth Buttons -->
-        <div sec:authorize="isAnonymous()">
+        <div sec:authorize="isAnonymous()" style="display:flex; align-items:center; gap:12px;">
           <a th:href="@{/login}" class="px-4 py-2 text-label-md text-primary border border-primary rounded-lg hover:bg-primary/5">
             로그인
           </a>
