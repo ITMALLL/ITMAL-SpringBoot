@@ -100,7 +100,7 @@ function initCommentSection(section) {
         let message = "신고에 실패했습니다.";
         try {
           const error = await res.json();
-          message = error.message;
+          if (error?.message) message = error.message;
         } catch (e) {
           // 서버가 JSON이 아닌 응답(에러 페이지 등)을 준 경우 - 기본 메시지 사용
         }
