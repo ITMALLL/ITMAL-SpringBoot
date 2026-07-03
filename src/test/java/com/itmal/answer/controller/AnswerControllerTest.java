@@ -2,7 +2,12 @@ package com.itmal.answer.controller;
 
 import com.itmal.answer.domain.Answer;
 import com.itmal.answer.service.AnswerService;
+import com.itmal.auth.domain.Role;
 import com.itmal.auth.repository.UserMapper;
+import com.itmal.global.exception.ViewExceptionHandler;
+import com.itmal.question.dto.QuestionDto;
+import com.itmal.question.dto.Target;
+import com.itmal.question.mapper.QuestionMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +44,9 @@ class AnswerControllerTest {
     @Mock
     private UserMapper userMapper;
 
+    @Mock
+    private QuestionMapper questionMapper;
+
     @InjectMocks
     private AnswerController answerController;
 
@@ -48,6 +56,7 @@ class AnswerControllerTest {
         validator.afterPropertiesSet();
         mockMvc = MockMvcBuilders.standaloneSetup(answerController)
                 .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
+                .setControllerAdvice(new ViewExceptionHandler())
                 .setValidator(validator)
                 .build();
 
@@ -60,6 +69,7 @@ class AnswerControllerTest {
         // 공통 userMapper mock (일부 테스트는 검증 실패로 미사용 → lenient)
         com.itmal.auth.domain.User authUser = mock(com.itmal.auth.domain.User.class);
         lenient().when(authUser.getUserId()).thenReturn(1L);
+        lenient().when(authUser.getRole()).thenReturn(Role.ROLE_USER);
         lenient().when(userMapper.findByEmail("test@test.com")).thenReturn(Optional.of(authUser));
     }
 
@@ -210,6 +220,54 @@ class AnswerControllerTest {
                 .andExpect(redirectedUrl("/questions/5"));
 
         verify(answerService).adoptAnswer(eq(1L), eq(1L));
+    }
+
+    // ===== 답변 작성 페이지 (튜터 전용 질문 접근 제한) =====
+
+    @Test
+    @DisplayName("튜터 전용 질문 작성 페이지 - 일반 유저는 접근 차단")
+    void writePage_tutorOnlyQuestion_nonTutorForbidden() throws Exception {
+        // given
+        QuestionDto question = new QuestionDto();
+        question.setTarget(Target.TUTOR.getCode());
+        when(questionMapper.findQuestionDetailById(5L)).thenReturn(question);
+
+        // when & then
+        mockMvc.perform(get("/answers/write").param("questionId", "5"))
+                .andExpect(status().isForbidden())
+                .andExpect(view().name("error/error"));
+    }
+
+    @Test
+    @DisplayName("튜터 전용 질문 작성 페이지 - 튜터는 접근 가능")
+    void writePage_tutorOnlyQuestion_tutorAllowed() throws Exception {
+        // given
+        QuestionDto question = new QuestionDto();
+        question.setTarget(Target.TUTOR.getCode());
+        when(questionMapper.findQuestionDetailById(5L)).thenReturn(question);
+
+        com.itmal.auth.domain.User tutorUser = mock(com.itmal.auth.domain.User.class);
+        when(tutorUser.getRole()).thenReturn(Role.ROLE_TUTOR);
+        when(userMapper.findByEmail("test@test.com")).thenReturn(Optional.of(tutorUser));
+
+        // when & then
+        mockMvc.perform(get("/answers/write").param("questionId", "5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("answer/write"));
+    }
+
+    @Test
+    @DisplayName("일반 질문 작성 페이지 - 아무나 접근 가능")
+    void writePage_normalQuestion_anyUserAllowed() throws Exception {
+        // given
+        QuestionDto question = new QuestionDto();
+        question.setTarget(Target.COMMUNITY.getCode());
+        when(questionMapper.findQuestionDetailById(5L)).thenReturn(question);
+
+        // when & then
+        mockMvc.perform(get("/answers/write").param("questionId", "5"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("answer/write"));
     }
 
 }

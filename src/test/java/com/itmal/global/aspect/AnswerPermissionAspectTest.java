@@ -8,6 +8,7 @@ import com.itmal.auth.repository.UserMapper;
 import com.itmal.global.exception.ErrorCode;
 import com.itmal.global.exception.ViewException;
 import com.itmal.question.dto.QuestionDto;
+import com.itmal.question.dto.Target;
 import com.itmal.question.mapper.QuestionMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,7 +73,7 @@ class AnswerPermissionAspectTest {
         // Arrange
         User author = insertUser("author@itmal.com", "질문작성자", Role.ROLE_TUTOR);
         User user = insertUser("user@itmal.com", "일반유저", Role.ROLE_USER);
-        Long questionId = insertQuestion(author.getUserId(), "TUTOR");
+        Long questionId = insertQuestion(author.getUserId(), Target.TUTOR.getCode());
 
         // Act & Assert
         assertThatThrownBy(() -> answerService.createAnswer(buildRequest(questionId), user.getUserId()))
@@ -86,7 +87,7 @@ class AnswerPermissionAspectTest {
         // Arrange
         User tutorAuthor = insertUser("tutor-author@itmal.com", "튜터작성자", Role.ROLE_TUTOR);
         User tutorAnswerer = insertUser("tutor-answerer@itmal.com", "튜터답변자", Role.ROLE_TUTOR);
-        Long questionId = insertQuestion(tutorAuthor.getUserId(), "TUTOR");
+        Long questionId = insertQuestion(tutorAuthor.getUserId(), Target.TUTOR.getCode());
 
         // Act & Assert
         assertThatNoException().isThrownBy(

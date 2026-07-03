@@ -47,6 +47,12 @@ public interface AnswerMapper {
     //채택
     void acceptAnswer(Long answerId);
 
+    //채택 가능 여부 확인용 (해당 질문에 이미 채택된 답변이 있는지)
+    boolean existsAcceptedAnswerByQuestionId(Long questionId);
+
+    //채택 동시성 제어용: 해당 질문의 답변 행을 잠그고 재검증하기 위한 락
+    List<Long> lockAnswersByQuestionId(Long questionId);
+
     //userId로 조회 (마이페이지용)
     List<Answer> findByUserId(Long userId);
 }
