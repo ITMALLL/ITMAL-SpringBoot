@@ -51,8 +51,8 @@ public class AnswerServiceImpl implements AnswerService {
 
     // 답변 목록 조회 (닉네임 포함)
     @Override
-    public List<AnswerResponse> getAnswerResponsesByQuestionId(Long questionId) {
-        return answerMapper.findResponsesByQuestionId(questionId);
+    public List<AnswerResponse> getAnswerResponsesByQuestionId(Long questionId, Long userId) {
+        return answerMapper.findResponsesByQuestionId(questionId, userId);
     }
 
     // 답변 단건 조회

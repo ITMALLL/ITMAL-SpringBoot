@@ -11,9 +11,10 @@ public class QuestionAttachmentCleanupScheduler {
 
     private final QuestionService questionService;
 
-    // 매일 새벽 3시에 연결끊긴 첨부파일은 삭제하는 스케쥴러
+    // 매일 새벽 3시에 연결끊긴 첨부파일 + CKEditor 본문 고아 이미지를 삭제하는 스케쥴러
     @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void cleanupDetachedAttachments() {
         questionService.purgeDetachedAttachments();
+        questionService.purgeOrphanEditorImages();
     }
 }

@@ -58,6 +58,8 @@ public class SecurityConfig {
                 .requestMatchers("/mypage/**", "/register/social").authenticated()
                 .requestMatchers(HttpMethod.GET,  "/questions/write").authenticated()
                 .requestMatchers(HttpMethod.POST, "/questions/write").authenticated()
+                .requestMatchers(HttpMethod.POST, "/questions/upload-image").authenticated()
+                .requestMatchers(HttpMethod.GET,  "/questions/editor-images/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/questions/*/delete").authenticated()
                 .requestMatchers(HttpMethod.GET,  "/questions/*/edit").authenticated()
                 .requestMatchers(HttpMethod.POST, "/questions/*/edit").authenticated()

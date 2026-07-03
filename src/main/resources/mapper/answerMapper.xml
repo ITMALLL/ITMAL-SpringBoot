@@ -27,6 +27,7 @@
         <result property="nickname" column="nickname"/>
         <result property="content" column="content"/>
         <result property="likeCount" column="like_count"/>
+        <result property="liked" column="liked"/>
         <result property="isAccepted" column="is_accepted"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
@@ -36,7 +37,9 @@
         SELECT a.answer_id, a.question_id, a.user_id,
                COALESCE(u.nickname, '탈퇴한 회원') AS nickname,
                a.content, a.is_accepted, a.created_at,
-               (SELECT COUNT(*) FROM answer_like WHERE answer_id = a.answer_id) AS like_count
+               (SELECT COUNT(*) FROM answer_like WHERE answer_id = a.answer_id) AS like_count,
+               EXISTS(SELECT 1 FROM answer_like
+                      WHERE answer_id = a.answer_id AND user_id = #{userId}) AS liked
         FROM answer a
         LEFT JOIN users u ON a.user_id = u.user_id AND u.deleted_at IS NULL
         WHERE a.question_id = #{questionId}

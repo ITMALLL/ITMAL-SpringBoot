@@ -53,6 +53,10 @@ public interface QuestionMapper {
 
     List<QuestionAttachmentDto> findAttachmentsToPurge();
 
+    // 본문에 editor-images URL 이 포함된 질문 content 목록 (고아 이미지 판별용).
+    // 소프트 삭제된 질문도 복구 가능성이 있어 참조로 간주하므로 deleted_at 조건 없이 전부 조회한다.
+    List<String> findContentsReferencingEditorImages();
+
     List<QuestionDto> findRelatedQuestions(@Param("questionId") Long questionId,
                                            @Param("languageId") Long languageId,
                                            @Param("category") String category);
@@ -67,5 +71,11 @@ public interface QuestionMapper {
     long countLanguages();                           // 지원 언어 수
     List<QuestionDto> findRecentQuestions();         // 최근 질문(최신순 5건)
     List<LanguageStatDto> countQuestionsByLanguage();// 언어별 질문 현황
+
+    // ── 질문 좋아요 ─────────────────────────────────────────
+    void insertQuestionLike(@Param("questionId") Long questionId, @Param("userId") Long userId);
+    void deleteQuestionLike(@Param("questionId") Long questionId, @Param("userId") Long userId);
+    int  existsQuestionLike(@Param("questionId") Long questionId, @Param("userId") Long userId);
+    int  countQuestionLikes(@Param("questionId") Long questionId);
 
 }
