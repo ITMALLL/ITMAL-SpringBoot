@@ -209,6 +209,23 @@
   color: var(--on-surface);
 }
 
+/* 본문 이미지: 컨테이너를 넘지 않도록 (오버플로우/레이아웃 깨짐 방지) */
+.detail-content-body img,
+.question-body img {
+  max-width: 100%;
+  height: auto;
+}
+.detail-content-body figure.image,
+.question-body figure.image {
+  max-width: 100%;
+  margin: 16px 0;
+}
+/* figure 에 지정된 width(에디터에서 조정한 크기)를 이미지가 채우도록 */
+.detail-content-body figure.image img,
+.question-body figure.image img {
+  width: 100%;
+}
+
 .example-sentence {
   margin: 0 0 16px 0;
   padding: 16px 20px;

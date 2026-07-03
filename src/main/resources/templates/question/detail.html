@@ -570,13 +570,25 @@
 
 <!-- 신고 사유 입력 모달 (작성자 아닌 로그인 유저) -->
 <div class="report-modal-overlay" id="report-modal" hidden>
-  <div class="report-modal">
-    <h3 class="report-modal-title">신고 사유</h3>
-    <textarea id="report-reason" class="report-modal-textarea"
-              placeholder="신고 사유를 입력해주세요." maxlength="500"></textarea>
+  <div class="report-modal comment-report-modal">
+    <div class="comment-report-modal-header">
+      <span class="comment-report-modal-icon">🚨</span>
+      <strong class="comment-report-modal-title" id="report-modal-title">신고</strong>
+    </div>
+    <p class="comment-report-modal-subtitle">신고 사유를 선택해주세요. 허위 신고 시 제재를 받을 수 있습니다.</p>
+    <div class="comment-report-reason-options">
+      <label class="comment-report-reason-option"><input type="radio" name="report-reason-option" value="욕설/비하" checked> 욕설/비하</label>
+      <label class="comment-report-reason-option"><input type="radio" name="report-reason-option" value="스팸"> 스팸</label>
+      <label class="comment-report-reason-option"><input type="radio" name="report-reason-option" value="광고"> 광고</label>
+      <label class="comment-report-reason-option"><input type="radio" name="report-reason-option" value="허위정보"> 허위정보</label>
+      <label class="comment-report-reason-option"><input type="radio" name="report-reason-option" value="부적절한 내용"> 부적절한 내용</label>
+      <label class="comment-report-reason-option"><input type="radio" name="report-reason-option" value="기타"> 기타</label>
+    </div>
+    <textarea id="report-reason" class="comment-report-reason" rows="3"
+              placeholder="추가 설명 (선택, 최대 200자)" maxlength="200"></textarea>
     <div class="report-modal-actions">
       <button type="button" class="btn btn-outline" id="report-cancel">취소</button>
-      <button type="button" class="btn btn-primary" id="report-submit">신고</button>
+      <button type="button" class="btn btn-primary" id="report-submit">신고하기</button>
     </div>
   </div>
 </div>
@@ -769,6 +781,28 @@
       setTimeout(() => t.remove(), 2500);
     }
 
+    // 알림 모달 (네이티브 alert 대신) - 댓글 신고와 동일한 comment-modal 스타일 재사용
+    function showAlertModal(message) {
+      return new Promise((resolve) => {
+        const overlay = document.createElement("div");
+        overlay.className = "comment-modal-overlay";
+        overlay.innerHTML = `
+          <div class="comment-modal comment-alert-modal">
+            <p></p>
+            <div class="comment-modal-actions">
+              <button class="comment-modal-confirm">확인</button>
+            </div>
+          </div>
+        `;
+        overlay.querySelector("p").textContent = message;
+        document.body.appendChild(overlay);
+        overlay.querySelector(".comment-modal-confirm").addEventListener("click", () => {
+          overlay.remove();
+          resolve();
+        });
+      });
+    }
+
     // 신고: 로그인 유저에게만 버튼이 있음 → 커스텀 모달로 사유 입력 (질문/답변 공용)
     const questionReportBtn = document.getElementById("question-report-btn");
     const reportModal = document.getElementById("report-modal");
@@ -787,8 +821,11 @@
       closeMenu();
       reportTarget = { type, id };
       reportReason.value = "";
+      const titleEl = document.getElementById("report-modal-title");
+      if (titleEl) titleEl.textContent = type === "QUESTION" ? "질문 신고" : "답변 신고";
+      const firstRadio = reportModal.querySelector('input[name="report-reason-option"]');
+      if (firstRadio) firstRadio.checked = true;
       reportModal.removeAttribute("hidden");
-      reportReason.focus();
     };
 
     if (reportModal) {
@@ -809,11 +846,10 @@
       // 모달의 신고 버튼 → 실제 전송
       reportSubmit.addEventListener("click", async () => {
         if (!reportTarget) return;
-        const reason = reportReason.value.trim();
-        if (!reason) {
-          reportReason.focus();
-          return;
-        } // 빈 값이면 포커스만
+        const selected = reportModal.querySelector('input[name="report-reason-option"]:checked');
+        if (!selected) return;
+        const detail = reportReason.value.trim();
+        const reason = detail ? `${selected.value}: ${detail}` : selected.value;
 
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
@@ -828,18 +864,23 @@
             })
           });
           if (res.ok) {
-            const msg = await res.text();
             closeReportModal();
-            showToast(msg || "신고되었습니다.");
+            await showAlertModal("신고되었습니다.");
           } else if (res.status === 401) {
-            showToast("로그인이 필요합니다.");
+            await showAlertModal("로그인이 필요합니다.");
           } else {
-            const msg = await res.text();
-            showToast(msg || ('신고에 실패했습니다. (' + res.status + ')'));
+            let message = '신고에 실패했습니다. (' + res.status + ')';
+            try {
+              const error = await res.json();
+              message = error.message || message;
+            } catch (e) {
+              // 서버가 JSON이 아닌 응답(에러 페이지 등)을 준 경우 - 기본 메시지 사용
+            }
+            await showAlertModal(message);
           }
         } catch (e) {
           console.error(e);
-          showToast("네트워크 오류가 발생했습니다.");
+          await showAlertModal("네트워크 오류가 발생했습니다.");
         }
       });
     }

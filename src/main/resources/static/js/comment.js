@@ -91,10 +91,10 @@ function initCommentSection(section) {
         } catch (e) {
           // 서버가 JSON이 아닌 응답(에러 페이지 등)을 준 경우 - 기본 메시지 사용
         }
-        alert(message);
+        await showAlertModal(message);
         return;
       }
-      alert("신고되었습니다.");
+      await showAlertModal("신고되었습니다.");
     }
   });
 
@@ -171,6 +171,29 @@ function initCommentSection(section) {
       overlay.querySelector(".comment-modal-confirm").addEventListener("click", () => {
         overlay.remove();
         resolve(true);
+      });
+    });
+  }
+
+  // 브라우저 기본 alert() 대체 - "localhost 내용:" 없는 커스텀 알림 모달
+  function showAlertModal(message) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.className = "comment-modal-overlay";
+      overlay.innerHTML = `
+        <div class="comment-modal comment-alert-modal">
+          <p></p>
+          <div class="comment-modal-actions">
+            <button class="comment-modal-confirm">확인</button>
+          </div>
+        </div>
+      `;
+      overlay.querySelector("p").textContent = message;
+      document.body.appendChild(overlay);
+
+      overlay.querySelector(".comment-modal-confirm").addEventListener("click", () => {
+        overlay.remove();
+        resolve();
       });
     });
   }
