@@ -166,6 +166,12 @@
   border-color: #ef4444;
 }
 
+.comment-modal-actions .comment-modal-ok {
+  background: #6366f1;
+  color: #fff;
+  border-color: #6366f1;
+}
+
 /* 신고 모달 - question/detail.html의 .report-modal 디자인과 톤 맞춤 */
 .comment-report-modal {
   text-align: left;
