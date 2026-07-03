@@ -16,6 +16,7 @@ public class AnswerResponse {
     private Long userId;
     private String nickname;
     private int likeCount;
+    private boolean liked;          // 현재 로그인 유저가 이 답변에 좋아요를 눌렀는지 (새로고침 시 상태 유지용)
     private boolean isAccepted;
     private LocalDateTime createdAt;
 

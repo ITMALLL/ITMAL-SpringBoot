@@ -15,7 +15,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -25,6 +28,7 @@ import java.nio.file.Paths;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Controller
@@ -80,6 +84,10 @@ public class QuestionController {
             model.addAttribute("relatedQuestions", questionService.findRelatedQuestions(question));
             model.addAttribute("currentUserId", userDetails != null ? userDetails.getUserId() : null);
 
+            // 좋아요 초기 상태 (새로고침해도 눌린 상태 유지)
+            Long loginUserId = userDetails != null ? userDetails.getUserId() : null;
+            model.addAttribute("likeCount", questionService.countLikes(id));
+            model.addAttribute("liked", questionService.hasLiked(id, loginUserId));
 
             return "question/detail";
         }
@@ -204,6 +212,51 @@ public class QuestionController {
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION,
                             dispositionType + "; filename*=UTF-8''" + encodedName)
+                    .body(resource);
+        }
+
+        // CKEditor 본문 이미지 업로드 (커스텀 어댑터가 호출)
+        // 성공: {"url": "..."} / 실패: {"error": {"message": "..."}}
+        @PostMapping("/upload-image")
+        @ResponseBody
+        public ResponseEntity<?> uploadImage(@RequestParam("upload") MultipartFile upload,
+                                             @AuthenticationPrincipal CustomUserDetails userDetails,
+                                             HttpServletRequest request) {
+            if (userDetails == null) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("error", Map.of("message", "로그인이 필요합니다.")));
+            }
+            try {
+                String storedName = questionService.saveEditorImage(upload);
+                // 절대 URL 반환 (sanitizer 의 http/https 프로토콜 허용을 통과시키기 위함)
+                String url = ServletUriComponentsBuilder.fromContextPath(request)
+                        .path("/questions/editor-images/")
+                        .path(storedName)
+                        .toUriString();
+                return ResponseEntity.ok(Map.of("url", url));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", Map.of("message", e.getMessage())));
+            }
+        }
+
+        // 본문 이미지 서빙 (inline)
+        @GetMapping("/editor-images/{filename:.+}")
+        public ResponseEntity<Resource> serveEditorImage(@PathVariable String filename) throws IOException {
+            Path baseDir = Paths.get(uploadDir, "editor-images").normalize();
+            Path path = baseDir.resolve(filename).normalize();
+            // 경로 조작(../) 방어: baseDir 밖으로 벗어나면 거부
+            if (!path.startsWith(baseDir)) {
+                return ResponseEntity.badRequest().build();
+            }
+            Resource resource = new UrlResource(path.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                return ResponseEntity.notFound().build();
+            }
+            MediaType contentType = MediaTypeFactory.getMediaType(resource)
+                    .orElse(MediaType.APPLICATION_OCTET_STREAM);
+            return ResponseEntity.ok()
+                    .contentType(contentType)
                     .body(resource);
         }
 

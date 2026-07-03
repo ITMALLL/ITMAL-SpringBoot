@@ -11,7 +11,7 @@ import java.util.List;
 public interface AnswerService {
     void createAnswer(AnswerCreateRequest request, Long userId);
     List<Answer> getAnswerByQuestionId(Long questionId);
-    List<AnswerResponse> getAnswerResponsesByQuestionId(Long questionId);
+    List<AnswerResponse> getAnswerResponsesByQuestionId(Long questionId, Long userId);
     Answer getAnswer(Long answerId);
     void updateAnswer(Long answerId, AnswerUpdateRequest request, Long userId);
     void deleteAnswer(Long answerId, Long userId);

@@ -276,9 +276,49 @@
     </script>
 
     <script>
+      // ===== CKEditor 본문 이미지 업로드용 커스텀 어댑터 =====
+      // 빌드에 SimpleUploadAdapter 포함 여부와 무관하게 FileRepository 만 있으면 동작한다.
+      class ServerUploadAdapter {
+        constructor(loader) { this.loader = loader; this.xhr = null; }
+        upload() {
+          return this.loader.file.then(file => new Promise((resolve, reject) => {
+            const data = new FormData();
+            data.append('upload', file);
+
+            const xhr = this.xhr = new XMLHttpRequest();
+            xhr.open('POST', '/questions/upload-image', true);
+            xhr.responseType = 'json';
+
+            // CSRF 헤더 (메타 태그 재사용)
+            const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            xhr.setRequestHeader(csrfHeader, csrfToken);
+
+            xhr.onload = () => {
+              const res = xhr.response;
+              if (xhr.status < 200 || xhr.status >= 300 || !res || res.error) {
+                return reject(res && res.error ? res.error.message : `업로드 실패 (${xhr.status})`);
+              }
+              resolve({ default: res.url }); // 서버가 준 절대 URL
+            };
+            xhr.onerror = () => reject('네트워크 오류가 발생했습니다.');
+            xhr.onabort = () => reject('업로드가 취소되었습니다.'); // abort() 시 프로미스 거부
+            xhr.send(data);
+          }));
+        }
+        abort() { if (this.xhr) this.xhr.abort(); } // 진행 중인 업로드 요청 취소
+      }
+
+      function ServerUploadPlugin(editor) {
+        editor.plugins.get('FileRepository').createUploadAdapter =
+          (loader) => new ServerUploadAdapter(loader);
+      }
+
       let editorInstance;
       ClassicEditor
-              .create(document.querySelector('#editor'))
+              .create(document.querySelector('#editor'), {
+                extraPlugins: [ServerUploadPlugin]
+              })
               .then(editor => {
                 editorInstance = editor;
                 editor.model.document.on('change:data', () => {

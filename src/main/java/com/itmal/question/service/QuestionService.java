@@ -1,8 +1,10 @@
 package com.itmal.question.service;
 
+import com.itmal.common.dto.LikeResponseDto;
 import com.itmal.global.exception.ApiException;
 import com.itmal.global.exception.ErrorCode;
 import com.itmal.global.exception.ViewException;
+import org.springframework.dao.DuplicateKeyException;
 import com.itmal.papago.dto.PapagoRequestDto;
 import com.itmal.papago.service.PapagoService;
 import com.itmal.question.dto.LanguageDto;
@@ -25,7 +27,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +57,17 @@ public class QuestionService {
             "mp3", "m4a", "wav", "ogg", "aac",                                // 음성
             "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt", "zip"  // 문서
     );
+
+    // CKEditor 본문 이미지 업로드 전용 (첨부파일과 별개)
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(
+            "jpg", "jpeg", "png", "gif", "webp"
+    );
+    private static final long MAX_IMAGE_SIZE = 10L * 1024 * 1024; // 10MB
+    private static final String EDITOR_IMAGE_DIR = "editor-images";
+    // 본문 HTML에서 editor-images 파일명 추출용 (…/questions/editor-images/{파일명})
+    private static final Pattern EDITOR_IMAGE_URL_PATTERN =
+            Pattern.compile("/questions/editor-images/([^\"'\\s?>]+)");
+    private static final long EDITOR_IMAGE_GRACE_HOURS = 24; // 첨부 정리와 동일한 1일 유예
 
     @Transactional
     public void writeQuestion(QuestionDto questionDto, List<MultipartFile> files) {
@@ -94,6 +113,37 @@ public class QuestionService {
                 throw new IllegalArgumentException(
                         "허용되지 않는 파일 형식입니다: " + file.getOriginalFilename());
             }
+        }
+    }
+
+    /**
+     * CKEditor 본문 이미지 저장 후 저장 파일명 반환.
+     * 질문 생성 전(questionId 없음)에 호출되므로 editor-images 폴더에 저장한다.
+     */
+    public String saveEditorImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("이미지가 비어 있습니다.");
+        }
+        if (file.getSize() > MAX_IMAGE_SIZE) {
+            throw new IllegalArgumentException("이미지 크기가 10MB를 초과합니다.");
+        }
+        // MIME 확인 (확장자 위조 방어)
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다.");
+        }
+        String ext = extractExtension(file.getOriginalFilename());
+        if (!ALLOWED_IMAGE_EXTENSIONS.contains(ext)) {
+            throw new IllegalArgumentException("허용되지 않는 이미지 형식입니다.");
+        }
+        try {
+            Path dir = Paths.get(uploadDir, EDITOR_IMAGE_DIR);
+            Files.createDirectories(dir);
+            String storedName = UUID.randomUUID() + "." + ext;
+            file.transferTo(dir.resolve(storedName));
+            return storedName; // 컨트롤러에서 URL로 조립
+        } catch (IOException e) {
+            throw new RuntimeException("이미지 저장 실패", e);
         }
     }
 
@@ -258,6 +308,36 @@ public class QuestionService {
         return questionMapper.countQuestionsByUserId(userId);
     }
 
+    // ── 질문 좋아요 ─────────────────────────────────────────
+    // 좋아요 토글 (있으면 취소, 없으면 추가) → 최신 liked/개수 반환
+    @Transactional
+    public LikeResponseDto toggleLike(Long questionId, Long userId) {
+        boolean liked;
+        if (questionMapper.existsQuestionLike(questionId, userId) > 0) {
+            questionMapper.deleteQuestionLike(questionId, userId);
+            liked = false;
+        } else {
+            try {
+                questionMapper.insertQuestionLike(questionId, userId);
+                liked = true;
+            } catch (DuplicateKeyException e) {
+                // 동시 요청으로 중복 insert 시 무시 (이미 좋아요 상태로 간주)
+                liked = true;
+            }
+        }
+        return new LikeResponseDto(liked, questionMapper.countQuestionLikes(questionId));
+    }
+
+    // 현재 유저가 좋아요를 눌렀는지 (비로그인 false) — 상세 페이지 초기 상태용
+    public boolean hasLiked(Long questionId, Long userId) {
+        return userId != null && questionMapper.existsQuestionLike(questionId, userId) > 0;
+    }
+
+    // 좋아요 총 개수 (상세 페이지 초기 렌더용)
+    public int countLikes(Long questionId) {
+        return questionMapper.countQuestionLikes(questionId);
+    }
+
     @Transactional
     public void increaseViewCount(Long id) {
         questionMapper.increaseViewCount(id);
@@ -359,6 +439,49 @@ public class QuestionService {
             } catch (Exception e) { // 파일 IO 예외 + DB 런타임 예외 모두 잡아 다음 대상으로 진행
                 log.warn("첨부 정리 실패(다음 배치 재시도): id={}, path={}", att.getId(), att.getFilePath(), e);
             }
+        }
+    }
+
+    // CKEditor 본문 이미지 고아 파일 정리 (스케줄러용)
+    // 어떤 질문 본문에서도 참조하지 않고, 생성된 지 유예기간(24h)을 넘긴 파일만 삭제한다.
+    public void purgeOrphanEditorImages() {
+        Path dir = Paths.get(uploadDir, EDITOR_IMAGE_DIR);
+        if (!Files.isDirectory(dir)) {
+            return;
+        }
+
+        // 1) 현재 어떤 질문이든(소프트 삭제 포함) 본문에서 참조 중인 파일명 집합
+        Set<String> referenced = new HashSet<>();
+        for (String content : questionMapper.findContentsReferencingEditorImages()) {
+            if (content == null) {
+                continue;
+            }
+            Matcher m = EDITOR_IMAGE_URL_PATTERN.matcher(content);
+            while (m.find()) {
+                referenced.add(m.group(1));
+            }
+        }
+
+        // 2) 폴더 내 파일 중 미참조 + 유예기간 경과 파일 삭제
+        Instant threshold = Instant.now().minus(EDITOR_IMAGE_GRACE_HOURS, ChronoUnit.HOURS);
+        try (Stream<Path> files = Files.list(dir)) {
+            files.filter(Files::isRegularFile).forEach(path -> {
+                String name = path.getFileName().toString();
+                if (referenced.contains(name)) {
+                    return; // 사용 중
+                }
+                try {
+                    // 작성 중 업로드 보호: 최근 생성/수정된 파일은 건너뜀
+                    if (Files.getLastModifiedTime(path).toInstant().isAfter(threshold)) {
+                        return;
+                    }
+                    Files.deleteIfExists(path);
+                } catch (IOException e) {
+                    log.warn("고아 이미지 정리 실패(다음 배치 재시도): {}", path, e);
+                }
+            });
+        } catch (IOException e) {
+            log.warn("editor-images 디렉터리 조회 실패", e);
         }
     }
 
