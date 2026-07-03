@@ -8,7 +8,7 @@
 
 | 분류 | 기술 |
 |------|------|
-| Backend | Java 21, Spring Boot 4.0, Spring Security, Spring WebSocket (STOMP) |
+| Backend | Java 21, Spring Boot 4.0, Spring Security, Spring WebSocket (STOMP), SSE (Server-Sent Events) |
 | Frontend | Thymeleaf, HTML / CSS / JavaScript |
 | Database | MySQL, Flyway, MyBatis |
 | 인증 | Spring Security, OAuth2 |
@@ -119,7 +119,7 @@
   - `POST /api/papago/translate` : 메시지 번역
 
 ### 알림
-- 채팅 요청, 답변 채택 등 주요 이벤트 알림
+- 작성한 질문 / 답변에 대한 실시간 알림 수신
 - 읽음 처리
 
   #### 알림 API
