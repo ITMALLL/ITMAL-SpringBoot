@@ -178,12 +178,17 @@
     }
 
     document.querySelectorAll('.notification-item').forEach(item => {
-      item.addEventListener('click', e => {
+      item.addEventListener('click', async e => {
         if (e.target.closest('.btn-read')) return;
         const questionId = item.dataset.questionId;
         if (item.dataset.deleted === 'true') {
           alert('삭제된 게시글입니다.');
           return;
+        }
+        if (item.classList.contains('unread')) {
+          try {
+            await putRequest(`/api/notifications/${item.dataset.id}/read`);
+          } catch (e) {}
         }
         if (questionId) {
           window.location.href = `/questions/${questionId}`;

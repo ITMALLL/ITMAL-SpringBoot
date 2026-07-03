@@ -62,6 +62,7 @@ public class CommentService {
             responseDto.setCommentId(comment.getCommentId());
             responseDto.setContent(comment.getContent());
             responseDto.setNickname(comment.getNickname());
+            responseDto.setUserId(comment.getUserId());
             responseDto.setCreatedAt(comment.getCreatedAt());
 
             if (comment.getUpdatedAt() != null && !comment.getUpdatedAt().equals(comment.getCreatedAt())) {
