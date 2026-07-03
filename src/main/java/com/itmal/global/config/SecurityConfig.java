@@ -44,6 +44,16 @@ public class SecurityConfig {
                     new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                     request -> request.getServletPath().startsWith("/api/")
                 )
+                // 에디터 이미지 업로드: 미인증 시 로그인 HTML 리다이렉트 대신 JSON 401 반환
+                // (프론트의 xhr responseType='json' 및 res.error.message 계약과 일치)
+                .defaultAuthenticationEntryPointFor(
+                    (request, response, authEx) -> {
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write("{\"error\":{\"message\":\"로그인이 필요합니다.\"}}");
+                    },
+                    request -> request.getServletPath().equals("/questions/upload-image")
+                )
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
                     response.setStatus(HttpStatus.FORBIDDEN.value());
                     request.setAttribute("status", 403);
