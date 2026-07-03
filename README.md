@@ -86,6 +86,8 @@
   - `POST /questions/{id}/edit` : 질문 수정
   - `POST /questions/{id}/delete` : 질문 삭제
   - `POST /questions/upload-image` : 에디터 이미지 업로드
+  - `GET /questions/attachments/{id}/download` : 첨부파일 다운로드
+  - `GET /questions/attachments/{id}/stream` : 오디오 미리듣기 스트리밍(inline)
 
 #### 답변 API
   - `GET /answers` : 답변 목록
