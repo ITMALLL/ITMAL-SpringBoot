@@ -65,6 +65,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/register", "/forgot-password", "/forgot-password/reset").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/tutor-applications").authenticated()
+                .requestMatchers("/chat").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/chat-room/**").authenticated()
                 .requestMatchers("/mypage/**", "/register/social").authenticated()
                 .requestMatchers(HttpMethod.GET,  "/questions/write").authenticated()
                 .requestMatchers(HttpMethod.POST, "/questions/write").authenticated()
