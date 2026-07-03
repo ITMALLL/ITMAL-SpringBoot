@@ -35,7 +35,7 @@ public class CommentService {
         commentMapper.insert(comment);
         //알림을 위한 코드 (알림 실패가 댓글 저장 결과에 영향을 주지 않도록 분리)
         try {
-            notificationService.createCommentNotification(answerId, comment.getCommentId());
+            notificationService.createCommentNotification(answerId, comment.getCommentId(), userId);
         } catch (Exception e) {
             // 알림 실패는 무시
         }
