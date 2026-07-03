@@ -7,6 +7,7 @@ import com.itmal.auth.repository.UserMapper;
 import com.itmal.global.exception.ErrorCode;
 import com.itmal.global.exception.ViewException;
 import com.itmal.question.dto.QuestionDto;
+import com.itmal.question.dto.Target;
 import com.itmal.question.mapper.QuestionMapper;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.annotation.Aspect;
@@ -24,7 +25,7 @@ public class AnswerPermissionAspect {
     @Before("execution(* com.itmal.answer.service.AnswerServiceImpl.createAnswer(..)) && args(request, userId)")
     public void checkAnswerPermission(AnswerCreateRequest request, Long userId) {
         QuestionDto question = questionMapper.findQuestionDetailById(request.getQuestionId());
-        if (question != null && "TUTOR".equals(question.getTarget())) {
+        if (question != null && Target.TUTOR.getCode().equals(question.getTarget())) {
             User user = userMapper.findById(userId)
                     .orElseThrow(() -> new ViewException(ErrorCode.USER_NOT_FOUND));
             if (user.getRole() != Role.ROLE_TUTOR) {
