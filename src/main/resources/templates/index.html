@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html xmlns:th="http://www.thymeleaf.org/" xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6" lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -119,6 +119,15 @@
             <span class="question-tag tag-language" th:text="${q.languageName}">언어</span>
             <span class="question-tag tag-category"
                   th:text="${T(com.itmal.question.dto.Category).labelOf(q.category)}">카테고리</span>
+            <!-- 질문 대상 배지 (튜터 전용 / 전체 사용자) -->
+            <span th:if="${q.target != null and q.target != ''}"
+                  class="question-tag"
+                  th:classappend="'tag-target-' + ${q.target}"
+                  th:text="${T(com.itmal.question.dto.Target).labelOf(q.target)}">대상</span>
+            <!-- 답변 상태 배지 (오른쪽 끝) -->
+            <span class="question-tag tag-status"
+                  th:classappend="${q.status == 'ADOPTED'} ? ' status-adopted' : (${q.status == 'ANSWERED'} ? ' status-answered' : ' status-waiting')"
+                  th:text="${q.status == 'ADOPTED'} ? '해결 완료' : (${q.status == 'ANSWERED'} ? '채택 중' : '답변 대기 중')">답변 대기 중</span>
           </div>
           <h3 class="question-title" th:text="${q.title}">제목</h3>
           <p class="question-content" th:text="${q.content}">본문 미리보기</p>
@@ -242,8 +251,6 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', loadChatUsers);
-
   // Scroll effect for header
   window.addEventListener("scroll", () => {
     const topbar = document.querySelector("header");
@@ -254,5 +261,10 @@
     }
   });
 </script>
+
+<script sec:authorize="isAuthenticated()">
+  document.addEventListener('DOMContentLoaded', loadChatUsers);
+</script>
+
 </body>
 </html>

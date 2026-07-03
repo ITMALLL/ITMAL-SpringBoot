@@ -323,7 +323,17 @@
                l.language_name,
                (SELECT COUNT(*) FROM answer a
                  WHERE a.question_id = q.question_id
-                   AND a.deleted_at IS NULL) AS answerCount
+                   AND a.deleted_at IS NULL) AS answerCount,
+               CASE
+                   WHEN EXISTS (SELECT 1 FROM answer a
+                                 WHERE a.question_id = q.question_id
+                                   AND a.is_accepted = 1
+                                   AND a.deleted_at IS NULL) THEN 'ADOPTED'
+                   WHEN EXISTS (SELECT 1 FROM answer a
+                                 WHERE a.question_id = q.question_id
+                                   AND a.deleted_at IS NULL) THEN 'ANSWERED'
+                   ELSE 'PENDING'
+               END AS status
         FROM question q
         LEFT JOIN users u    ON q.user_id = u.user_id
         LEFT JOIN language l ON q.language_id = l.language_id
