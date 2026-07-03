@@ -166,6 +166,12 @@
   border-color: #ef4444;
 }
 
+.comment-modal-actions .comment-modal-ok {
+  background: #6366f1;
+  color: #fff;
+  border-color: #6366f1;
+}
+
 /* 신고 모달 - question/detail.html의 .report-modal 디자인과 톤 맞춤 */
 .comment-report-modal {
   text-align: left;
@@ -173,6 +179,22 @@
   max-width: 420px;
   border-radius: 14px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* 알림(단일 확인) 모달 - alert() 대체 */
+.comment-alert-modal {
+  min-width: 300px;
+  max-width: 380px;
+}
+
+.comment-alert-modal p {
+  margin: 4px 0 20px;
+  line-height: 1.5;
+}
+
+.comment-alert-modal .comment-modal-confirm {
+  background: #2563eb;
+  border-color: #2563eb;
 }
 
 .comment-report-modal-header {

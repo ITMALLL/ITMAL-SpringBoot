@@ -2,6 +2,42 @@
    NOTIFICATIONS - 알림 페이지 스타일
    ============================================ */
 
+/* 안내 모달 (삭제된 게시글 등) */
+.noti-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.noti-modal {
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  min-width: 280px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.noti-modal p {
+  margin: 0 0 16px;
+  font-size: 15px;
+  color: var(--on-surface);
+}
+
+.noti-modal button {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 .notifications-main {
   background-color: var(--background);
   min-height: calc(100vh - 200px);

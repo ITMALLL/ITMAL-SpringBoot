@@ -43,14 +43,15 @@
 .search-container {
   display: flex;
   align-items: center;
-  gap: 16px;
+  column-gap: 16px;
+  row-gap: 28px;
   flex-wrap: wrap;
   margin-top: 8px;
 }
 
 .search-input-group {
-  flex: 1;
-  min-width: 250px;
+  flex: 0 1 400px;
+  min-width: 240px;
   position: relative;
 }
 
@@ -508,6 +509,7 @@
   }
 
   .search-input-group {
+    flex: 1 1 auto;
     min-width: 100%;
   }
 
