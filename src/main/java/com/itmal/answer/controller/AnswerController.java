@@ -144,7 +144,7 @@ public class AnswerController {
         }
         if (Target.TUTOR.getCode().equals(question.getTarget())) {
             User user = userMapper.findByEmail(userDetails.getUsername())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new ViewException(ErrorCode.USER_NOT_FOUND));
             if (user.getRole() != Role.ROLE_TUTOR) {
                 throw new ViewException(ErrorCode.FORBIDDEN);
             }

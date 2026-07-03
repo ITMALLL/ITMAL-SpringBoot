@@ -136,6 +136,14 @@
         )
     </select>
 
+    <!-- 채택 동시성 제어: 같은 질문의 답변 행을 잠가 동시 채택 요청을 직렬화한다 -->
+    <select id="lockAnswersByQuestionId" resultType="long">
+        SELECT answer_id FROM answer
+        WHERE question_id = #{questionId}
+          AND deleted_at IS NULL
+        FOR UPDATE
+    </select>
+
     <!-- 마이페이지용 내 답변 목록 조회 -->
     <select id="findByUserId" resultMap="AnswerResultMap">
         SELECT *

@@ -91,6 +91,7 @@ class AnswerServiceImplTest {
         answerService.adoptAnswer(answerId, userId);
 
         // then
+        verify(answerMapper).lockAnswersByQuestionId(questionId);
         verify(answerMapper).acceptAnswer(answerId);
     }
 

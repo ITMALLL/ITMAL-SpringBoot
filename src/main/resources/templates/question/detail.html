@@ -657,7 +657,8 @@
 
     const adoptedBadge = a.accepted ? `
           <div class="answer-badge" role="button" tabindex="0" style="cursor:pointer;"
-               onclick="showInfoModal('채택된 답변은 취소할 수 없습니다.')">
+               onclick="showInfoModal('채택된 답변은 취소할 수 없습니다.')"
+               onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showInfoModal('채택된 답변은 취소할 수 없습니다.');}">
             <span class="material-symbols-outlined">check_circle</span>
             채택된 답변
           </div>` : '';
@@ -747,6 +748,31 @@
   (function () {
     const menuBtn = document.getElementById("question-menu-btn");
     const dropdown = document.getElementById("question-menu-dropdown");
+
+    // 알림 모달 (네이티브 alert 대신) - 답변 카드의 인라인 onclick에서 호출되므로
+    // 비로그인 사용자(menuBtn/dropdown 없음)에서도 항상 정의·노출되어야 함
+    function showInfoModal(message) {
+      return new Promise((resolve) => {
+        const overlay = document.createElement("div");
+        overlay.className = "comment-modal-overlay";
+        overlay.innerHTML = `
+          <div class="comment-modal comment-alert-modal">
+            <p></p>
+            <div class="comment-modal-actions">
+              <button class="comment-modal-confirm">확인</button>
+            </div>
+          </div>
+        `;
+        overlay.querySelector("p").textContent = message;
+        document.body.appendChild(overlay);
+        overlay.querySelector(".comment-modal-confirm").addEventListener("click", () => {
+          overlay.remove();
+          resolve();
+        });
+      });
+    }
+    window.showInfoModal = showInfoModal;
+
     if (!menuBtn || !dropdown) return; // 작성자가 아니면 메뉴 자체가 없음
 
     function closeMenu() {
@@ -783,30 +809,6 @@
       document.body.appendChild(t);
       setTimeout(() => t.remove(), 2500);
     }
-
-    // 알림 모달 (네이티브 alert 대신) - 댓글 신고와 동일한 comment-modal 스타일 재사용
-    function showInfoModal(message) {
-      return new Promise((resolve) => {
-        const overlay = document.createElement("div");
-        overlay.className = "comment-modal-overlay";
-        overlay.innerHTML = `
-          <div class="comment-modal comment-alert-modal">
-            <p></p>
-            <div class="comment-modal-actions">
-              <button class="comment-modal-confirm">확인</button>
-            </div>
-          </div>
-        `;
-        overlay.querySelector("p").textContent = message;
-        document.body.appendChild(overlay);
-        overlay.querySelector(".comment-modal-confirm").addEventListener("click", () => {
-          overlay.remove();
-          resolve();
-        });
-      });
-    }
-    // 답변 카드(다른 <script> 블록)의 인라인 onclick에서 호출 → 전역 스코프에 노출
-    window.showInfoModal = showInfoModal;
 
     // 신고: 로그인 유저에게만 버튼이 있음 → 커스텀 모달로 사유 입력 (질문/답변 공용)
     const questionReportBtn = document.getElementById("question-report-btn");
