@@ -285,6 +285,12 @@
         AND deleted_at &lt; NOW() - INTERVAL 1 DAY
     </select>
 
+    <!-- 본문에 editor-images 가 들어간 질문 content (소프트 삭제 포함, 고아 이미지 판별용) -->
+    <select id="findContentsReferencingEditorImages" resultType="string">
+        SELECT content FROM question
+        WHERE content LIKE '%/questions/editor-images/%'
+    </select>
+
     <!-- ── 홈 화면 통계 ───────────────────────────────────────── -->
 
     <select id="countAllQuestions" resultType="long">
@@ -337,6 +343,35 @@
          AND q.deleted_at IS NULL
         GROUP BY l.language_id, l.language_name, l.language_code
         ORDER BY questionCount DESC, l.language_id
+    </select>
+
+    <!-- ── 질문 좋아요 ───────────────────────────────────── -->
+    <!-- 좋아요 추가 -->
+    <insert id="insertQuestionLike">
+        INSERT INTO question_like (question_id, user_id)
+        VALUES (#{questionId}, #{userId})
+    </insert>
+
+    <!-- 좋아요 취소 -->
+    <delete id="deleteQuestionLike">
+        DELETE FROM question_like
+        WHERE question_id = #{questionId}
+          AND user_id = #{userId}
+    </delete>
+
+    <!-- 좋아요 여부 확인 (있으면 1) -->
+    <select id="existsQuestionLike" resultType="int">
+        SELECT COUNT(*)
+        FROM question_like
+        WHERE question_id = #{questionId}
+          AND user_id = #{userId}
+    </select>
+
+    <!-- 좋아요 개수 조회 -->
+    <select id="countQuestionLikes" resultType="int">
+        SELECT COUNT(*)
+        FROM question_like
+        WHERE question_id = #{questionId}
     </select>
 
 </mapper>

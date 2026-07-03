@@ -5,6 +5,7 @@ import com.itmal.answer.dto.AnswerCreateRequest;
 import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.service.AnswerService;
+import com.itmal.auth.domain.CustomUserDetails;
 import com.itmal.auth.repository.UserMapper;
 import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
@@ -36,8 +37,10 @@ public class AnswerController {
     // 답변 목록 조회 (JSON API - 질문 상세 페이지 fetch용)
     @GetMapping
     @ResponseBody
-    public ResponseEntity<List<AnswerResponse>> getAnswers(@RequestParam Long questionId) {
-        return ResponseEntity.ok(answerService.getAnswerResponsesByQuestionId(questionId));
+    public ResponseEntity<List<AnswerResponse>> getAnswers(@RequestParam Long questionId,
+                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        return ResponseEntity.ok(answerService.getAnswerResponsesByQuestionId(questionId, userId));
     }
 
     // 답변 작성

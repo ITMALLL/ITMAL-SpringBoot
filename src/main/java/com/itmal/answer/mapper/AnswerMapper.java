@@ -6,6 +6,7 @@ import com.itmal.answer.dto.AnswerCreateRequest;
 import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -18,8 +19,9 @@ public interface AnswerMapper {
     //답변 목록 조회
     List<Answer> findByQuestionId(Long questionId);
 
-    //답변 목록 조회 (닉네임 포함, 질문 상세 페이지용)
-    List<AnswerResponse> findResponsesByQuestionId(Long questionId);
+    //답변 목록 조회 (닉네임 포함, 질문 상세 페이지용) — userId는 좋아요 여부 판정용(비로그인 null)
+    List<AnswerResponse> findResponsesByQuestionId(@Param("questionId") Long questionId,
+                                                   @Param("userId") Long userId);
 
     //답변 단건 조회
     Answer findById(Long answerId);

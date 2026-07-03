@@ -31,9 +31,7 @@ public class LikeController {
             AnswerLikeResponseDto result = answerService.toggleLike(targetId, userId);
             return new LikeResponseDto(result.isLiked(), result.getLikeCount());
         } else {
-//            QuestionLikeResponseDto result = questionService.toggleLike(targetId, userId);
-//            return new LikeResponseDto(result.isLiked(), result.getLikeCount());
-            throw new UnsupportedOperationException("준비중입니다");
+            return questionService.toggleLike(targetId, userId);
         }
     }
 

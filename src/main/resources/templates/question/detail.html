@@ -268,6 +268,10 @@
       font-size: 16px;
     }
 
+    .question-like-bar {
+      margin-top: 16px;
+    }
+
   </style>
 </head>
 <body>
@@ -336,7 +340,7 @@
               <!-- 언어 -->
               <span class="tag primary" th:text="${question.languageName}">영어</span>
               <!-- 카테고리 -->
-              <span class="tag secondary" th:text="${question.category}">문법</span>
+              <span class="tag secondary" th:text="${T(com.itmal.question.dto.Category).labelOf(question.category)}">문법</span>
               <!-- 질문 대상: target 값으로 3분기 -->
               <span class="badge badge-tutor" th:if="${question.target == 'tutor'}">
                   <span class="material-symbols-outlined">verified_user</span>
@@ -436,6 +440,17 @@
               </p>
             </div>
           </div>
+
+          <!-- 질문 좋아요 (공용 like.js가 .like-btn을 자동 바인딩 → /api/likes/QUESTION/{id}) -->
+          <div class="question-like-bar">
+            <button type="button" class="like-btn"
+                    th:classappend="${liked} ? ' liked' : ''"
+                    data-target-type="QUESTION"
+                    th:attr="data-target-id=${question.questionId}">
+              <span class="heart-icon" th:text="${liked} ? '♥' : '♡'">♡</span>
+              <span class="like-count" th:text="${likeCount}">0</span>
+            </button>
+          </div>
         </div>
         <!-- /Question Card -->
 
@@ -528,7 +543,7 @@
                   <span th:if="${rel.status == 'ADOPTED'}" class="badge badge-adopted">채택됨</span>
                 <!-- 언어 태그 / 카테고리 태그 -->
                   <span class="tag primary" th:text="${rel.languageName}">언어</span>
-                  <span class="tag secondary" th:text="${rel.category}">카테고리</span>
+                  <span class="tag secondary" th:text="${T(com.itmal.question.dto.Category).labelOf(rel.category)}">카테고리</span>
                 <!-- 질문 대상 배지: 본문과 동일한 3분기 -->
                   <span class="badge badge-tutor" th:if="${rel.target == 'tutor'}">
                   <span class="material-symbols-outlined">verified_user</span>
@@ -656,8 +671,8 @@
               <p>${esc(a.content)}</p>
             </div>
             <div class="answer-actions">
-              <button class="like-btn" data-target-type="ANSWER" data-target-id="${a.answerId}">
-                <span class="heart-icon">♡</span>
+              <button class="like-btn ${a.liked ? 'liked' : ''}" data-target-type="ANSWER" data-target-id="${a.answerId}">
+                <span class="heart-icon">${a.liked ? '♥' : '♡'}</span>
                 <span class="like-count">${a.likeCount}</span>
               </button>
               ${adoptBtn}
