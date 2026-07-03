@@ -4,8 +4,8 @@ import com.itmal.answer.dto.AnswerCreateRequest;
 import com.itmal.auth.domain.Role;
 import com.itmal.auth.domain.User;
 import com.itmal.auth.repository.UserMapper;
-import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
+import com.itmal.global.exception.ViewException;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +26,9 @@ public class AnswerPermissionAspect {
         QuestionDto question = questionMapper.findQuestionDetailById(request.getQuestionId());
         if (question != null && "TUTOR".equals(question.getTarget())) {
             User user = userMapper.findById(userId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new ViewException(ErrorCode.USER_NOT_FOUND));
             if (user.getRole() != Role.ROLE_TUTOR) {
-                throw new BusinessException(ErrorCode.FORBIDDEN);
+                throw new ViewException(ErrorCode.FORBIDDEN);
             }
         }
     }

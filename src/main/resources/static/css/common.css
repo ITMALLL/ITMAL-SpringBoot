@@ -179,6 +179,8 @@ button {
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 button:active {

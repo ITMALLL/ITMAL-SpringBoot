@@ -5,8 +5,8 @@ import com.itmal.answer.service.AnswerService;
 import com.itmal.auth.domain.Role;
 import com.itmal.auth.domain.User;
 import com.itmal.auth.repository.UserMapper;
-import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
+import com.itmal.global.exception.ViewException;
 import com.itmal.question.dto.QuestionDto;
 import com.itmal.question.mapper.QuestionMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -76,7 +76,7 @@ class AnswerPermissionAspectTest {
 
         // Act & Assert
         assertThatThrownBy(() -> answerService.createAnswer(buildRequest(questionId), user.getUserId()))
-                .isInstanceOf(BusinessException.class)
+                .isInstanceOf(ViewException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
     }
 
@@ -84,12 +84,13 @@ class AnswerPermissionAspectTest {
     @DisplayName("튜터 전용 질문에 TUTOR가 답변 시 성공")
     void createAnswer_tutorOnlyQuestion_tutorAllowed() {
         // Arrange
-        User tutor = insertUser("tutor@itmal.com", "튜터", Role.ROLE_TUTOR);
-        Long questionId = insertQuestion(tutor.getUserId(), "TUTOR");
+        User tutorAuthor = insertUser("tutor-author@itmal.com", "튜터작성자", Role.ROLE_TUTOR);
+        User tutorAnswerer = insertUser("tutor-answerer@itmal.com", "튜터답변자", Role.ROLE_TUTOR);
+        Long questionId = insertQuestion(tutorAuthor.getUserId(), "TUTOR");
 
         // Act & Assert
         assertThatNoException().isThrownBy(
-                () -> answerService.createAnswer(buildRequest(questionId), tutor.getUserId())
+                () -> answerService.createAnswer(buildRequest(questionId), tutorAnswerer.getUserId())
         );
     }
 
