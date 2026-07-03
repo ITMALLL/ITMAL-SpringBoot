@@ -12,6 +12,8 @@ import com.itmal.papago.dto.PapagoRequestDto;
 import com.itmal.papago.dto.PapagoResponseDto;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @Service
 @RequiredArgsConstructor
 public class PapagoService {
@@ -45,6 +47,6 @@ public class PapagoService {
                                 }))
                 .bodyToMono(PapagoResponseDto.class)
                 .map(PapagoResponseDto::getTranslatedText)
-                .block();
+                .block(Duration.ofSeconds(10));
     }
 }
