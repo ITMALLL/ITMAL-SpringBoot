@@ -3,10 +3,12 @@ let stompClient = null;
 let currentChatRoomId = null;
 let currentChatRequestId = null;
 let currentUserId = null;
+let currentOtherUserId = null;
 let messageSubscription = null;
 let readSubscription = null;
 let typingSubscription = null;
 let typingTimeout = null;
+let typingDebounce = null;
 let allRooms = [];
 const userCache = {};
 let currentTab = 'all';
@@ -184,8 +186,8 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
 
         document.getElementById('chatMain').style.display = 'flex';
         document.getElementById('noChat').style.display = 'none';
-        const otherUserId = data.otherUserId;
-        const otherNickname = (await getUserInfo(otherUserId)).nickname;
+        currentOtherUserId = data.otherUserId;
+        const otherNickname = (await getUserInfo(currentOtherUserId)).nickname;
         document.getElementById('chatUserName').textContent = otherNickname;
         document.getElementById('chatUserAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(otherNickname)}&length=1&background=random`;
         document.getElementById('messageContainer').innerHTML = '';
@@ -226,10 +228,8 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
                 document.querySelectorAll('.read-indicator').forEach(el => el.remove());
             });
 
-            // 입력 중 구독
-            typingSubscription = stompClient.subscribe(`/topic/typing/${chatRoomId}`, function (message) {
-                const data = JSON.parse(message.body);
-                if (data.senderId === currentUserId) return;
+            // 입력 중 구독 (내 userId 토픽 → 상대방이 보낸 것만 수신)
+            typingSubscription = stompClient.subscribe(`/topic/typing/${currentUserId}`, function () {
                 showTypingIndicator();
                 clearTimeout(typingTimeout);
                 typingTimeout = setTimeout(hideTypingIndicator, 3000);
@@ -306,8 +306,10 @@ function showTypingIndicator() {
         <img src="${document.getElementById('chatUserAvatar').src}" alt="user" />
       </div>
       <div class="message-content">
-        <div class="message-bubble other" style="padding: 10px 14px;">
-          <span>입력 중...</span>
+        <div class="message-bubble other typing-bubble">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
         </div>
       </div>
     `;
@@ -553,8 +555,11 @@ document.getElementById('messageInput')?.addEventListener('input', function () {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 150) + 'px';
 
-    if (stompClient && stompClient.connected && currentChatRoomId) {
-        stompClient.send('/app/chat/typing', {}, JSON.stringify({chatRoomId: currentChatRoomId}));
+    if (stompClient && stompClient.connected && currentOtherUserId) {
+        clearTimeout(typingDebounce);
+        typingDebounce = setTimeout(() => {
+            stompClient.send(`/app/chat/typing/${currentOtherUserId}`, {}, '');
+        }, 300);
     }
 });
 
