@@ -782,7 +782,7 @@
     }
 
     // 알림 모달 (네이티브 alert 대신) - 댓글 신고와 동일한 comment-modal 스타일 재사용
-    function showAlertModal(message) {
+    function showInfoModal(message) {
       return new Promise((resolve) => {
         const overlay = document.createElement("div");
         overlay.className = "comment-modal-overlay";
@@ -865,9 +865,9 @@
           });
           if (res.ok) {
             closeReportModal();
-            await showAlertModal("신고되었습니다.");
+            await showInfoModal("신고되었습니다.");
           } else if (res.status === 401) {
-            await showAlertModal("로그인이 필요합니다.");
+            await showInfoModal("로그인이 필요합니다.");
           } else {
             let message = '신고에 실패했습니다. (' + res.status + ')';
             try {
@@ -876,11 +876,11 @@
             } catch (e) {
               // 서버가 JSON이 아닌 응답(에러 페이지 등)을 준 경우 - 기본 메시지 사용
             }
-            await showAlertModal(message);
+            await showInfoModal(message);
           }
         } catch (e) {
           console.error(e);
-          await showAlertModal("네트워크 오류가 발생했습니다.");
+          await showInfoModal("네트워크 오류가 발생했습니다.");
         }
       });
     }
