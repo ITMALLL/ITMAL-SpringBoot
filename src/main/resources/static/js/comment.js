@@ -21,6 +21,13 @@ function getCsrfHeaders() {
   return { [headerEl.content]: tokenEl.content };
 }
 
+// 닉네임 기반 아바타 색상 (마이페이지 프로필 아바타와 동일한 팔레트/방식)
+const COMMENT_AVATAR_COLORS = ['#5C6BC0', '#26A69A', '#EF5350', '#AB47BC', '#FF7043', '#29B6F6', '#66BB6A', '#FFA726', '#EC407A', '#26C6DA', '#7E57C2', '#8D6E63', '#78909C', '#7CB342'];
+function getCommentAvatarColor(nickname) {
+  const code = nickname ? nickname.charCodeAt(0) : 0;
+  return COMMENT_AVATAR_COLORS[code % COMMENT_AVATAR_COLORS.length];
+}
+
 // 로그인 안 된 상태로 요청했을 때(401) 로그인 페이지로 보냄. 처리했으면 true 반환
 function redirectIfUnauthenticated(res) {
   if (res.status === 401) {
@@ -278,6 +285,7 @@ function initCommentSection(section) {
 
     const nickname = escapeHtml(comment.nickname ?? "익명");
     const content = escapeHtml(comment.content);
+    const avatarColor = getCommentAvatarColor(comment.nickname ?? "익명");
 
     // 이 페이지에 currentUserId가 없는 경우(다른 페이지에서 재사용 등)를 대비한 안전장치
     const myUserId = typeof currentUserId !== "undefined" ? currentUserId : null;
@@ -289,7 +297,7 @@ function initCommentSection(section) {
 
     return `
       <div class="comment-item">
-        <div class="comment-avatar">${nickname[0]}</div>
+        <div class="comment-avatar" style="background-color: ${avatarColor};">${nickname[0]}</div>
         <div class="comment-content">
           <div class="comment-author">
             ${nickname}
