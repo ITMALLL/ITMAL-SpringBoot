@@ -352,11 +352,20 @@
           (loader) => new ServerUploadAdapter(loader);
       }
 
+      // 이미지 리사이즈: 빌드에 ImageResize 가 포함된 경우에만 켠다 (없으면 초기화 깨짐 방지)
+      const editorConfig = { extraPlugins: [ServerUploadPlugin] };
+      const hasResize = ClassicEditor.builtinPlugins
+              .some(p => p.pluginName === 'ImageResize' || p.pluginName === 'ImageResizeEditing');
+      if (hasResize) {
+        editorConfig.image = {
+          resizeUnit: '%',
+          toolbar: ['imageStyle:inline', 'imageStyle:block', 'imageStyle:side', '|', 'resizeImage']
+        };
+      }
+
       let editorInstance;
       ClassicEditor
-              .create(document.querySelector('#editor'), {
-                extraPlugins: [ServerUploadPlugin]
-              })
+              .create(document.querySelector('#editor'), editorConfig)
               .then(editor => {
                 editorInstance = editor;
 

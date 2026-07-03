@@ -181,6 +181,22 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
+/* 알림(단일 확인) 모달 - alert() 대체 */
+.comment-alert-modal {
+  min-width: 300px;
+  max-width: 380px;
+}
+
+.comment-alert-modal p {
+  margin: 4px 0 20px;
+  line-height: 1.5;
+}
+
+.comment-alert-modal .comment-modal-confirm {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
 .comment-report-modal-header {
   display: flex;
   align-items: center;
