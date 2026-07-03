@@ -261,14 +261,14 @@
   gap: 4px;
 }
 
-/* 질문 대상 뱃지 색상 (목록 카드) */
+/* 질문 대상 뱃지 색상 (목록 카드) — 질문 상세와 통일 */
 .tag-target-tutor {
-  background-color: #fef9c3; /* 연한 노랑 */
-  color: #854d0e;
+  background-color: #ede9fe; /* 연보라 (상세 badge-tutor) */
+  color: #6d28d9;
 }
 
 .tag-target-community {
-  background-color: #dcf5c6; /* 연두 */
+  background-color: #dcf5c6; /* 연한 초록 */
   color: #3f6212;
 }
 
