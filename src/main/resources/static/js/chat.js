@@ -3,8 +3,12 @@ let stompClient = null;
 let currentChatRoomId = null;
 let currentChatRequestId = null;
 let currentUserId = null;
+let currentOtherUserId = null;
 let messageSubscription = null;
 let readSubscription = null;
+let typingSubscription = null;
+let typingTimeout = null;
+let typingDebounce = null;
 let allRooms = [];
 const userCache = {};
 let currentTab = 'all';
@@ -53,8 +57,6 @@ async function setupWebSocket() {
     });
 
     const _sub2 = stompClient.subscribe(`/topic/unread-count/${currentUserId}`, async function (message) {
-        const data = JSON.parse(message.body);
-        if (data.chatRoomId === currentChatRoomId) return;
         await loadChatRooms();
     });
 }
@@ -153,7 +155,7 @@ async function displayChatRooms(rooms) {
             </div>
             <p class="chat-item-text" style="margin: 0;">${escapeHtml(room.lastMessage ?? '')}</p>
           </div>
-          ${room.unreadCount > 0 ? `<span class="chat-badge">${room.unreadCount}</span>` : ''}
+          ${room.unreadCount > 0 && room.id !== currentChatRoomId ? `<span class="chat-badge">${room.unreadCount}</span>` : ''}
         `;
         container.appendChild(element);
     }
@@ -170,6 +172,10 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             await readSubscription.unsubscribe();
             readSubscription = null;
         }
+        if (typingSubscription) {
+            await typingSubscription.unsubscribe();
+            typingSubscription = null;
+        }
 
         const response = await fetch(`/api/chat-room/${chatRoomId}`);
         if (!response.ok) throw new Error(`채팅방 조회 실패: ${response.status}`);
@@ -180,8 +186,8 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
 
         document.getElementById('chatMain').style.display = 'flex';
         document.getElementById('noChat').style.display = 'none';
-        const otherUserId = data.otherUserId;
-        const otherNickname = (await getUserInfo(otherUserId)).nickname;
+        currentOtherUserId = data.otherUserId;
+        const otherNickname = (await getUserInfo(currentOtherUserId)).nickname;
         document.getElementById('chatUserName').textContent = otherNickname;
         document.getElementById('chatUserAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(otherNickname)}&length=1&background=random`;
         document.getElementById('messageContainer').innerHTML = '';
@@ -204,6 +210,7 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             messageSubscription = stompClient.subscribe(`/topic/user/${chatRoomId}`, function (message) {
                 if (currentChatRoomId !== chatRoomId) return;
                 const msg = JSON.parse(message.body);
+                hideTypingIndicator();
                 messageRenderQueue = messageRenderQueue
                     .then(() => addMessageToUI(msg))
                     .catch(err => console.error('메시지 렌더링 실패:', err));
@@ -219,6 +226,15 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             // 읽음 처리 구독 (상대방이 읽으면 "1" 제거)
             readSubscription = stompClient.subscribe(`/topic/read/${chatRoomId}`, function () {
                 document.querySelectorAll('.read-indicator').forEach(el => el.remove());
+            });
+
+            // 입력 중 구독 (내 userId 토픽 → 상대방이 보낸 것만 수신)
+            typingSubscription = stompClient.subscribe(`/topic/typing/${currentUserId}`, function (frame) {
+                const data = JSON.parse(frame.body);
+                if (data.senderId !== currentOtherUserId) return;
+                showTypingIndicator();
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(hideTypingIndicator, 3000);
             });
         }
 
@@ -279,6 +295,32 @@ async function addMessageToUI(message) {
 
     container.appendChild(messageElement);
     container.scrollTop = container.scrollHeight;
+}
+
+function showTypingIndicator() {
+    const container = document.getElementById('messageContainer');
+    if (document.getElementById('typingIndicator')) return;
+    const el = document.createElement('div');
+    el.id = 'typingIndicator';
+    el.className = 'message';
+    el.innerHTML = `
+      <div class="message-avatar">
+        <img src="${document.getElementById('chatUserAvatar').src}" alt="user" />
+      </div>
+      <div class="message-content">
+        <div class="message-bubble other typing-bubble">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
+      </div>
+    `;
+    container.appendChild(el);
+    container.scrollTop = container.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator')?.remove();
 }
 
 function showTranslateError(btn, message) {
@@ -362,9 +404,19 @@ function sendMessage() {
     };
 
     stompClient.send('/app/chat', {}, JSON.stringify(message));
+    updateChatListPreview(currentChatRoomId, content);
 
     input.value = '';
     input.style.height = 'auto';
+}
+
+function updateChatListPreview(chatRoomId, content) {
+    const item = document.querySelector(`.chat-item[data-room-id="${chatRoomId}"]`);
+    if (!item) return;
+    const textEl = item.querySelector('.chat-item-text');
+    const timeEl = item.querySelector('.chat-item-time');
+    if (textEl) textEl.textContent = content;
+    if (timeEl) timeEl.textContent = formatTime(new Date().toISOString());
 }
 
 async function leaveRoom() {
@@ -379,6 +431,14 @@ async function leaveRoom() {
             await readSubscription.unsubscribe();
             readSubscription = null;
         }
+        if (typingSubscription) {
+            await typingSubscription.unsubscribe();
+            typingSubscription = null;
+        }
+        if (typingDebounce) { clearTimeout(typingDebounce); typingDebounce = null; }
+        if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
+        currentOtherUserId = null;
+        hideTypingIndicator();
 
         const response = await fetch(`/api/chat-room/${currentChatRoomId}/leave?chatRequestId=${currentChatRequestId}`, {
             method: 'POST',
@@ -500,6 +560,13 @@ document.getElementById('messageInput')?.addEventListener('keypress', function (
 document.getElementById('messageInput')?.addEventListener('input', function () {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+
+    if (stompClient && stompClient.connected && currentOtherUserId) {
+        clearTimeout(typingDebounce);
+        typingDebounce = setTimeout(() => {
+            stompClient.send(`/app/chat/typing/${currentOtherUserId}`, {}, '');
+        }, 300);
+    }
 });
 
 window.addEventListener('beforeunload', function () {
