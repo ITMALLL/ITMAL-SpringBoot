@@ -5,6 +5,8 @@ let currentChatRequestId = null;
 let currentUserId = null;
 let messageSubscription = null;
 let readSubscription = null;
+let typingSubscription = null;
+let typingTimeout = null;
 let allRooms = [];
 const userCache = {};
 let currentTab = 'all';
@@ -168,6 +170,10 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             await readSubscription.unsubscribe();
             readSubscription = null;
         }
+        if (typingSubscription) {
+            await typingSubscription.unsubscribe();
+            typingSubscription = null;
+        }
 
         const response = await fetch(`/api/chat-room/${chatRoomId}`);
         if (!response.ok) throw new Error(`채팅방 조회 실패: ${response.status}`);
@@ -202,6 +208,7 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             messageSubscription = stompClient.subscribe(`/topic/user/${chatRoomId}`, function (message) {
                 if (currentChatRoomId !== chatRoomId) return;
                 const msg = JSON.parse(message.body);
+                hideTypingIndicator();
                 messageRenderQueue = messageRenderQueue
                     .then(() => addMessageToUI(msg))
                     .catch(err => console.error('메시지 렌더링 실패:', err));
@@ -217,6 +224,15 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             // 읽음 처리 구독 (상대방이 읽으면 "1" 제거)
             readSubscription = stompClient.subscribe(`/topic/read/${chatRoomId}`, function () {
                 document.querySelectorAll('.read-indicator').forEach(el => el.remove());
+            });
+
+            // 입력 중 구독
+            typingSubscription = stompClient.subscribe(`/topic/typing/${chatRoomId}`, function (message) {
+                const data = JSON.parse(message.body);
+                if (data.senderId === currentUserId) return;
+                showTypingIndicator();
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(hideTypingIndicator, 3000);
             });
         }
 
@@ -277,6 +293,30 @@ async function addMessageToUI(message) {
 
     container.appendChild(messageElement);
     container.scrollTop = container.scrollHeight;
+}
+
+function showTypingIndicator() {
+    const container = document.getElementById('messageContainer');
+    if (document.getElementById('typingIndicator')) return;
+    const el = document.createElement('div');
+    el.id = 'typingIndicator';
+    el.className = 'message';
+    el.innerHTML = `
+      <div class="message-avatar">
+        <img src="${document.getElementById('chatUserAvatar').src}" alt="user" />
+      </div>
+      <div class="message-content">
+        <div class="message-bubble other" style="padding: 10px 14px;">
+          <span>입력 중...</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(el);
+    container.scrollTop = container.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator')?.remove();
 }
 
 function showTranslateError(btn, message) {
@@ -386,6 +426,10 @@ async function leaveRoom() {
         if (readSubscription) {
             await readSubscription.unsubscribe();
             readSubscription = null;
+        }
+        if (typingSubscription) {
+            await typingSubscription.unsubscribe();
+            typingSubscription = null;
         }
 
         const response = await fetch(`/api/chat-room/${currentChatRoomId}/leave?chatRequestId=${currentChatRequestId}`, {
@@ -508,6 +552,10 @@ document.getElementById('messageInput')?.addEventListener('keypress', function (
 document.getElementById('messageInput')?.addEventListener('input', function () {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+
+    if (stompClient && stompClient.connected && currentChatRoomId) {
+        stompClient.send('/app/chat/typing', {}, JSON.stringify({chatRoomId: currentChatRoomId}));
+    }
 });
 
 window.addEventListener('beforeunload', function () {

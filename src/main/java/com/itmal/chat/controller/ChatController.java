@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.Principal;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -34,6 +35,15 @@ public class ChatController {
     public String chat(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         model.addAttribute("currentUserId", userDetails.getUserId());
         return "chat/chat";
+    }
+
+    @MessageMapping("/chat/typing")
+    public void typing(@Payload ChatMessageDto message, Principal principal) {
+        CustomUserDetails userDetails = (CustomUserDetails) ((Authentication) principal).getPrincipal();
+        messagingTemplate.convertAndSend(
+                "/topic/typing/" + message.getChatRoomId(),
+                Optional.of(Map.of("senderId", userDetails.getUserId()))
+        );
     }
 
     @MessageMapping("/chat")
