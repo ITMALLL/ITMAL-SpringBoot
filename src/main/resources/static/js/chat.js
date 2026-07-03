@@ -53,8 +53,6 @@ async function setupWebSocket() {
     });
 
     const _sub2 = stompClient.subscribe(`/topic/unread-count/${currentUserId}`, async function (message) {
-        const data = JSON.parse(message.body);
-        if (data.chatRoomId === currentChatRoomId) return;
         await loadChatRooms();
     });
 }
@@ -153,7 +151,7 @@ async function displayChatRooms(rooms) {
             </div>
             <p class="chat-item-text" style="margin: 0;">${escapeHtml(room.lastMessage ?? '')}</p>
           </div>
-          ${room.unreadCount > 0 ? `<span class="chat-badge">${room.unreadCount}</span>` : ''}
+          ${room.unreadCount > 0 && room.id !== currentChatRoomId ? `<span class="chat-badge">${room.unreadCount}</span>` : ''}
         `;
         container.appendChild(element);
     }
@@ -362,9 +360,19 @@ function sendMessage() {
     };
 
     stompClient.send('/app/chat', {}, JSON.stringify(message));
+    updateChatListPreview(currentChatRoomId, content);
 
     input.value = '';
     input.style.height = 'auto';
+}
+
+function updateChatListPreview(chatRoomId, content) {
+    const item = document.querySelector(`.chat-item[data-room-id="${chatRoomId}"]`);
+    if (!item) return;
+    const textEl = item.querySelector('.chat-item-text');
+    const timeEl = item.querySelector('.chat-item-time');
+    if (textEl) textEl.textContent = content;
+    if (timeEl) timeEl.textContent = formatTime(new Date().toISOString());
 }
 
 async function leaveRoom() {
