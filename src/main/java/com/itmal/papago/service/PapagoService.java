@@ -47,6 +47,6 @@ public class PapagoService {
                                 }))
                 .bodyToMono(PapagoResponseDto.class)
                 .map(PapagoResponseDto::getTranslatedText)
-                .block(Duration.ofSeconds(9));
+                .block(Duration.ofSeconds(12));
     }
 }
