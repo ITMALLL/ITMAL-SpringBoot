@@ -41,6 +41,7 @@ function initCommentSection(section) {
     });
 
     if (!res.ok) {
+      if (res.status === 401) { location.href = "/login"; return; }
       alert(await res.text());
       return;
     }
@@ -63,6 +64,7 @@ function initCommentSection(section) {
       });
 
       if (!res.ok) {
+        if (res.status === 401) { location.href = "/login"; return; }
         alert(await res.text());
         return;
       }
@@ -84,6 +86,7 @@ function initCommentSection(section) {
       });
 
       if (!res.ok) {
+        if (res.status === 401) { location.href = "/login"; return; }
         let message = "신고에 실패했습니다.";
         try {
           const error = await res.json();
@@ -137,6 +140,7 @@ function initCommentSection(section) {
       });
 
       if (!res.ok) {
+        if (res.status === 401) { location.href = "/login"; return; }
         alert(await res.text());
         return;
       }
