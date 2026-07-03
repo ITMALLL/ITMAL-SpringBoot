@@ -6,9 +6,13 @@ import com.itmal.answer.dto.AnswerResponse;
 import com.itmal.answer.dto.AnswerUpdateRequest;
 import com.itmal.answer.service.AnswerService;
 import com.itmal.auth.domain.CustomUserDetails;
+import com.itmal.auth.domain.Role;
+import com.itmal.auth.domain.User;
 import com.itmal.auth.repository.UserMapper;
 import com.itmal.global.exception.BusinessException;
 import com.itmal.global.exception.ErrorCode;
+import com.itmal.global.exception.ViewException;
+import com.itmal.question.dto.Target;
 import com.itmal.question.mapper.QuestionMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -131,10 +135,19 @@ public class AnswerController {
 
     //답변 작성 페이지
     @GetMapping("/write")
-    public String writePage(@RequestParam Long questionId, Model model) {
+    public String writePage(@RequestParam Long questionId,
+                            @AuthenticationPrincipal UserDetails userDetails,
+                            Model model) {
         var question = questionMapper.findQuestionDetailById(questionId);
         if (question == null) {
             throw new BusinessException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+        if (Target.TUTOR.getCode().equals(question.getTarget())) {
+            User user = userMapper.findByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+            if (user.getRole() != Role.ROLE_TUTOR) {
+                throw new ViewException(ErrorCode.FORBIDDEN);
+            }
         }
         model.addAttribute("questionId", questionId);
         model.addAttribute("question", question);

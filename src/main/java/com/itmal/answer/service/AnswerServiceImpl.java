@@ -16,6 +16,7 @@ import com.itmal.question.mapper.QuestionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -120,11 +121,15 @@ public class AnswerServiceImpl implements AnswerService {
 
     // 채택
     @Override
+    @Transactional
     public void adoptAnswer(Long answerId, Long userId) {
         Answer answer = getAnswer(answerId);
         QuestionDto question = questionMapper.findQuestionDetailById(answer.getQuestionId());
         if (question == null || !question.getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        if (answerMapper.existsAcceptedAnswerByQuestionId(answer.getQuestionId())) {
+            throw new ViewException(ErrorCode.ANSWER_ALREADY_ADOPTED);
         }
         answerMapper.acceptAnswer(answerId);
     }

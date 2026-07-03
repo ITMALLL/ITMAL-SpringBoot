@@ -606,6 +606,7 @@
   const currentUserId = /*[[${currentUserId}]]*/ null;
   const csrfToken = document.querySelector('meta[name="_csrf"]').content;
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+  let questionHasAcceptedAnswer = false; // 이 질문에 이미 채택된 답변이 있는지 (중복 채택 방지용)
 
   // 답변 등록 버튼 (본인 질문이면 버튼 자체가 없음)
   const answerBtn = document.querySelector(".answer-btn");
@@ -635,7 +636,7 @@
     const isAuthor = currentUserId && currentUserId === a.userId;
     const isQAuthor = currentUserId && currentUserId === questionUserId;
 
-    const adoptBtn = (isQAuthor && !a.accepted) ? `
+    const adoptBtn = (isQAuthor && !a.accepted && !questionHasAcceptedAnswer) ? `
           <form action="/answers/${a.answerId}/adopt?questionId=${questionId}" method="post" style="display:inline">
             <input type="hidden" name="_csrf" value="${csrfToken}">
             <button type="submit" class="action-btn">채택</button>
@@ -655,7 +656,8 @@
           </button>` : '';
 
     const adoptedBadge = a.accepted ? `
-          <div class="answer-badge">
+          <div class="answer-badge" role="button" tabindex="0" style="cursor:pointer;"
+               onclick="showInfoModal('채택된 답변은 취소할 수 없습니다.')">
             <span class="material-symbols-outlined">check_circle</span>
             채택된 답변
           </div>` : '';
@@ -719,6 +721,7 @@
               list.innerHTML = '<p style="color:#888;padding:1rem 0">아직 답변이 없습니다.</p>';
               return;
             }
+            questionHasAcceptedAnswer = answers.some(a => a.accepted);
             list.innerHTML = answers.map(buildAnswerCard).join('');
             list.querySelectorAll('.like-btn').forEach(initLikeButton);
           })
@@ -802,6 +805,8 @@
         });
       });
     }
+    // 답변 카드(다른 <script> 블록)의 인라인 onclick에서 호출 → 전역 스코프에 노출
+    window.showInfoModal = showInfoModal;
 
     // 신고: 로그인 유저에게만 버튼이 있음 → 커스텀 모달로 사유 입력 (질문/답변 공용)
     const questionReportBtn = document.getElementById("question-report-btn");
