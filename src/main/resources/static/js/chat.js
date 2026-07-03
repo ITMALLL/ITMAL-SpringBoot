@@ -229,7 +229,9 @@ async function enterChatRoom(chatRoomId, chatRequestId, clickedElement) {
             });
 
             // 입력 중 구독 (내 userId 토픽 → 상대방이 보낸 것만 수신)
-            typingSubscription = stompClient.subscribe(`/topic/typing/${currentUserId}`, function () {
+            typingSubscription = stompClient.subscribe(`/topic/typing/${currentUserId}`, function (frame) {
+                const data = JSON.parse(frame.body);
+                if (data.senderId !== currentOtherUserId) return;
                 showTypingIndicator();
                 clearTimeout(typingTimeout);
                 typingTimeout = setTimeout(hideTypingIndicator, 3000);
@@ -433,6 +435,10 @@ async function leaveRoom() {
             await typingSubscription.unsubscribe();
             typingSubscription = null;
         }
+        if (typingDebounce) { clearTimeout(typingDebounce); typingDebounce = null; }
+        if (typingTimeout) { clearTimeout(typingTimeout); typingTimeout = null; }
+        currentOtherUserId = null;
+        hideTypingIndicator();
 
         const response = await fetch(`/api/chat-room/${currentChatRoomId}/leave?chatRequestId=${currentChatRequestId}`, {
             method: 'POST',
