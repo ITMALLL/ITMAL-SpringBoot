@@ -35,13 +35,13 @@
 - 로그인 유지 (Remember-Me,14일)
 
 - 비밀번호 찾기
-- 이메일로 재설정 링크 발송
-- 단일 소비 토큰 (재사용 불가)
-- 새 비밀번호 BCrypt 인코딩 저장
+  - 이메일로 재설정 링크 발송
+  - 단일 소비 토큰 (재사용 불가)
+  - 새 비밀번호 BCrypt 인코딩 저장
 
 - 회원 탈퇴
-- Soft Delete (deleted_at 기록)
-- 탈퇴 후 15일간 동일 이메일 재가입 차단
+  - Soft Delete (deleted_at 기록)
+  - 탈퇴 후 15일간 동일 이메일 재가입 차단
 
 #### 권한 관리 
 - ROLE_USER / ROLE_TUTOR / ROLE_ADMIN 분리
