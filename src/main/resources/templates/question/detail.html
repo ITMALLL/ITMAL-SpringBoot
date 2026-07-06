@@ -648,7 +648,7 @@
     const isQAuthor = currentUserId && currentUserId === questionUserId;
 
     const adoptBtn = (isQAuthor && !a.accepted && !questionHasAcceptedAnswer) ? `
-          <form action="/answers/${a.answerId}/adopt?questionId=${questionId}" method="post" style="display:inline">
+          <form action="/answers/${a.answerId}/adopt?questionId=${questionId}" method="post" style="display:inline" onsubmit="return confirm('이 답변을 채택하시겠어요? 채택 후에는 취소할 수 없습니다.');">
             <input type="hidden" name="_csrf" value="${csrfToken}">
             <button type="submit" class="action-btn">채택</button>
           </form>` : '';
