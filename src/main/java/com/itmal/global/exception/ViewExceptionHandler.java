@@ -40,6 +40,16 @@ public class ViewExceptionHandler {
         return mav;
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ModelAndView handleBusinessException(BusinessException e) {
+        ErrorCode errorCode = e.getErrorCode();
+        ModelAndView mav = new ModelAndView("error/error");
+        mav.setStatus(errorCode.getStatus());
+        mav.addObject("status", errorCode.getStatus().value());
+        mav.addObject("message", errorCode.getMessage());
+        return mav;
+    }
+
     @ExceptionHandler(Exception.class)
     public ModelAndView handleException(Exception e) {
         log.error("[View] 처리되지 않은 예외 발생", e);
