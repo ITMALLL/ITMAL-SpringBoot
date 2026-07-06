@@ -9,6 +9,7 @@ import com.itmal.chat.service.ChatRequestService;
 import com.itmal.chat.service.ChatRoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -34,6 +35,14 @@ public class ChatController {
     public String chat(@AuthenticationPrincipal CustomUserDetails userDetails, Model model) {
         model.addAttribute("currentUserId", userDetails.getUserId());
         return "chat/chat";
+    }
+
+    @MessageMapping("/chat/typing/{otherUserId}")
+    public void typing(@DestinationVariable Long otherUserId, Principal principal) {
+        messagingTemplate.convertAndSend(
+                "/topic/typing/" + otherUserId,
+                (Object) Map.of("senderId", ((CustomUserDetails) ((Authentication) principal).getPrincipal()).getUserId())
+        );
     }
 
     @MessageMapping("/chat")

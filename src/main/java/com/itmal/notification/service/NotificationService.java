@@ -57,15 +57,15 @@ public class NotificationService {
     }
 
     //댓글알림
-    public void createCommentNotification(Long answerId, Long commentId) {
+    public void createCommentNotification(Long answerId, Long commentId, Long commenterId) {
         Long answerOwnerId = notificationMapper.findAnswerId(answerId);
-        if (answerOwnerId != null) {
+        if (answerOwnerId != null && !answerOwnerId.equals(commenterId)) {
             createNotification("COMMENT_CREATED", "COMMENT", commentId, answerOwnerId);
         }
 
-        // 질문 작성자에게도 알림 (답변 작성자와 다를 경우에만)
+        // 질문 작성자에게도 알림 (답변 작성자와 다르고, 댓글 작성자 본인이 아닐 경우에만)
         Long questionOwnerId = notificationMapper.findQuestionOwnerByAnswerId(answerId);
-        if (questionOwnerId != null && !questionOwnerId.equals(answerOwnerId)) {
+        if (questionOwnerId != null && !questionOwnerId.equals(answerOwnerId) && !questionOwnerId.equals(commenterId)) {
             createNotification("COMMENT_CREATED", "COMMENT", commentId, questionOwnerId);
         }
     }

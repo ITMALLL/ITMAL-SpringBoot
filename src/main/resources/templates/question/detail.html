@@ -603,10 +603,21 @@
 <script th:inline="javascript">
   const questionId = /*[[${question.questionId}]]*/ 0;
   const questionUserId = /*[[${question.userId}]]*/ null;
+  const questionNickname = /*[[${question.nickname}]]*/ '';
   const currentUserId = /*[[${currentUserId}]]*/ null;
   const csrfToken = document.querySelector('meta[name="_csrf"]').content;
   const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
   let questionHasAcceptedAnswer = false; // 이 질문에 이미 채택된 답변이 있는지 (중복 채택 방지용)
+
+  // 닉네임 기반 아바타 색상 (마이페이지/댓글 아바타와 동일한 팔레트/방식)
+  const QUESTION_AVATAR_COLORS = ['#5C6BC0', '#26A69A', '#EF5350', '#AB47BC', '#FF7043', '#29B6F6', '#66BB6A', '#FFA726', '#EC407A', '#26C6DA', '#7E57C2', '#8D6E63', '#78909C', '#7CB342'];
+  function getQuestionAvatarColor(nickname) {
+    const code = nickname ? nickname.charCodeAt(0) : 0;
+    return QUESTION_AVATAR_COLORS[code % QUESTION_AVATAR_COLORS.length];
+  }
+  document.querySelectorAll('.author-avatar-sm, .author-avatar-lg').forEach(el => {
+    el.style.backgroundColor = getQuestionAvatarColor(questionNickname);
+  });
 
   // 답변 등록 버튼 (본인 질문이면 버튼 자체가 없음)
   const answerBtn = document.querySelector(".answer-btn");
@@ -670,7 +681,7 @@
               <span class="author-clickable"
                     ${a.nickname ? 'onclick="toggleAnswerProfile(event)"' : ''}
                     style="position:relative; display:inline-flex; align-items:center; gap:10px; ${a.nickname ? 'cursor:pointer;' : ''}">
-                <div class="author-avatar">${esc(initial)}</div>
+                <div class="author-avatar" style="background-color: ${getQuestionAvatarColor(a.nickname || '?')};">${esc(initial)}</div>
                 <div class="author-info">
                   <div class="author-name">${esc(a.nickname || '탈퇴한 회원')}</div>
                 </div>

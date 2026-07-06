@@ -1,5 +1,6 @@
 package com.itmal.global.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -10,6 +11,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.ModelAndView;
 
 
+@Slf4j
 @ControllerAdvice(annotations = {Controller.class})
 
 public class ViewExceptionHandler {
@@ -35,6 +37,16 @@ public class ViewExceptionHandler {
         mav.setStatus(errorCode.getStatus());               // 예: 404
         mav.addObject("status", errorCode.getStatus().value());
         mav.addObject("message", errorCode.getMessage());
+        return mav;
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ModelAndView handleException(Exception e) {
+        log.error("[View] 처리되지 않은 예외 발생", e);
+        ModelAndView mav = new ModelAndView("error/error");
+        mav.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        mav.addObject("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        mav.addObject("message", "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
         return mav;
     }
 
